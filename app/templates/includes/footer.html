@@ -9,11 +9,6 @@
             {% include 'includes/nav_elements.html' %}
         </nav>
 
-        <div class="site-footer__nav">
-            {% for p in listed().values() %}<a href="{{ url('product_detail', slug=p.slug) }}">{{ p.title }}</a>
-            {% endfor %}
-        </div>
-
         <div class="site-footer__social">
             <a href="{{ out(site.INSTAGRAM, 'footer:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}{{ site.INSTAGRAM_HANDLE }}</a>
             <a href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}{{ site.CONTACT_EMAIL }}</a>
@@ -24,7 +19,7 @@
             <small>© {{ now().year }} {{ site.BRAND }}. All rights reserved.</small>
             <a class="site-footer__admin" href="{{ url('privacy') }}">Privacy</a>
             <a class="site-footer__admin" href="{{ url('terms') }}">Terms</a>
-            {% if request.cookies.get('dori_admin') %}<a class="site-footer__admin" href="{{ url('account') }}" rel="nofollow">Account</a>{% else %}<a class="site-footer__admin" href="{{ url('login') }}" rel="nofollow">Sign in</a>{% endif %}
+            <a class="site-footer__admin" href="{{ url('refund') }}">Refunds</a>
         </div>
     </div>
 </footer>

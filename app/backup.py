@@ -2,7 +2,7 @@
 
 Once a day (at BACKUP_HOUR, UTC) it runs `pg_dump` (custom format, already compressed), seals the file with BACKUP_KEY
 (AES-GCM in 4 MiB chunks, so memory stays small) and puts it to the private bucket (BACKUP_S3_*) as
-db/<year>/<month>/dorinella-<time>.dump.enc. The key of the bucket can only write: nothing here lists, reads or deletes,
+db/<year>/<month>/lolakrissss-<time>.dump.enc. The key of the bucket can only write: nothing here lists, reads or deletes,
 and nothing is deleted anywhere — old copies stay until someone removes them (or a lifecycle rule of the bucket does).
 Every run leaves a row in `backup_runs` (shown nowhere); a run that failed is retried in half an hour, and a start
 without a successful backup in the last day backs up at once.
@@ -118,7 +118,7 @@ def client():
 
 
 def object_key(now: datetime) -> str:
-    return f'db/{now:%Y/%m}/dorinella-{now:%Y%m%d-%H%M%S}.dump.enc'
+    return f'db/{now:%Y/%m}/lolakrissss-{now:%Y%m%d-%H%M%S}.dump.enc'
 
 
 def make_backup(now: datetime) -> tuple[str, int]:

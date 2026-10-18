@@ -1,4 +1,4 @@
-"""Analytics of the «Масаж живота» course for the admin.
+"""Analytics of the «Gut Massage» course for the admin.
 
 The period filter is about activity: who did something in that period (from course_answer_log). The funnel, the people table, the
 goals and the ticked contraindications describe those people (their whole progress so far); the techniques and the day chart count
@@ -21,38 +21,38 @@ from .models import AdminUser, CourseAnswer, CourseAnswerLog
 STALLED_AFTER = timedelta(days=7)
 
 STEPS_TABLE = TableSpec('steps', default='order', tiebreak=('order',), columns=(
-    Column('order', 'Крок', attr='order', numeric=True, desc_first=False),
-    Column('passed', 'Пройшли', attr='passed', numeric=True),
-    Column('percent', 'Від активних', attr='percent', numeric=True),
-    Column('lost', 'Відсіялися', attr='lost', numeric=True),
-    Column('median', 'Типовий час на крок', attr='median', numeric=True),
+    Column('order', 'Step', attr='order', numeric=True, desc_first=False),
+    Column('passed', 'Passed', attr='passed', numeric=True),
+    Column('percent', 'Of active', attr='percent', numeric=True),
+    Column('lost', 'Dropped off', attr='lost', numeric=True),
+    Column('median', 'Typical time per step', attr='median', numeric=True),
 ))
 TECHS_TABLE = TableSpec('techs', default='number', tiebreak=('number',), columns=(
-    Column('number', 'Техніка', attr='number', numeric=True, desc_first=False),
-    Column('viewers', 'Дивилися', attr='viewers', numeric=True),
-    Column('completed', 'До кінця', attr='completed', numeric=True),
-    Column('rate', 'Додивилися', attr='rate', numeric=True),
+    Column('number', 'Technique', attr='number', numeric=True, desc_first=False),
+    Column('viewers', 'Watched', attr='viewers', numeric=True),
+    Column('completed', 'To the end', attr='completed', numeric=True),
+    Column('rate', 'Finished', attr='rate', numeric=True),
 ))
 GOALS_TABLE = TableSpec('goals', default='-n', tiebreak=('title',), columns=(
-    Column('title', 'Мета', attr='title'),
-    Column('n', 'Обрали', attr='n', numeric=True),
+    Column('title', 'Goal', attr='title'),
+    Column('n', 'Chose', attr='n', numeric=True),
 ))
 CHECKS_TABLE = TableSpec('checks', default='-n', tiebreak=('label',), columns=(
-    Column('label', 'Пункт', attr='label'),
-    Column('group', 'Група', attr='group'),
-    Column('n', 'Відмітили', attr='n', numeric=True),
+    Column('label', 'Item', attr='label'),
+    Column('group', 'Group', attr='group'),
+    Column('n', 'Ticked', attr='n', numeric=True),
 ))
 PEOPLE_TABLE = TableSpec('people', default='-last', tiebreak=('email',), row_key=('email',), first_take=10, columns=(
-    Column('email', 'Акаунт', attr='email', searchable=True),
-    Column('status', 'Статус', attr='status_rank', filterable=True),
-    Column('next', 'Наступний крок', attr='next_order', filterable=True),
-    Column('done', 'Кроків', attr='done', numeric=True),
-    Column('techs', 'Технік', attr='techs', numeric=True),
-    Column('started', 'Почали', attr='started', desc_first=True),
-    Column('last', 'Остання активність', attr='last', desc_first=True),
+    Column('email', 'Account', attr='email', searchable=True),
+    Column('status', 'Status', attr='status_rank', filterable=True),
+    Column('next', 'Next step', attr='next_order', filterable=True),
+    Column('done', 'Steps', attr='done', numeric=True),
+    Column('techs', 'Techniques', attr='techs', numeric=True),
+    Column('started', 'Started', attr='started', desc_first=True),
+    Column('last', 'Last activity', attr='last', desc_first=True),
 ))
 
-STATUS_LABELS = {'finished': 'Завершили', 'progress': 'У процесі', 'stalled': 'Зупинилися'}
+STATUS_LABELS = {'finished': 'Finished', 'progress': 'In progress', 'stalled': 'Stalled'}
 
 
 @overload
@@ -70,21 +70,21 @@ def span(seconds: float | None) -> str:
         return '—'
     seconds = round(seconds)
     if seconds < 60:
-        return f'{seconds} с'
+        return f'{seconds} s'
     minutes, rest = divmod(seconds, 60)
     if minutes < 60:
-        return f'{minutes} хв {rest:02d} с' if rest else f'{minutes} хв'
+        return f'{minutes} min {rest:02d} s' if rest else f'{minutes} min'
     hours, minutes = divmod(minutes, 60)
     if hours < 24:
-        return f'{hours} год {minutes:02d} хв'
+        return f'{hours} h {minutes:02d} min'
     days, hours = divmod(hours, 24)
-    return f'{days} дн {hours} год'
+    return f'{days} d {hours} h'
 
 
 def _safety_labels() -> dict[str, tuple[str, str]]:
     out = {}
-    block = next(b for b in course.PAGE_BY_SLUG['protypokazannia'].blocks if b.kind == 'safety')
-    for group, items in (('Масаж заборонений', block.d['absolute']), ('Потрібна обережність', block.d['relative'])):
+    block = next(b for b in course.PAGE_BY_SLUG['safety'].blocks if b.kind == 'safety')
+    for group, items in (('Do not massage', block.d['absolute']), ('Be careful', block.d['relative'])):
         for item_id, label, _hint in items:
             out[item_id] = (group, label)
     return out
@@ -186,7 +186,7 @@ async def overview(session: AsyncSession, rng, zone: ZoneInfo, people_view) -> d
                           percent=round(len(done) * 100 / len(pages)), techs=techs, watch=watch, watch_text=span(watch) if watch else '—',
                           started=first_seen[uid], last=last, next=upcoming.slug if upcoming else '',
                           next_order=(pages.index(upcoming) + 1) if upcoming else 99,
-                          next_nav=upcoming.nav if upcoming else 'Завершено'))
+                          next_nav=upcoming.nav if upcoming else 'Completed'))
     scope_n = len(scope)
     steps_rows = []
     for i, p in enumerate(pages):

@@ -1,7 +1,7 @@
 {% extends 'pages/course/base.html' %}
 {% from 'includes/course/_nav.html' import chapters with context %}
 
-{% block title %}{{ page.title }} — Масаж живота | dorinellla{% endblock %}
+{% block title %}{{ page.title }} | Gut Massage | {{ site.BRAND }}{% endblock %}
 {% block description %}{{ page.promise }}{% endblock %}
 
 {% block content %}
@@ -10,7 +10,7 @@
         {% include 'includes/course/_state.html' %}
         <div class="abm-bar">
             <details class="abm-menu">
-                <summary><span class="abm-menu__where">{% if index %}Розділ {{ index }}/{{ pages|length }}{% else %}Для адмінів{% endif %}</span>
+                <summary><span class="abm-menu__where">{% if index %}Section {{ index }}/{{ pages|length }}{% else %}Admins only{% endif %}</span>
                     <span class="abm-menu__title">{{ page.nav }}</span>{{ icon('chevron-down') }}</summary>
                 {{ chapters(pages, groups, page) }}
             </details>
@@ -32,23 +32,23 @@
                 {% if index %}
                     {% set prev_open = previous and (course_unlocked is none or previous.slug in course_unlocked) %}
                     {% set can_finish = following or course_unlocked is none or course_done|length >= pages|length - 1 %}
-                    <nav class="abm-pager" aria-label="Попередня й наступна сторінки">
+                    <nav class="abm-pager" aria-label="Previous and next pages">
                         {% if prev_open %}<a class="abm-pager__link abm-pager__link--prev" href="{{ course.BASE }}{{ previous.slug }}/" rel="prev">
-                            {{ icon('chevron-left') }}<span><small>Назад</small>{{ previous.nav }}</span></a>{% else %}<span></span>{% endif %}
+                            {{ icon('chevron-left') }}<span><small>Back</small>{{ previous.nav }}</span></a>{% else %}<span></span>{% endif %}
                         {% if can_finish %}
                         <form id="abm-complete" method="post" action="{{ course.BASE }}{{ page.slug }}/complete" class="abm-pager__form">
-                            {% if page.slug == 'protypokazannia' %}<p class="abm-pager__need" id="abm-need" role="alert"{% if not need_ack %} hidden{% endif %}>Щоб перейти далі, підтвердьте, що прочитали протипоказання.</p>{% endif %}
+                            {% if page.slug == 'safety' %}<p class="abm-pager__need" id="abm-need" role="alert"{% if not need_ack %} hidden{% endif %}>To move on, please confirm that you have read the contraindications.</p>{% endif %}
                             <button class="abm-pager__link abm-pager__link--next" type="submit" data-abm-next>
-                                <span><small>{{ 'Далі' if following else 'Завершити курс' }}</small>{{ following.nav if following else 'Дякуємо, що дійшли до кінця' }}</span>{{ icon('chevron-right') }}</button>
+                                <span><small>{{ 'Next' if following else 'Finish the course' }}</small>{{ following.nav if following else 'Thank you for making it to the end' }}</span>{{ icon('chevron-right') }}</button>
                         </form>
                         {% else %}
                         <a class="abm-pager__link abm-pager__link--next" href="{{ course.BASE }}">
-                            <span><small>Курс</small>До змісту</span>{{ icon('chevron-right') }}</a>
+                            <span><small>Course</small>Back to the contents</span>{{ icon('chevron-right') }}</a>
                         {% endif %}
                     </nav>
                 {% endif %}
                 <p class="abm-foot">
-                    <span>Курс не замінює консультацію лікаря. Якщо є біль чи сумніви — зверніться до фахівця.</span>
+                    <span>This course does not replace a doctor’s advice. If you have pain or doubts, please see a professional.</span>
                 </p>
             </article>
         </div>

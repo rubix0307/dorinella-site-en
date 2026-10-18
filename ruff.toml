@@ -56,6 +56,7 @@ ignore = [
 "migrations/**" = ["E501", "N999", "I001", "UP", "ERA001", "S608", "RUF012"]
 "scripts/**" = ["T20", "S603", "S607", "S310", "PTH", "E501"]
 "app/article_seed.py" = ["E501"]  # seeded article text
+"app/locale/ru.py" = ["E501"]  # one translated sentence per line, whatever its length
 
 [lint.flake8-quotes]
 inline-quotes = "single"

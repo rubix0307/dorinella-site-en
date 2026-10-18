@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 
-{% block title %}Сторінку не знайдено | dorinellla{% endblock %}
-{% block description %}Такої сторінки не існує.{% endblock %}
+{% block title %}Page not found | {{ site.BRAND }}{% endblock %}
+{% block description %}This page does not exist.{% endblock %}
 
 {% block content %}
     <section class="section not-found" aria-labelledby="nf-title">
         <div class="container container--narrow">
-            <p class="eyebrow">Помилка 404</p>
-            <h1 class="section-title" id="nf-title">Ой, такої сторінки немає</h1>
-            <p class="section-lead">Можливо, посилання застаріло. Поверніться на головну — там усе найважливіше.</p>
+            <p class="eyebrow">Error 404</p>
+            <h1 class="section-title" id="nf-title">Oops, we can't find that page</h1>
+            <p class="section-lead">The link may be old or mistyped. Head back to the home page, where everything important is a click away.</p>
             <div class="hero__actions">
-                <a class="btn btn--primary" href="{{ url('index') }}">На головну{{ icon('arrow-right') }}</a>
+                <a class="btn btn--primary" href="{{ url('index') }}">Back to the home page{{ icon('arrow-right') }}</a>
             </div>
         </div>
     </section>

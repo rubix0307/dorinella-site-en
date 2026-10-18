@@ -37,7 +37,7 @@ async def find_or_create(session: AsyncSession, email: str, name: str = '') -> A
     email = normalize_email(email)
     user = await session.scalar(select(AdminUser).where(func.lower(AdminUser.email) == email))
     if user is None:
-        user = AdminUser(email=email, name=name or None, password_hash=NO_PASSWORD, role='user', session_version=0, onboarding_state='pending')
+        user = AdminUser(email=email, name=name or None, password_hash=NO_PASSWORD, role='user', session_version=0)
         session.add(user)
         try:
             await session.commit()

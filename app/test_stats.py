@@ -1,4 +1,4 @@
-"""Aggregations of the saved test attempts for the admin «Тести» page.
+"""Aggregations of the saved test attempts for the admin Tests page.
 
 Attempts are few (thousands, not millions), so the answers are read once and counted in Python: the JSON of
 answers is the same on SQLite and Postgres that way.
@@ -9,16 +9,10 @@ from dataclasses import dataclass, field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .learn import GUIDES, SELF_TESTS, SelfTest
+from .learn import SELF_TESTS, SelfTest
 from .models import TestAttempt
 from .stats import DateRange
 from .test_attempts import version
-
-
-def title_of(test: SelfTest) -> str:
-    """A guide's checklist is named after its guide (the test's own title is just «Перевірте себе»)."""
-    guide = GUIDES.get(test.guide_slug) if test.guide_slug else None
-    return guide.title if guide else test.title
 
 
 @dataclass
@@ -38,11 +32,10 @@ class TestSummary:
     attempts: int = 0
     people: int = 0
     bands: list[Share] = field(default_factory=list)
-    scales: list[tuple[str, float, int]] = field(default_factory=list)    # (title, mean, reference)
 
     @property
     def title(self) -> str:
-        return title_of(self.test)
+        return self.test.title
 
 
 def _in(rng: DateRange):
@@ -64,12 +57,8 @@ async def _rows(session: AsyncSession, rng: DateRange, slug: str | None = None):
 
 def summarize(rows: list[TestAttempt], test: SelfTest) -> TestSummary:
     summary = TestSummary(test, attempts=len(rows), people=_people(rows))
-    if test.bands:
-        counts = Counter(r.band_key for r in rows)
-        summary.bands = [Share(b.title, counts.get(b.key, 0), len(rows)) for b in reversed(test.bands)]
-    for scale in test.scales:
-        values = [r.scales[scale.key] for r in rows if r.scales and scale.key in r.scales]
-        summary.scales.append((scale.title, sum(values) / len(values) if values else 0.0, scale.reference))
+    counts = Counter(r.band_key for r in rows)
+    summary.bands = [Share(b.title, counts.get(b.key, 0), len(rows)) for b in reversed(test.bands)]
     return summary
 
 

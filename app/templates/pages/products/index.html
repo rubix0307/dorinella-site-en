@@ -1,18 +1,17 @@
 {% extends 'base.html' %}
-{% block schema %}{{ seo.graph(request, seo.page(request, 'Гайди та онлайн-курси', self.description()|trim, 'CollectionPage'), seo.crumbs(request, ('Продукти', request.url.path)), seo.item_list(request, seo.products())) }}{% endblock %}
+{% block schema %}{{ seo.graph(request, seo.page(request, 'Guides and courses', self.description()|trim, 'CollectionPage'), seo.crumbs(request, ('Guides and courses', request.url.path)), seo.item_list(request, seo.products())) }}{% endblock %}
 
-
-{% block title %}Продукти — гайди та курси | dorinellla{% endblock %}
-{% block description %}Гайди та онлайн-курси Дорі: масаж кишківника, менструальний цикл, харчування і стосунки з тілом.{% endblock %}
-{% block og_title %}Продукти dorinellla — гайди та курси{% endblock %}
+{% block title %}Guides and courses | {{ site.BRAND }}{% endblock %}
+{% block description %}Guides and online courses by {{ site.AUTHOR_NAME }}: abdominal self-massage, gut health and gentle, practical habits for your digestion.{% endblock %}
+{% block og_title %}Guides and courses by {{ site.AUTHOR_NAME }}{% endblock %}
 
 {% block content %}
     <section class="section products" aria-labelledby="products-title">
         <div class="container">
             <div class="section-head section-head--center">
-                <p class="eyebrow">Продукти</p>
-                <h1 class="section-title" id="products-title">Гайди та курси</h1>
-                <p class="section-lead">Обери формат, з якого хочеш почати.</p>
+                <p class="eyebrow">Guides and courses</p>
+                <h1 class="section-title" id="products-title">Choose where to start</h1>
+                <p class="section-lead">Pick the format that suits you. Looking for something free? Try the <a href="{{ url('self_test', slug='bristol') }}">Bristol stool scale test</a> or browse the <a href="{{ url('guide_list') }}">guides library</a>.</p>
             </div>
             {% with card_heading = 'h2' %}{% include 'includes/product_cards.html' %}{% endwith %}
         </div>

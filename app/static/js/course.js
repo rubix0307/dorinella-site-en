@@ -1,4 +1,4 @@
-// «Масаж живота»: small progressive enhancements of the course pages. Every page reads fully without this script.
+// «Gut Massage»: small progressive enhancements of the course pages. Every page reads fully without this script.
 // Answers (the safety confirmation, ticked lists, the chosen goal) and the progress live in the database: the page arrives with them
 // (#abm-state) and every change is sent to the server, which keeps it with the time. Nothing about the course is kept in the browser.
 (() => {
@@ -66,7 +66,7 @@
             save('safety', { ack: true }).then(paintAck); paintAck(); lock();
             box.classList.remove('is-need');
         });
-        // «Далі» without the confirmation: point at it instead of leaving
+        // «Next» without the confirmation: point at it instead of leaving
         const box = safety.querySelector('[data-ack-box]');
         const next = document.querySelector('[data-abm-next]');
         const demand = () => {
@@ -110,7 +110,7 @@
     smooth($$('.abm-q'), true);
     smooth($$('.abm-stoplist'), false);
 
-    // ---------- the start page: a big sticky «Продовжити» whenever the one at the top is out of sight ----------
+    // ---------- the start page: a big sticky «Continue» whenever the one at the top is out of sight ----------
     const ctaTop = root.querySelector('[data-cta-top]'), ctaSticky = root.querySelector('[data-cta-sticky]');
     if (ctaTop && ctaSticky && 'IntersectionObserver' in window) {
         const sticky = ctaSticky.querySelector('a');
@@ -212,7 +212,7 @@
                 spread = !spread;
                 retarget(true);
                 eye.setAttribute('aria-pressed', spread ? 'true' : 'false');
-                eye.setAttribute('aria-label', spread ? 'Сховати підписи' : 'Показати всі підписи');
+                eye.setAttribute('aria-label', spread ? 'Hide labels' : 'Show all labels');
                 eye.title = eye.getAttribute('aria-label');
                 eye.firstElementChild.outerHTML = spread ? eye.dataset.off : eye.dataset.on;
             });
@@ -257,7 +257,7 @@
         const count = list.querySelector('[data-count]');
         const have = new Set(saved('list.' + id, []));
         boxes.forEach((b) => { b.checked = have.has(b.dataset.id); });
-        const update = () => { count.textContent = `${boxes.filter((b) => b.checked).length} з ${boxes.length}`; };
+        const update = () => { count.textContent = `${boxes.filter((b) => b.checked).length} of ${boxes.length}`; };
         update();
         boxes.forEach((b) => b.addEventListener('change', () => {
             save('list.' + id, boxes.filter((x) => x.checked).map((x) => x.dataset.id));
@@ -286,7 +286,7 @@
                 o.connect(g); g.connect(audio.destination); o.start(at); o.stop(at + 1.2);
             });
         };
-        // the signal repeats for about ten seconds, or until «Зупинити» / a new timer / mute
+        // the signal repeats for about ten seconds, or until «Stop» / a new timer / mute
         let ringing = 0;
         const hush = () => { clearInterval(ringing); ringing = 0; };
         const ring = () => {
@@ -299,7 +299,7 @@
             muted = !muted;
             if (muted) hush();
             mute.setAttribute('aria-pressed', muted ? 'true' : 'false');
-            mute.setAttribute('aria-label', muted ? 'Увімкнути звук' : 'Вимкнути звук');
+            mute.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
             mute.firstElementChild.outerHTML = muted ? mute.dataset.off : mute.dataset.on;
         });
         const fmt = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -310,8 +310,8 @@
             if (left <= 0) {
                 clearInterval(tick); tick = 0;
                 panel.classList.add('is-done');
-                timeEl.textContent = 'Готово!';
-                live.textContent = `${label}: час настоювання минув.`;
+                timeEl.textContent = 'Done!';
+                live.textContent = `${label}: the steeping time is up.`;
                 ring();
                 try { navigator.vibrate && navigator.vibrate([200, 100, 200, 200, 100, 200]); } catch (e) { /* ignore */ }
             }
@@ -326,7 +326,7 @@
                 nameEl.textContent = label;
                 panel.classList.remove('is-done');
                 panel.hidden = false;
-                live.textContent = `Таймер запущено: ${b.dataset.startTimer} хвилин.`;
+                live.textContent = `Timer started: ${b.dataset.startTimer} minutes.`;
                 step();
                 tick = setInterval(step, 500);
             });

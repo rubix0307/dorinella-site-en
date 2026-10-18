@@ -1,102 +1,64 @@
 {% extends 'base.html' %}
-{% from 'includes/articles/_card.html' import card %}
-{% block og_description %}Міні-курси, гайди з чек-листами й тести про кишківник, цикл і стосунки з їжею.{% endblock %}
-{% block schema %}{{ seo.graph(request, seo.page(request, 'Корисне: курси, гайди й тести', self.description()|trim, 'CollectionPage'), seo.crumbs(request, ('Корисне', request.url.path))) }}{% endblock %}
+{% block schema %}{{ seo.graph(request, seo.page(request, 'Guides and tests', self.description()|trim, 'CollectionPage'), seo.crumbs(request, ('Guides', request.url.path))) }}{% endblock %}
 
-
-{% block title %}Корисне — міні-курси, гайди та тести | dorinellla{% endblock %}
-{% block description %}Міні-курси від нутриціолога Дорі про здоров’я кишківника та менструальне здоров’я, практичні гайди з чек-листами (культ вигорання, пастка страждання, контроль через їжу), а також тести: робота кишківника, сигнали циклу, харчова поведінка (DEBQ).{% endblock %}
-{% block og_title %}Корисне від Дорі — міні-курси, гайди та тести{% endblock %}
-{% block preload %}{% if newest %}<link rel="stylesheet" href="{{ static('css/articles.css') }}"><link rel="stylesheet" href="{{ static('css/reviews.css') }}">{% endif %}{% endblock %}
+{% block title %}Guides and tests for gut health | {{ site.BRAND }}{% endblock %}
+{% block description %}A free starter guide to everyday gut habits, the Gut Massage Guide, and a Bristol stool scale test that explains your result in plain language.{% endblock %}
+{% block og_title %}Gut health guides and the Bristol stool test | {{ site.BRAND }}{% endblock %}
 
 {% block content %}
     <section class="hero hero--compact" aria-labelledby="hero-title">
         <div class="container hero__inner hero__inner--single">
             <div class="hero__text">
-                <p class="eyebrow">Корисне</p>
-                <h1 class="hero__title" id="hero-title">Корисні <em>матеріали</em></h1>
-                <p class="hero__lead">Відеоуроки, матеріали та тести, з яких зручно почати знайомство з темою — у своєму темпі.</p>
+                <p class="eyebrow">Library</p>
+                <h1 class="hero__title" id="hero-title">Guides and <em>tests</em></h1>
+                <p class="hero__lead">Calm, practical gut health information you can read at your own pace. It is educational and never a substitute for a doctor.</p>
                 <div class="hero__actions">
-                    <a class="btn btn--primary" href="#courses">Міні-курси{{ icon('arrow-right') }}</a>
-                    <a class="btn btn--ghost" href="#guides">Гайди</a>
-                    <a class="btn btn--ghost" href="#tests">Пройти тест</a>
+                    <a class="btn btn--primary" href="#guides">Browse the guides{{ icon('arrow-right') }}</a>
+                    <a class="btn btn--ghost" href="#tests">Take the Bristol test</a>
                 </div>
             </div>
         </div>
     </section>
 
-    {% if newest %}
-    <section class="section" id="articles" aria-labelledby="articles-title">
+    <section class="section" id="guides" aria-labelledby="guides-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Статті</p>
-                <h2 class="section-title" id="articles-title">Нове в статтях</h2>
-                <p class="section-lead"><a class="btn btn--ghost btn--sm" href="{{ url('articles') }}">Дивитися всі статті{{ icon('arrow-right') }}</a></p>
-            </div>
-            <div class="art-grid">{% for item in newest %}{{ card(item, covers.get(item.article.id), img, ratings) }}{% endfor %}</div>
-        </div>
-    </section>
-    {% endif %}
-
-    <section class="section" id="courses" aria-labelledby="courses-title">
-        <div class="container">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Міні-курси</p>
-                <h2 class="section-title" id="courses-title">Три уроки — і вже є результат</h2>
-            </div>
-            <ul class="free-grid" role="list">
-                {% for course in courses.values() %}
-                    <li class="free-card {{ course.theme }}" data-reveal>
-                        <span class="icon-badge">{{ icon(course.icon) }}</span>
-                        <p class="free-card__meta">{{ icon('video') }}{{ course.lessons|length }} відеоуроки · матеріали{% if course.lessons|selectattr('homework')|list %} · завдання{% endif %}</p>
-                        <h3 class="free-card__title">{{ course.title }}</h3>
-                        <p class="free-card__text">{{ course.tagline }}</p>
-                        <ol class="free-card__lessons" role="list">
-                            {% for lesson in course.lessons %}<li><span>{{ lesson.number }}</span>{{ lesson.title }}</li>
-                            {% endfor %}
-                        </ol>
-                        <a class="btn btn--primary" href="{{ url('learn_course', slug=course.slug) }}">Почати курс{{ icon('arrow-right') }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </section>
-
-    <section class="section section--tinted" id="guides" aria-labelledby="guides-title">
-        <div class="container">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Гайди</p>
-                <h2 class="section-title" id="guides-title">Короткі гайди з чек-листом</h2>
-                <p class="section-lead">Прочитайте за 5 хвилин, пройдіть тест картка за карткою — і отримайте покроковий план.</p>
+                <p class="eyebrow">Guides</p>
+                <h2 class="section-title" id="guides-title">Read, then try it gently</h2>
             </div>
             <ul class="free-grid free-grid--guides" role="list">
                 {% for guide in guides.values() %}
-                    <li class="free-card free-card--guide" data-reveal>
+                    {% set locked = guide.paid and guide.slug not in owned %}
+                    <li class="free-card free-card--guide{% if locked %} is-locked{% endif %}" data-reveal>
                         <span class="icon-badge">{{ icon(guide.icon) }}</span>
-                        <p class="free-card__meta">{{ icon('book-open-text') }}Гайд · тест на {{ guide.test.questions|length }} карток · {{ guide.steps|length }} {{ 'кроки' if guide.steps|length < 5 else 'кроків' }}</p>
+                        <p class="free-card__meta">
+                            {% if not guide.paid %}{{ icon('book-open-text') }}Free guide
+                            {% elif locked %}{{ icon('lock') }}Paid guide
+                            {% else %}{{ icon('circle-check') }}Yours{% endif %}
+                        </p>
                         <h3 class="free-card__title">{{ guide.title }}</h3>
                         <p class="free-card__text">{{ guide.tagline }}</p>
-                        <a class="btn btn--primary" href="{{ url('learn_guide', slug=guide.slug) }}">Читати гайд{{ icon('arrow-right') }}</a>
+                        <a class="btn {{ 'btn--ghost' if locked else 'btn--primary' }}" href="{{ url('guide', slug=guide.slug) }}">{% if locked %}See what is inside{% else %}Read the guide{% endif %}{{ icon('arrow-right') }}</a>
                     </li>
                 {% endfor %}
             </ul>
         </div>
     </section>
 
-    <section class="section" id="tests" aria-labelledby="tests-title">
+    <section class="section section--tinted" id="tests" aria-labelledby="tests-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Тести</p>
-                <h2 class="section-title" id="tests-title">Перевір себе за пару хвилин</h2>
+                <p class="eyebrow">Test</p>
+                <h2 class="section-title" id="tests-title">What is your stool telling you?</h2>
             </div>
             <ul class="free-grid" role="list">
                 {% for test in tests.values() %}
                     <li class="free-card free-card--test {{ test.theme }}" data-reveal>
                         <span class="icon-badge">{{ icon('circle-help') }}</span>
-                        <p class="free-card__meta">{{ icon('clock') }}{{ test.questions|length }} запитань · ~{{ test.minutes }} хв</p>
+                        <p class="free-card__meta">{{ icon('clock') }}{{ test.questions|length }} questions · about {{ test.minutes }} min</p>
                         <h3 class="free-card__title">{{ test.title }}</h3>
                         <p class="free-card__text">{{ test.tagline }}</p>
-                        <a class="btn btn--primary" href="{{ url('self_test', slug=test.slug) }}">Пройти тест{{ icon('arrow-right') }}</a>
+                        <a class="btn btn--primary" href="{{ url('self_test', slug=test.slug) }}">Take the test{{ icon('arrow-right') }}</a>
                     </li>
                 {% endfor %}
             </ul>

@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% block schema %}{{ seo.graph(request, seo.guide(request, guide), seo.crumbs(request, ('Корисне', '/learn/'), (guide.title, request.url.path))) }}{% endblock %}
+{% block schema %}{{ seo.graph(request, seo.guide(request, guide), seo.crumbs(request, ('Guides', '/guides/'), (guide.title, request.url.path))) }}{% endblock %}
 
-
-{% block title %}Гайд «{{ guide.title }}» | dorinellla{% endblock %}
-{% block description %}{{ guide.subtitle }}. Чек-лист самодіагностики, покроковий план і щоденні фокус-питання.{% endblock %}
-{% block og_title %}Гайд: {{ guide.title }}{% endblock %}
+{% block title %}{{ guide.title }} | {{ site.BRAND }}{% endblock %}
+{% block description %}{{ guide.subtitle }}.{% endblock %}
+{% block og_title %}{{ guide.title }}{% endblock %}
 {% block og_description %}{{ guide.subtitle }}{% endblock %}
-{% block og_image_alt %}Гайд «{{ guide.title }}»{% endblock %}
+{% block og_image_alt %}{{ guide.title }}{% endblock %}
+{% block og_image %}{{ static(product.og_image if product else 'img/og-default.jpg') }}{% endblock %}
 
 {% macro section_block(section) %}
     <section class="guide__section" data-reveal="quick">
@@ -20,20 +20,19 @@
 {% block content %}
     <article class="section guide" aria-labelledby="guide-title">
         <div class="container container--narrow">
-            <nav class="breadcrumbs" aria-label="Навігація">
-                <a href="{{ url('learn_index') }}">Корисне</a>
-                <span aria-hidden="true">/</span>
-                <a href="{{ url('learn_index') }}#guides">Гайди</a>
+            <nav class="breadcrumbs" aria-label="Breadcrumbs">
+                <a href="{{ url('guide_list') }}">Library</a>
                 <span aria-hidden="true">/</span>
                 <span aria-current="page">{{ guide.title }}</span>
             </nav>
 
             <header class="guide__head">
                 <span class="icon-badge">{{ icon(guide.icon) }}</span>
-                <p class="eyebrow">Практичний гайд</p>
+                <p class="eyebrow">
+                    {% if not guide.paid %}Free guide{% elif unlocked %}Your guide{% else %}Paid guide{% endif %}
+                </p>
                 <h1 class="section-title" id="guide-title">{{ guide.title }}</h1>
                 <p class="section-lead">{{ guide.subtitle }}</p>
-                <a class="btn btn--primary" href="#test">{{ icon('list-checks') }}Пройти чек-лист</a>
             </header>
 
             <aside class="guide__callout" data-reveal="quick">
@@ -41,55 +40,72 @@
                 <p>{{ guide.key_idea[1] }}</p>
             </aside>
 
-            {% for section in guide.sections %}{{ section_block(section) }}{% endfor %}
+            {% if unlocked %}
+                {% for section in guide.sections %}{{ section_block(section) }}{% endfor %}
 
-            <section class="guide__section guide__test" id="test" aria-labelledby="test-title">
-                <p class="eyebrow">Тест · {{ test.questions|length }} карток · ~{{ test.minutes }} хв</p>
-                <h2 class="guide__h2" id="test-title">{{ guide.test_title }}</h2>
-                <p class="guide__test-intro">{{ test.intro }}</p>
-                {% include 'includes/test_form.html' %}
-            </section>
-
-            {% for section in guide.after_test %}{{ section_block(section) }}{% endfor %}
-
-            <section class="guide__section" data-reveal="quick">
-                <h2 class="guide__h2">{{ guide.steps_title }}</h2>
-                <ol class="guide-steps" role="list">
-                    {% for title, text in guide.steps %}
-                        <li class="guide-steps__item">
-                            <span class="guide-steps__num" aria-hidden="true">{{ loop.index }}</span>
-                            <div>
-                                <h3 class="guide-steps__title">{{ title }}</h3>
-                                <p>{{ text }}</p>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ol>
-            </section>
-
-            <section class="guide__section" data-reveal="quick">
-                <h2 class="guide__h2">{{ guide.focus_title }}</h2>
-                <div class="guide__focus">
-                    <p class="guide__focus-intro">{{ guide.focus_intro }}</p>
-                    <ol class="guide__focus-list">
-                        {% for question in guide.focus_questions %}<li>{{ question }}</li>
+                <section class="guide__section" data-reveal="quick">
+                    <h2 class="guide__h2">{{ guide.steps_title }}</h2>
+                    <ol class="guide-steps" role="list">
+                        {% for title, text in guide.steps %}
+                            <li class="guide-steps__item">
+                                <span class="guide-steps__num" aria-hidden="true">{{ loop.index }}</span>
+                                <div>
+                                    <h3 class="guide-steps__title">{{ title }}</h3>
+                                    <p>{{ text }}</p>
+                                </div>
+                            </li>
                         {% endfor %}
                     </ol>
-                </div>
-            </section>
+                </section>
 
-            <blockquote class="guide__conclusion" data-reveal="quick">
-                {{ icon('quote') }}
-                <p><strong>Головний висновок.</strong> {{ guide.conclusion }}</p>
-            </blockquote>
+                <section class="guide__section" data-reveal="quick">
+                    <h2 class="guide__h2">{{ guide.focus_title }}</h2>
+                    <div class="guide__focus">
+                        <p class="guide__focus-intro">{{ guide.focus_intro }}</p>
+                        <ol class="guide__focus-list">
+                            {% for question in guide.focus_questions %}<li>{{ question }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                </section>
+
+                <blockquote class="guide__conclusion" data-reveal="quick">
+                    {{ icon('quote') }}
+                    <p><strong>The takeaway.</strong> {{ guide.conclusion }}</p>
+                </blockquote>
+
+                {% if not guide.paid %}
+                    <aside class="guide__test-cta" data-reveal="quick">
+                        <h2 class="guide__h2">Curious where you are on the scale?</h2>
+                        <p>The Bristol stool test takes about a minute and explains your result in plain language.</p>
+                        <a class="btn btn--primary" href="{{ url('self_test', slug='bristol') }}">{{ icon('circle-help') }}Take the Bristol test</a>
+                    </aside>
+                {% endif %}
+            {% else %}
+                {% for section in guide.sections[:guide.preview_sections] %}{{ section_block(section) }}{% endfor %}
+
+                <section class="guide__section guide-lock" aria-labelledby="lock-title" data-reveal="quick">
+                    <h2 class="guide__h2" id="lock-title">{{ icon('lock') }}The rest of the guide is for readers</h2>
+                    <p>Here is what you will find inside:</p>
+                    <ul class="guide-lock__list">
+                        {% for item in guide.highlights %}<li>{{ icon('circle-check') }}<span>{{ item }}</span></li>{% endfor %}
+                    </ul>
+                    {% if buy_open %}
+                        <a class="btn btn--primary" href="{{ url('product_detail', slug=product.slug) }}">{{ icon('lock') }}Get the guide{% if price %} · {{ price }}{% endif %}</a>
+                    {% elif product and product.public %}
+                        <p class="guide-lock__soon"><strong>Coming soon.</strong> The guide is not on sale yet.</p>
+                        <a class="btn btn--ghost" href="{{ url('product_detail', slug=product.slug) }}">About the guide{{ icon('arrow-right') }}</a>
+                    {% endif %}
+                </section>
+            {% endif %}
 
             {% set others = guides.values()|rejectattr('slug', 'equalto', guide.slug)|list %}
             {% if others %}
-                <nav class="guide__more" aria-label="Інші гайди" data-reveal="quick">
-                    <h2 class="guide__h2">Інші гайди</h2>
+                <nav class="guide__more" aria-label="More guides" data-reveal="quick">
+                    <h2 class="guide__h2">More guides</h2>
                     <ul class="guide__more-list" role="list">
                         {% for other in others %}
-                            <li><a class="guide-link" href="{{ url('learn_guide', slug=other.slug) }}">
+                            <li><a class="guide-link" href="{{ url('guide', slug=other.slug) }}">
                                 <span class="icon-badge">{{ icon(other.icon) }}</span>
                                 <span><strong>{{ other.title }}</strong><small>{{ other.subtitle }}</small></span>
                                 {{ icon('arrow-right') }}

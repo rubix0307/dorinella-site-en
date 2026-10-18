@@ -1,4 +1,4 @@
-/* «Масаж живота» course (app/course.py). Linked only from the course templates; the animated figure reuses .mplayer* of styles.css.
+/* «Gut Massage» course (app/course.py). Linked only from the course templates; the animated figure reuses .mplayer* of styles.css.
    Mobile first: one column; ≥1024px a sticky chapter list on the left; the player page puts the figure beside the steps from 900px. */
 
 .abm { --abm-bar-h: 52px; --stop: #B3382F; --stop-bg: #FBE9E7; --warn: #8A5A12; --warn-bg: #FBF1DC; --ok: #2F6B3E;
@@ -353,12 +353,12 @@ html:not(.js) .abm-hint, html:not(.js) .abm-ctl, html:not(.js) .abm-player, html
 }
 @media (max-width: 340px) { .abm-ctl__sep { display: none; } }
 
-/* the steeping timer: a mute switch beside «Зупинити» */
+/* the steeping timer: a mute switch beside «Stop» */
 .abm-iconbtn { display: grid; flex: none; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink); cursor: pointer; }
 .abm-iconbtn .icon { width: 18px; height: 18px; }
 .abm-iconbtn[aria-pressed="true"] { color: var(--muted); background: var(--surface-2); }
 
-/* «Масаж під вашу мету» */
+/* «Massage for your goal» */
 .abm-goal { padding: 0; overflow: hidden; }
 .abm-goal__head { padding: 1.25rem 1.25rem 1rem; border-bottom: 1px solid var(--line); background: var(--accent-soft); }
 .abm-goal__head h2 { margin: 0 0 .15rem; }
@@ -387,7 +387,6 @@ a.abm-route__item:hover { border-color: var(--accent); background: var(--accent-
 .abm-drink { display: flex; flex-direction: column; gap: 1.6rem; padding: 1.35rem; border-radius: var(--radius-lg); }
 .abm-drink__head { display: block; padding-bottom: .85rem; border-bottom: 1px solid var(--line); }
 .abm-drink__h { display: block; margin: 0; font-size: 1.7rem; line-height: 1.15; }
-.abm-drink__en { margin: .2rem 0 0; color: var(--muted); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 .abm-drink__label { display: block; margin-bottom: .45rem; color: var(--accent-text); font-size: var(--fs-xs); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .abm-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0; padding: 0; list-style: none; }
 .abm-tags li { padding: .3rem .7rem; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--ink); font-size: var(--fs-sm); line-height: 1.3; }
@@ -461,7 +460,7 @@ body.abm-theme { overflow-x: clip; overflow-y: visible; }
 .abm-drink__head { padding-bottom: 1.1rem; }
 .abm-drink__label { margin-bottom: .65rem; }
 
-/* the sticky «Продовжити» of the start page */
+/* the sticky «Continue» of the start page */
 .abm--home { padding-bottom: 1.5rem; }
 .abm-sticky { position: sticky; bottom: 0; z-index: 30; height: 5.5rem; margin-top: 1rem; pointer-events: none; }
 .abm-sticky.is-on .abm-sticky__btn { transform: translateX(-50%); opacity: 1; }

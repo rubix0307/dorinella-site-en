@@ -1,13 +1,9 @@
 (function () {
     'use strict';
 
-    /* the "skip to content" link of base.html: the page's <main> is its target (a soft page change brings a new <main>) */
-    const markMain = () => {
-        const main = document.querySelector('main.admin-main');
-        if (main) { main.id = 'admin-content'; main.tabIndex = -1; }
-    };
-    markMain();
-    document.addEventListener('admin:page', markMain);
+    /* the "skip to content" link of base.html: the page's <main> is its target */
+    const main = document.querySelector('main.admin-main');
+    if (main) { main.id = 'admin-content'; main.tabIndex = -1; }
 
     /* ---------- time zone: the server counts days and hours in the browser's zone ---------- */
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -15,7 +11,7 @@
     const rendered = document.querySelector('[data-tz]')?.dataset.tzAsked;
     if (zone) {
         document.cookie = `admin_tz=${zone}; path=/admin; max-age=31536000; samesite=lax`;   // IANA names are cookie-safe
-        document.querySelectorAll('[data-browser-zone]').forEach((option) => { option.textContent = `Часовий пояс браузера (${zone})`; });
+        document.querySelectorAll('[data-browser-zone]').forEach((option) => { option.textContent = t('Browser time zone (%(zone)s)', {zone}); });
         let tried = false;
         try { tried = sessionStorage.getItem('admin-tz') === zone; } catch { /* storage blocked */ }
         if (rendered && rendered !== zone && !tried) {        // rendered in another zone: once more, in ours
@@ -25,25 +21,17 @@
         }
     }
 
-    /* the tabs of a section scroll sideways on a phone: bring the current one into view */
-    const showCurrentTab = () => document.querySelectorAll('.tg-tabs [aria-current="page"]').forEach((tab) => {
-        const row = tab.parentElement;
-        row.scrollLeft = Math.max(0, tab.offsetLeft - (row.clientWidth - tab.offsetWidth) / 2);
-    });
-    showCurrentTab();
-    document.addEventListener('admin:page', showCurrentTab);        // a page of a section came in place of another (admin-soft.js)
-
     const SVG = 'http://www.w3.org/2000/svg';
     // the lines of each chart a tile can pick (colours validated for CVD and contrast, see admin.css)
     const CHART_SERIES = {
-        views: [{key: 'v', name: 'Перегляди', colorVar: '--chart-views', area: true}],
-        visitors: [{key: 'v', name: 'Відвідувачі', colorVar: '--chart-visitors', area: true}],
+        views: [{key: 'v', name: t('Views'), colorVar: '--chart-views', area: true}],
+        visitors: [{key: 'v', name: t('Visitors'), colorVar: '--chart-visitors', area: true}],
         clicks: [
-            {key: 'c', name: 'Переходи', colorVar: '--chart-clicks', area: true},
-            {key: 'u', name: 'Унікальні', colorVar: '--chart-visitors'},
+            {key: 'c', name: t('Clicks'), colorVar: '--chart-clicks', area: true},
+            {key: 'u', name: t('Unique'), colorVar: '--chart-visitors'},
         ],
     };
-    const WEEKDAYS = ['нд', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+    const weekday = (d) => d.toLocaleDateString(adminLang, {weekday: 'short'});
 
     const el = (name, attrs = {}, parent = null) => {
         const node = document.createElementNS(SVG, name);
@@ -141,8 +129,8 @@
             scroller.className = 'chart-scroll';
         }
         const svg = el('svg', {viewBox: `0 0 ${svgW} ${height}`, width: svgW, height, role: 'img', tabindex: '0',
-            'aria-label': `Графік: ${SERIES.map((s) => s.name.toLowerCase()).join(', ')}, ${oneDay
-                ? 'кожні 15 хвилин, прокручується в минулі дні' : 'кожні 4 години'}. Стрілки ← → показують значення.`});
+            'aria-label': t('Chart: %(series)s, %(step)s. The arrow keys show the values.', {series: SERIES.map((s) => s.name.toLowerCase()).join(', '),
+                step: oneDay ? t('every 15 minutes, scrolls back through earlier days') : t('every 4 hours')})});
         scroller.replaceChildren(svg);
 
         for (let v = 0; v <= top; v += yStep) el('line', {class: 'grid', x1: m.left, x2: m.left + plotW, y1: y(v), y2: y(v)}, svg);
@@ -155,11 +143,11 @@
                 const x0 = x(d * perDay);
                 if (d) el('line', {class: 'day-line', x1: x0 - unit / 2, x2: x0 - unit / 2, y1: 4, y2: m.top + h}, svg);
                 const label = el('text', {class: 'day-label', x: x0 + 2, y: 14}, svg);
-                label.textContent = `${WEEKDAYS[day.getDay()]}, ${dayMonth(day)}`;
+                label.textContent = `${weekday(day)}, ${dayMonth(day)}`;
                 if (d === 0 && atHistoryStart) {   // nothing was recorded before this day
                     el('line', {class: 'history-line', x1: x0, x2: x0, y1: 4, y2: m.top + h}, svg);
                     const start = el('text', {class: 'history-label', x: x0 + 6, y: m.top + 14}, svg);
-                    start.textContent = 'Початок історії';
+                    start.textContent = t('Start of history');
                 }
                 if (d < loadedFrom) {        // not loaded yet: a quiet placeholder band
                     el('rect', {class: 'day-pending', x: x0, y: m.top, width: perDay * unit, height: h}, svg);
@@ -200,7 +188,7 @@
         if (m.right > 40 && apart) {
             ends.forEach(({value, y: ly}) => {
                 const t = el('text', {class: 'end-label', x: x(slots[slots.length - 1]) + 10, y: ly + 4}, svg);
-                t.textContent = value.toLocaleString('uk-UA');
+                t.textContent = value.toLocaleString(adminLang);
             });
         }
 
@@ -210,7 +198,7 @@
         el('rect', {x: 0, y: 0, width: m.left, height, fill: surface}, yAxis);
         for (let v = 0; v <= top; v += yStep) {
             const t = el('text', {class: 'axis-text', x: m.left - 8, y: y(v) + 4, 'text-anchor': 'end'}, yAxis);
-            t.textContent = v.toLocaleString('uk-UA');
+            t.textContent = v.toLocaleString(adminLang);
         }
 
         // hover layer
@@ -243,7 +231,7 @@
             const at = parseAt(d.d);
             const date = document.createElement('p');
             date.className = 'chart-tooltip__date';
-            date.textContent = `${WEEKDAYS[at.getDay()]}, ${dayMonth(at)} · ${hhmm(at)}–${hhmm(new Date(at.getTime() + (step - 1) * 60000))}`;
+            date.textContent = `${weekday(at)}, ${dayMonth(at)} · ${hhmm(at)}–${hhmm(new Date(at.getTime() + (step - 1) * 60000))}`;
             const rows = SERIES.map((s) => {                 // value leads, series name follows
                 const row = document.createElement('div');
                 row.className = 'chart-tooltip__row';
@@ -251,7 +239,7 @@
                 key.className = 'chart-tooltip__key';
                 key.style.background = color(s);
                 const value = document.createElement('strong');
-                value.textContent = d[s.key].toLocaleString('uk-UA');
+                value.textContent = d[s.key].toLocaleString(adminLang);
                 const name = document.createElement('span');
                 name.textContent = s.name;
                 row.append(key, value, name);
@@ -435,8 +423,7 @@
         }
     });
 
-    /* ---------- «Свої дати»: a panel with two dates, a live day count and quick picks ---------- */
-    const DAYS_WORD = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'день' : n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14) ? 'дні' : 'днів');
+    /* ---------- custom dates: a panel with two dates, a live day count and quick picks ---------- */
     document.addEventListener('input', (e) => {
         const panel = e.target.closest('[data-period-custom]');
         if (!panel) return;
@@ -446,7 +433,7 @@
         from.max = to.value;
         const count = panel.querySelector('[data-period-count]');
         const days = from.value && to.value ? Math.round((new Date(to.value) - new Date(from.value)) / 864e5) + 1 : 0;
-        count.textContent = days > 0 ? `${days} ${DAYS_WORD(days)}` : 'Кінець раніше за початок';
+        count.textContent = days > 0 ? t(days === 1 ? '%(n)s day' : '%(n)s days', {n: days}) : t('The end is before the start');
         count.classList.toggle('is-bad', days <= 0);
     });
     document.addEventListener('click', (e) => {
@@ -475,44 +462,6 @@
             const open = document.querySelector('[data-period-custom][open]');
             if (open) { open.open = false; open.querySelector('summary').focus(); }
         }
-    });
-
-    /* ---------- reviews: the history of a changed review opens in a dialog (a live refresh waits while it is open) ---------- */
-    document.addEventListener('click', (e) => {
-        const button = e.target.closest('[data-review-history]');
-        if (button) document.getElementById(button.dataset.reviewHistory)?.showModal();
-        else if (e.target.matches?.('dialog.rev-history')) e.target.close();      // a click on the backdrop
-    });
-
-    /* ---------- reviews: approve / archive / restore redraw just that card (no reload, the scroll stays). A card that no longer fits the
-       filter stays on the page until the filter is changed or the page is reloaded: `kept` is sent with the live refreshes so they keep it too ---------- */
-    const kept = new Set();
-    document.addEventListener('submit', async (e) => {
-        const form = e.target.closest?.('.rev__actions form');
-        if (!form) return;
-        e.preventDefault();
-        const card = form.closest('.rev');
-        const buttons = card.querySelectorAll('.rev__actions button');
-        buttons.forEach((b) => { b.disabled = true; });
-        try {
-            const response = await fetch(form.action, {method: 'POST', body: new URLSearchParams(new FormData(form)), credentials: 'same-origin',
-                headers: {'X-Requested-With': 'fetch', Accept: 'text/html'}});
-            if (!response.ok || response.redirected) { form.submit(); return; }          // session gone, or anything unexpected: the plain form post
-            const fresh = new DOMParser().parseFromString(await response.text(), 'text/html').querySelector('.rev');
-            if (!fresh) { form.submit(); return; }
-            kept.add(card.id.replace('review-', ''));
-            card.replaceWith(fresh);
-        } catch {
-            buttons.forEach((b) => { b.disabled = false; });
-        }
-    });
-
-    document.addEventListener('submit', async (e) => {
-        const form = e.target.closest?.('[data-ai-run]');
-        if (!form) return;
-        e.preventDefault();
-        form.querySelector('button').disabled = true;
-        try { await fetch(form.action, {method: 'POST', credentials: 'same-origin', headers: {'X-Requested-With': 'fetch'}}); } catch { /* the live refresh shows the state anyway */ }
     });
 
     /* ---------- filters, sorting and search: the server renders, we swap the blocks in ---------- */
@@ -563,7 +512,6 @@
             start: focused.selectionStart, end: focused.selectionEnd} : null;
         const openDetails = [...results.querySelectorAll('details[data-admin-keep-open][open]')].map((d) => d.dataset.adminKeepOpen);
         const scrolls = [...results.querySelectorAll('.admin-table-wrap')].map((w) => w.scrollTop);
-        if (push) kept.clear();                                  // a new filter: the cards touched so far fall back into their places
         const before = snapshotNumbers();
         if (!silent) results.classList.add('is-loading');      // keep the previous render, dimmed
         try {
@@ -609,13 +557,13 @@
     // the live badge is part of the swapped block, so its state is re-applied after every render
     let connected = true;              // optimistic: shown as live unless connecting takes a while
     let updatedAt = null;
-    const time = (d) => d.toLocaleTimeString('uk-UA', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    const time = (d) => d.toLocaleTimeString(adminLang, {hour: '2-digit', minute: '2-digit', second: '2-digit'});
     function stamp(fresh = true) {
         if (fresh) updatedAt = new Date();
         const badge = results?.querySelector('[data-admin-live]');
         if (!badge) return;
         badge.classList.toggle('is-on', connected);
-        badge.textContent = !connected ? 'Підключення…' : updatedAt ? `Наживо · оновлено ${time(updatedAt)}` : 'Наживо';
+        badge.textContent = !connected ? t('Connecting…') : updatedAt ? t('Live · updated %(time)s', {time: time(updatedAt)}) : t('Live');
     }
 
     /* ---------- live data: the server pushes "new data" over a WebSocket, the page re-renders in place ---------- */
@@ -624,7 +572,6 @@
         || document.querySelector('.table-popover:popover-open, dialog[open], .mobile-menu.is-open')
         || phone.matches && document.querySelector('.period__custom[open]')
         || document.activeElement?.matches?.('input, select, textarea')
-        || results.querySelector('.rev__actions :focus-visible')     // a keyboard user is on a review's button
         || results.querySelector('.chart:hover .chart-tooltip:not([hidden])');   // mouse reading the chart (a tapped tooltip may go)
     let dirty = false;           // an event arrived that the page hasn't shown yet
     let refreshTimer = null;
@@ -643,14 +590,10 @@
             const shown = table.tBodies[0]?.rows.length ?? 0;
             if (shown > PAGE_SIZE) url.searchParams.set(table.dataset.takeParam, String(shown));
         });
-        if (kept.size) url.searchParams.set('keep', [...kept].join(','));
-        results.querySelectorAll('[data-feed]').forEach((feed) => {       // a list of cards (reviews): `take` = how many are shown
-            if (feed.children.length > PAGE_SIZE) url.searchParams.set('take', String(feed.children.length));
-        });
         return url.href;
     }
 
-    /* ---------- cursor-paginated feeds: "Показати ще" appends the next page; it also loads itself on scroll ---------- */
+    /* ---------- cursor-paginated feeds: "Show more" appends the next page; it also loads itself on scroll ---------- */
     let loadingMore = false;
     async function loadMore(link) {
         if (loadingMore) return;
@@ -660,15 +603,14 @@
         try {
             const response = await fetch(link.href, {headers: {Accept: 'text/html'}, credentials: 'same-origin'});
             const page = new DOMParser().parseFromString(await response.text(), 'text/html');
-            const feed = box.parentElement.querySelector('[data-feed]');           // a list of cards, or a table of rows
-            const table = feed ? null : box.closest('section').querySelector('table[data-take-param]');
-            const fresh = feed ? page.querySelector('[data-feed]') : page.querySelector(`table[data-take-param="${table.dataset.takeParam}"]`);
+            const table = box.closest('section').querySelector('table[data-take-param]');
+            const fresh = page.querySelector(`table[data-take-param="${table.dataset.takeParam}"]`);
             if (!fresh) throw new Error('unexpected response');
-            if (feed) feed.append(...fresh.children); else table.tBodies[0].append(...fresh.tBodies[0].rows);
-            const shown = feed ? feed.children.length : table.tBodies[0].rows.length;
-            const next = (feed ? page : fresh.closest('section')).querySelector('[data-load-more]');
+            table.tBodies[0].append(...fresh.tBodies[0].rows);
+            const shown = table.tBodies[0].rows.length;
+            const next = fresh.closest('section').querySelector('[data-load-more]');
             if (next) {
-                next.querySelector('.load-more__count').textContent = `${shown} з ${next.dataset.total}`;
+                next.querySelector('.load-more__count').textContent = t('%(shown)s of %(total)s', {shown, total: next.dataset.total});
                 box.replaceWith(next);
             } else {
                 box.remove();
@@ -712,7 +654,7 @@
             stamp(!reconnect);
             if (reconnect) schedule(0);              // catch up on whatever happened while offline
         });
-        // a page lists the kinds it shows in data-live (the «Тести» pages: attempts only); none listed = all
+        // a page lists the kinds it shows in data-live (the Tests pages: attempts only); none listed = all
         const wanted = results.dataset.live?.split(' ');
         socket.addEventListener('message', (e) => {
             let kind = '';
@@ -828,9 +770,9 @@
     // what the toast says: short and human, never a raw tracking URL
     function copiedText(url) {
         const {pathname} = new URL(url, location.href);
-        if (pathname.startsWith('/l/')) return `Скопійовано ${pathname}`;
-        if (pathname.startsWith('/go/')) return 'Скопійовано посилання з відстеженням';
-        return 'Посилання скопійовано';
+        if (pathname.startsWith('/l/')) return t('Copied %(path)s', {path: pathname});
+        if (pathname.startsWith('/go/')) return t('Tracked link copied');
+        return t('Link copied');
     }
     const morph = (el, name) => window.morphIcon?.(el, name);
     document.addEventListener('click', async (e) => {
@@ -839,13 +781,13 @@
         try { await navigator.clipboard.writeText(btn.dataset.copy); } catch { return; }
         const label = btn.querySelector('.act-btn__text');
         btn.classList.add('is-done');
-        if (label) label.textContent = 'Скопійовано';
+        if (label) label.textContent = t('Copied');
         morph(btn, 'check');
         toast?.querySelector('.toast__action')?.remove();   // the action is done; the toast just confirms
         showToast(copiedText(btn.dataset.copy));
         setTimeout(() => {
             btn.classList.remove('is-done');
-            if (label) label.textContent = 'Копіювати';
+            if (label) label.textContent = t('Copy');
             morph(btn, 'copy');
         }, 1600);
     });
@@ -904,8 +846,8 @@
         } else if (target.closest('[data-link-delete]')) {
             const link = rowData(target);
             window.adminConfirm({
-                title: `Видалити /l/${link.slug}?`, danger: true,
-                message: 'Адреса перестане працювати. Переходи, що вже були, залишаться в «Аналітиці».',
+                title: t('Delete /l/%(slug)s?', {slug: link.slug}), danger: true,
+                message: t('The address will stop working. The clicks it already had stay in the analytics.'),
             }).then((yes) => {
                 if (!yes) return;
                 const form = Object.assign(document.createElement('form'), {method: 'post', action: link.delete, hidden: true});
@@ -994,7 +936,7 @@
         const paint = (state) => {
             btn.classList.toggle('is-on', state);
             btn.setAttribute('aria-pressed', String(state));
-            btn.title = state ? 'Прибрати з обраного' : 'Додати в обране';
+            btn.title = state ? t('Remove from favorites') : t('Add to favorites');
         };
         paint(on);
         btn.classList.add('is-popping');
@@ -1004,18 +946,23 @@
                 headers: {Accept: 'application/json'}});
             if (!response.ok) throw new Error(String(response.status));
             paint((await response.json()).favorite);
-            showToast(on ? 'Додано в обране' : 'Прибрано з обраного');
+            showToast(on ? t('Added to favorites') : t('Removed from favorites'));
         } catch {
             paint(!on);
-            showToast('Не вдалося змінити обране — спробуйте ще раз');
+            showToast(t('Could not change the favorite. Try again.'));
         }
     }, true);
 
-    // a form that asks first (<form data-confirm="Точно?">) is handled by admin-confirm.js
+    // a form that asks first (<form data-confirm="Sure?">) is handled by admin-confirm.js
 
     /* ---------- course chart: a tooltip over the day under the pointer or focus (works after live re-renders) ---------- */
     (() => {
-        const noun = (n, one, few, many) => { const m = n % 100, d = n % 10; return m > 10 && m < 15 ? many : d === 1 ? one : d > 1 && d < 5 ? few : many; };
+        // English has two forms, Russian three; the course page gives the words of each series (data-noun-a="one,few,many"), these are the fallbacks
+        const noun = (n, one, few, many) => {
+            if (adminLang !== 'ru') return n === 1 ? one : many;
+            const m = n % 100, d = n % 10;
+            return m > 10 && m < 15 ? many : d === 1 ? one : d > 1 && d < 5 ? few : many;
+        };
         const show = (col) => {
             const plot = col.closest('[data-course-chart]'), tip = plot.querySelector('.course-plot__tip');
             plot.querySelectorAll('.course-plot__col.is-on').forEach((c) => c.classList.remove('is-on'));
@@ -1023,8 +970,8 @@
             const p = Number(col.dataset.people), st = Number(col.dataset.steps);
             // the words of each series come from the chart (data-noun-a="one,few,many", data-suffix-a); the course page keeps its own
             const words = (key, fallback) => (plot.dataset[`noun${key}`] || fallback).split(',');
-            const [a1, a2, a5] = words('A', 'людина,людини,людей'), [b1, b2, b5] = words('B', 'крок,кроки,кроків');
-            const suffixB = 'suffixB' in plot.dataset ? plot.dataset.suffixB : 'пройдено';
+            const [a1, a2, a5] = words('A', t('person,people,people')), [b1, b2, b5] = words('B', t('step,steps,steps'));
+            const suffixB = 'suffixB' in plot.dataset ? plot.dataset.suffixB : t('done');
             const suffixA = plot.dataset.suffixA || '';
             tip.innerHTML = `<strong>${col.dataset.when}</strong>`
                 + `<span><i class="course-legend__dot"></i>${p} ${noun(p, a1, a2, a5)}${suffixA ? ' ' + suffixA : ''}</span>`

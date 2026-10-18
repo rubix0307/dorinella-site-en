@@ -19,7 +19,7 @@ router = APIRouter(default_response_class=HTMLResponse)
 
 @router.get('/', name='index')
 async def index(request: Request):
-    return render(request, 'pages/index.html', faq=content.GUIDE_FAQ)
+    return render(request, 'pages/index.html', faq=content.GUIDE_FAQ, guide=PRODUCTS['gut-massage-guide'])
 
 
 @router.get('/privacy/', name='privacy')
@@ -78,25 +78,47 @@ async def product_detail(request: Request, slug: str, session: AsyncSession | No
     product = PRODUCTS.get(slug)
     if product is None or not product.public:
         raise HTTPException(status_code=404)
-    extra: dict = {}
-    if slug == 'massage-course':                  # the paid course: the page shows what is bought, the price and who may buy now
-        user = await current_admin(request, session) if session is not None else None
-        extra = {'course': course, 'pay': await payments.offer_for(session, user, slug) if session is not None and user is not None else None,
-                 'signed_in': user is not None}
-    return render(request, product.template, product=product, faq=product.faq, price=payments.money(product.plans[0].price) if product.plans else '', **extra)
+    user = await current_admin(request, session) if session is not None else None
+    pay = await payments.offer_for(session, user, slug) if session is not None and user is not None else None
+    extra: dict = {'course': course} if slug == 'massage-course' else {}       # the course page lists its programme
+    sales_open = payments.sales_open(slug)                               # no price and no buy button for the public before that
+    response = render(request, product.template, product=product, faq=product.faq, signed_in=user is not None, pay=pay, sales_open=sales_open,
+                      price=payments.money(product.plans[0].price) if product.plans and sales_open else '', **extra)
+    if user is not None:
+        response.headers['Cache-Control'] = 'private, no-store'          # the buy box differs per account
+    return response
+
+
+async def _owned_guides(session: AsyncSession | None, user) -> set[str]:
+    """The slugs of the paid guides this account has bought."""
+    if session is None or user is None:
+        return set()
+    return {g.slug for g in GUIDES.values() if g.product_slug and await payments.has_entitlement(session, user, g.product_slug)}
 
 
 @router.get('/guides/', name='guide_list')
-async def guide_list(request: Request):
-    return render(request, 'pages/learn/index.html', guides=GUIDES, tests=SELF_TESTS)
+async def guide_list(request: Request, session: AsyncSession | None = Depends(db.get_optional_session)):
+    user = await current_admin(request, session) if session is not None else None
+    response = render(request, 'pages/learn/index.html', guides=GUIDES, tests=SELF_TESTS, owned=await _owned_guides(session, user))
+    if user is not None:
+        response.headers['Cache-Control'] = 'private, no-store'          # the locks differ per account
+    return response
 
 
 @router.get('/guides/{slug}/', name='guide')
-async def guide(request: Request, slug: str):
+async def guide(request: Request, slug: str, session: AsyncSession | None = Depends(db.get_optional_session)):
     found = GUIDES.get(slug)
     if found is None:
         raise HTTPException(status_code=404)
-    return render(request, 'pages/learn/guide.html', guide=found, test=found.test, guides=GUIDES)
+    user = await current_admin(request, session) if session is not None else None
+    unlocked = not found.paid or found.slug in await _owned_guides(session, user)
+    product = PRODUCTS.get(found.product_slug) if found.product_slug else None
+    buy_open = product is not None and product.public and product.on_sale and payments.shown_to(user, product.slug)
+    response = render(request, 'pages/learn/guide.html', guide=found, guides=GUIDES, unlocked=unlocked, product=product, buy_open=buy_open,
+                      price=payments.money(product.plans[0].price) if product is not None and product.plans else '')
+    if found.paid:
+        response.headers['Cache-Control'] = 'private, no-store'          # the full text must never sit in a shared cache
+    return response
 
 
 @router.get('/tests/', name='test_list')

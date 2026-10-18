@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
-{% block schema %}{{ seo.graph(request, seo.page(request, 'Dori — бодіпозитивний нутриціолог', self.description()|trim), seo.main_faq()) }}{% endblock %}
+{% block schema %}{{ seo.graph(request, seo.page(request, 'Gut Massage Guide: gentle abdominal self-massage', self.description()|trim), seo.faq(faq)) }}{% endblock %}
 
+{% block title %}Gut Massage Guide: gentle abdominal self-massage | {{ site.BRAND }}{% endblock %}
+{% block description %}Ease bloating and support your digestion with a step-by-step abdominal self-massage guide by {{ site.AUTHOR_NAME }}, plus a free Bristol stool scale test with tips.{% endblock %}
+{% block og_title %}Gut Massage Guide by {{ site.AUTHOR_NAME }}{% endblock %}
+{% block og_image_alt %}Gut Massage Guide by {{ site.AUTHOR_NAME }}: gentle abdominal self-massage{% endblock %}
 
 {% block preload %}
-    <link rel="stylesheet" href="{{ static('css/diplomas.css') }}">
-    <script src="{{ static('js/diplomas.js') }}" defer></script>
-    <link rel="preload" as="image" fetchpriority="high" href="{{ static('img/hero-cutout-480.webp') }}"
-          imagesrcset="{{ static('img/hero-cutout-480.webp') }} 480w, {{ static('img/hero-cutout-820.webp') }} 820w"
-          imagesizes="(min-width: 961px) 400px, (min-width: 641px) 300px, 260px">
+    <link rel="preload" as="image" fetchpriority="high" href="{{ static('img/guts-hero-500.webp') }}"
+          imagesrcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
+          imagesizes="(min-width: 961px) 520px, 340px">
 {% endblock %}
 
 {% block content %}
@@ -15,107 +17,120 @@
     <section class="hero" aria-labelledby="hero-title">
         <div class="container hero__inner">
             <div class="hero__text">
-                <p class="eyebrow">Нутриціолог · dorinellla</p>
-                <h1 class="hero__title" id="hero-title">
-                    Бодіпозитивний <em>нутриціолог</em>
-                </h1>
+                <p class="eyebrow">Gut health, made gentle</p>
+                <h1 class="hero__title" id="hero-title">A calmer gut starts with <em>gentle hands</em></h1>
                 <p class="hero__lead">
-                    Допомагаю налагодити харчування, травлення та стосунки з тілом — без дієт, сорому і жорстких рамок.
+                    The Gut Massage Guide teaches you simple abdominal self-massage, step by step, so you can ease bloating,
+                    support your digestion and feel more at home in your body.
                 </p>
                 <div class="hero__actions">
-                    <a class="btn btn--primary" href="#products">Обрати продукт{{ icon('arrow-right') }}</a>
-                    <a class="btn btn--ghost" href="#about">Про мене</a>
+                    <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">{{ icon('book-open-text') }}Get the guide</a>
+                    <a class="btn btn--ghost" href="#inside">See what's inside</a>
                 </div>
                 <ul class="hero__facts" role="list">
-                    <li>{{ icon('graduation-cap') }}Випускниця The College of Naturopathic Medicine (Лондон)</li>
-                    <li>{{ icon('brain') }}Клінічна психологиня — Київський медичний університет</li>
-                    <li>{{ icon('leaf') }}Навчаюсь у Institute for Integrative Nutrition (IIN)</li>
-                    <li>{{ icon('megaphone') }}Говорю вголос про жіночі теми без фільтрів</li>
+                    <li>{{ icon('list-checks') }}Step-by-step techniques</li>
+                    <li>{{ icon('timer') }}A few minutes a day</li>
+                    <li>{{ icon('hand-heart') }}No equipment needed</li>
+                    <li>{{ icon('stethoscope') }}Educational, not medical advice</li>
                 </ul>
             </div>
 
-            <figure class="hero__media hero-portrait">
-                <div class="hero-portrait__backdrop" aria-hidden="true"></div>
-                {# a 24 px blurred copy in the page itself: the photo is there at once, sharpening as it loads #}
-                <div class="hero-portrait__lqip" style="background-image: url({{ inline_image('img/hero-cutout-lqip.webp') }})" aria-hidden="true"></div>
-                <img class="hero-portrait__photo" onload="this.classList.add('is-loaded')" src="{{ static('img/hero-cutout-480.webp') }}"
-                     srcset="{{ static('img/hero-cutout-480.webp') }} 480w, {{ static('img/hero-cutout-820.webp') }} 820w"
-                     sizes="(min-width: 961px) 400px, (min-width: 641px) 300px, 260px"
-                     width="480" height="752"
-                     alt="Дорі усміхається, тримаючи паперовий пакет зі свіжими овочами"
+            <figure class="hero__media hero__media--illustration">
+                <img src="{{ static('img/guts-hero-500.webp') }}"
+                     srcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
+                     sizes="(min-width: 961px) 520px, 340px"
+                     width="500" height="526" alt="Illustration of the gut wrapped in blossoming branches"
                      fetchpriority="high" decoding="async">
-                {{ icon('sparkles', 'sparkle sparkle--1') }}
-                {{ icon('sparkles', 'sparkle sparkle--2') }}
             </figure>
         </div>
     </section>
-
-    {# ---------- About ---------- #}
-    <section class="section about" id="about" aria-labelledby="about-title">
-        <div class="container about__inner">
-            <figure class="about__media" data-reveal>
-                <img src="{{ static('img/about-400.webp') }}" width="382" height="573"
-                     alt="Чорно-білий портрет Дорі" loading="lazy" decoding="async">
-            </figure>
-            <div class="about__text">
-                <p class="eyebrow" data-reveal>Знайомство</p>
-                <h2 class="section-title" id="about-title" data-reveal>Про мене</h2>
-                <div class="prose" data-reveal>
-                    <p><strong>Я — сертифікований нутриціолог і клінічний психолог.</strong> Завершила навчання в The College of Naturopathic Medicine (Велика Британія) за напрямом натуропатичної та функціональної нутриціології, а також здобула освіту клінічного психолога в Київському медичному університеті. Наразі навчаюся в Institute for Integrative Nutrition (IIN, США) за програмою Health Coach, щоб ще краще поєднувати роботу з харчуванням, психологічним станом, звичками й реальними змінами у повсякденному житті.</p>
-                    <p><strong>Мій підхід</strong> — на перетині нутриціології, психології та коучингу. <strong>Я працюю комплексно:</strong> враховую харчування, спосіб життя, роботу травної та нервової систем, особливості харчової поведінки, емоційний стан і стосунки людини з їжею та власним тілом.</p>
-                    <p><strong>Маю власний досвід</strong> складних стосунків із їжею, дієтами та самокритикою. Саме він багато в чому сформував мій підхід: не створювати ще більше правил і заборон, а допомагати людині краще розуміти себе, своє тіло та поступово вибудовувати більш здорові й спокійні стосунки з їжею.</p>
-                </div>
-                <blockquote class="about__quote" data-reveal>
-                    Якщо ти шукаєш науковий і м’який шлях до балансу — я поруч, аби підтримати.
-                </blockquote>
-                <div class="about__diplomas" data-reveal>
-                    <h3 class="about__diplomas-title">Дипломи та сертифікати</h3>
-                    <div class="carousel" data-carousel>
-                        <div class="carousel__track" tabindex="0" role="group" aria-label="Сертифікати">
-                            {% for d in diplomas_all %}{% with full = true %}{% include 'includes/diploma_card.html' %}{% endwith %}{% endfor %}
-                        </div>
-                        <button type="button" class="carousel__btn carousel__btn--prev" data-carousel="prev" aria-label="Назад" hidden>{{ icon('chevron-left') }}</button>
-                        <button type="button" class="carousel__btn carousel__btn--next" data-carousel="next" aria-label="Далі" hidden>{{ icon('chevron-right') }}</button>
-                    </div>
-                    <a class="btn btn--ghost" href="{{ url('diplomas') }}">Усі сертифікати ({{ diplomas_all|length }}){{ icon('arrow-right') }}</a>
-                </div>
-            </div>
-        </div>
-    </section>
-    {% include 'includes/lightbox.html' %}
 
     {# ---------- Why ---------- #}
-    <section class="section why" id="why" aria-labelledby="why-title">
+    <section class="section" aria-labelledby="why-title">
+        <div class="container container--narrow">
+            <div class="highlight-card" data-reveal>
+                <h2 class="highlight-card__title" id="why-title">Does your gut feel out of rhythm?</h2>
+                <p>Bloating after meals, a heavy belly, digestion that never quite settles. It is common, and it is rarely just about food: how you eat, move, breathe and handle stress all show up in your belly.</p>
+                <p>Gentle abdominal massage is a simple way to slow down, tune in to your body and give your digestion some support. This guide shows you how to do it with care.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ---------- Inside ---------- #}
+    {# TODO(owner): check this list against the finished guide. #}
+    <section class="section" id="inside" aria-labelledby="inside-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Чому я?</p>
-                <h2 class="section-title" id="why-title">Чому мої продукти варті твоєї уваги?</h2>
-                <p class="section-lead">Вони допомагають:</p>
+                <p class="eyebrow">What's inside</p>
+                <h2 class="section-title" id="inside-title">Everything you need to start</h2>
             </div>
+            <ol class="feature-grid" role="list">
+                <li class="feature" data-reveal>Step-by-step massage techniques <span class="muted">Clear instructions you can follow at your own pace</span></li>
+                <li class="feature" data-reveal>How to prepare <span class="muted">When, where and how to begin comfortably</span></li>
+                <li class="feature" data-reveal>Nutrition tips for a happy gut <span class="muted">Simple habits that support your digestion</span></li>
+                <li class="feature" data-reveal>Routines for different days <span class="muted">Adaptations for bloating, constipation and stress</span></li>
+                <li class="feature" data-reveal>Answers to common questions <span class="muted">From timing to what to expect</span></li>
+                <li class="feature" data-reveal>A clear safety section <span class="muted">Who should skip it, and when to see a doctor first</span></li>
+            </ol>
+            <div class="hero__actions hero__actions--center">
+                <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">Read more about the guide{{ icon('arrow-right') }}</a>
+            </div>
+        </div>
+    </section>
 
-            <div class="why__grid">
-                <ul class="why__list" role="list">
-                    <li class="why__item" data-reveal>{{ icon('ear') }}Почати чути сигнали тіла</li>
-                    <li class="why__item" data-reveal>{{ icon('audio-waveform') }}Навчитися жити у своєму ритмі</li>
-                    <li class="why__item" data-reveal>{{ icon('salad') }}Підібрати харчування</li>
-                    <li class="why__item" data-reveal>{{ icon('hand-heart') }}Дати тілу м’яку підтримку</li>
-                </ul>
-                <figure class="why__media" data-reveal>
-                    <div class="why__circle">
-                        <img src="{{ static('img/bag-360.webp') }}"
-                             srcset="{{ static('img/bag-360.webp') }} 360w, {{ static('img/bag-560.webp') }} 560w, {{ static('img/bag-800.webp') }} 745w"
-                             sizes="(min-width: 1101px) 320px, (min-width: 641px) 300px, 200px"
-                             width="360" height="387" alt="Рожева сітчаста торбинка з кабачками, редискою та шпинатом"
-                             loading="lazy" decoding="async">
-                    </div>
-                </figure>
-                <ul class="why__list" role="list">
-                    <li class="why__item" data-reveal>{{ icon('smile') }}Позбутись «емоційної гойдалки»</li>
-                    <li class="why__item" data-reveal>{{ icon('layers') }}Отримати системну, структуровану базу</li>
-                    <li class="why__item" data-reveal>{{ icon('heart-pulse') }}Бути в ритмі з тілом</li>
-                    <li class="why__item" data-reveal>{{ icon('sparkles') }}Відчути, що здоров’я — це не складно</li>
-                </ul>
+    {# ---------- Who ---------- #}
+    <section class="section section--tinted" aria-labelledby="who-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Is it for you?</p>
+                <h2 class="section-title" id="who-title">Who the guide is for</h2>
             </div>
+            <ul class="icon-cards icon-cards--5" role="list">
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('wind') }}</span>
+                    <p>People who often feel bloated, heavy or irregular</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('sunrise') }}</span>
+                    <p>Anyone who wants a gentle morning routine for their digestion</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('flower-2') }}</span>
+                    <p>Busy, stressed people looking for a natural way to unwind</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('leaf') }}</span>
+                    <p>Anyone who is curious about gut health and wants a practical place to start</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('heart-handshake') }}</span>
+                    <p>Beginners: no experience or special skills needed</p>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    {# ---------- How it works ---------- #}
+    <section class="section" aria-labelledby="how-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">How it works</p>
+                <h2 class="section-title" id="how-title">Simple, gentle, yours</h2>
+            </div>
+            <ul class="icon-cards icon-cards--3" role="list">
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('timer') }}</span>
+                    <p><strong>A few minutes a day.</strong> Short, calm sessions that fit into a morning or an evening.</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('list-checks') }}</span>
+                    <p><strong>Build your own ritual.</strong> Mix the techniques and go at the pace that feels right for you.</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('shield-check') }}</span>
+                    <p><strong>Safety first.</strong> You will know who should skip massage and when to check with a doctor.</p>
+                </li>
+            </ul>
         </div>
     </section>
 
@@ -123,34 +138,26 @@
     <section class="section section--tinted" id="learn" aria-labelledby="learn-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Корисне</p>
-                <h2 class="section-title" id="learn-title">З чого почати</h2>
-                <p class="section-lead">Короткі міні-курси з відеоуроками й матеріалами та тест — щоб познайомитися з темою у своєму темпі.</p>
+                <p class="eyebrow">Free to try</p>
+                <h2 class="section-title" id="learn-title">Not ready to buy? Start here</h2>
+                <p class="section-lead">Learn what your gut is telling you, at no cost and in your own time.</p>
             </div>
-            <ul class="free-teaser" role="list">
-                <li class="free-teaser__item theme-guts" data-reveal>
-                    <span class="icon-badge">{{ icon('leaf') }}</span>
-                    <div>
-                        <h3 class="free-teaser__title">Міні-курс «GUT HEALTH»</h3>
-                        <p>3 відеоуроки про здоров’я кишківника</p>
-                    </div>
-                    <a class="stretched-link" href="{{ url('learn_course', slug='gut-health') }}" aria-label="Міні-курс «GUT HEALTH»">{{ icon('arrow-right') }}</a>
-                </li>
-                <li class="free-teaser__item theme-cycle" data-reveal>
-                    <span class="icon-badge">{{ icon('sprout') }}</span>
-                    <div>
-                        <h3 class="free-teaser__title">Менструальне здоров’я</h3>
-                        <p>3 відеоуроки про цикл і гормони</p>
-                    </div>
-                    <a class="stretched-link" href="{{ url('learn_course', slug='menstrual-health') }}" aria-label="Міні-курс про менструальне здоров’я">{{ icon('arrow-right') }}</a>
-                </li>
+            <ul class="free-teaser free-teaser--pair" role="list">
                 <li class="free-teaser__item theme-guts" data-reveal>
                     <span class="icon-badge">{{ icon('circle-help') }}</span>
                     <div>
-                        <h3 class="free-teaser__title">Тести</h3>
-                        <p>Кишківник, цикл і харчова поведінка</p>
+                        <h3 class="free-teaser__title">Bristol stool scale test</h3>
+                        <p>A two-minute check-in with tips matched to your result</p>
                     </div>
-                    <a class="stretched-link" href="{{ url('learn_index') }}#tests" aria-label="Тести">{{ icon('arrow-right') }}</a>
+                    <a class="stretched-link" href="{{ url('self_test', slug='bristol') }}" aria-label="Take the Bristol stool scale test">{{ icon('arrow-right') }}</a>
+                </li>
+                <li class="free-teaser__item theme-guts" data-reveal>
+                    <span class="icon-badge">{{ icon('book-open-text') }}</span>
+                    <div>
+                        <h3 class="free-teaser__title">Guides library</h3>
+                        <p>Short, practical guides on gut health</p>
+                    </div>
+                    <a class="stretched-link" href="{{ url('guide_list') }}" aria-label="Browse the guides library">{{ icon('arrow-right') }}</a>
                 </li>
             </ul>
         </div>
@@ -160,33 +167,48 @@
     <section class="section products" id="products" aria-labelledby="products-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Продукти</p>
-                <h2 class="section-title" id="products-title">Обери свій формат</h2>
+                <p class="eyebrow">Guides and courses</p>
+                <h2 class="section-title" id="products-title">Choose your format</h2>
             </div>
 
             {% include 'includes/product_cards.html' %}
         </div>
     </section>
 
-    {% include 'includes/reviews.html' %}
+    {# ---------- About ---------- #}
+    {# TODO(owner): a short bio, credentials and a photo go here (no facts are invented on this page). #}
+    <section class="section section--tinted" id="about" aria-labelledby="about-title">
+        <div class="container container--narrow">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Hello</p>
+                <h2 class="section-title" id="about-title">Hi, I'm {{ site.AUTHOR_NAME }}</h2>
+            </div>
+            <div class="prose" data-reveal>
+                <p>I'm a {{ site.AUTHOR_JOB|lower }}. I created these guides to make looking after your gut feel simple, gentle and doable, with clear steps you can follow at home and no pressure to do it perfectly.</p>
+                <p>I share more on Instagram at <a href="{{ out(site.INSTAGRAM, 'about:instagram') }}" target="_blank" rel="noopener">{{ site.INSTAGRAM_HANDLE }}</a>.</p>
+            </div>
+        </div>
+    </section>
+
     {% include 'includes/faq.html' %}
+
+    {# ---------- Good to know ---------- #}
+    <section class="section section--tight">
+        <div class="container container--narrow">
+            <p class="prose" data-reveal><strong>Good to know.</strong> Everything on this site is educational and is not a substitute for medical advice, diagnosis or treatment. If you have persistent symptoms, are pregnant, or have a medical condition, talk to your doctor before trying abdominal massage.</p>
+        </div>
+    </section>
 
     {# ---------- Contacts ---------- #}
     <section class="section contacts" id="contacts" aria-labelledby="contacts-title">
         <div class="container">
             <div class="cta-card" data-reveal>
-                <p class="eyebrow eyebrow--light">Контакти</p>
-                <h2 class="section-title" id="contacts-title">Маєш питання? Напиши мені</h2>
-                <p class="section-lead">Відповім особисто та допоможу обрати формат, який підійде саме тобі.</p>
+                <p class="eyebrow eyebrow--light">Let's talk</p>
+                <h2 class="section-title" id="contacts-title">Questions? Say hello</h2>
+                <p class="section-lead">I'm happy to help you choose where to start.</p>
                 <div class="cta-card__actions">
-                    <a class="btn btn--light" href="{{ out('https://t.me/dori_nutritioner_bot', 'contacts:telegram') }}" target="_blank" rel="noopener">
-                        {{ icon('send') }}
-                        Telegram
-                    </a>
-                    <a class="btn btn--outline-light" href="{{ out('https://www.instagram.com/dorinellla/', 'contacts:instagram') }}" target="_blank" rel="noopener">
-                        {{ icon('instagram') }}
-                        Instagram
-                    </a>
+                    <a class="btn btn--light" href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}Email me</a>
+                    <a class="btn btn--outline-light" href="{{ out(site.INSTAGRAM, 'contacts:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}Instagram</a>
                 </div>
             </div>
         </div>

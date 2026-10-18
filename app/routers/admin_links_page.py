@@ -12,11 +12,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import UploadFile
 
-from .. import db, links, shortlinks
+from .. import db, i18n, links, shortlinks
 from ..auth import authorize
 from ..core.forms import field
 from ..models import BioButton, ShortLink
 from ..shortlinks import PREFIX
+from ..site import BRAND
 from .admin import NO_INDEX, _page, _save, _to_login
 
 router = APIRouter(prefix='/admin/links', default_response_class=HTMLResponse, include_in_schema=False)
@@ -45,7 +46,7 @@ async def _form(request: Request, session: AsyncSession, user, rows: list[dict],
     header = {**header, 'photo_url': links.header_photo_url(saved)}      # the photo as saved (a failed upload is not kept)
     return _page(request, 'admin/links_page.html', status_code=status_code, user=user, rows=rows, ads=ads, header=header,
                  short_links=short_links, logos=links.LOGOS, svg=links.lucide_svg, lucide=links.lucide(),
-                 popular=[n for n in POPULAR if n in links.lucide()], icons_version=links.catalog_version(), uk=links.lucide_uk(), prefix=PREFIX, error=error, notice=notice)
+                 popular=[n for n in POPULAR if n in links.lucide()], icons_version=links.catalog_version(), prefix=PREFIX, error=error, notice=notice)
 
 
 @router.get('/', name='admin_links_page')
@@ -62,16 +63,17 @@ async def page_form(request: Request, session: AsyncSession = Depends(db.get_ses
     page = await links.settings(session)
     ads = {'short_link_id': page.ads_short_link_id, 'title': page.ads_title or '', 'text': page.ads_text or '',
            'button': page.ads_button or ''}
-    header = {'name': page.name or 'Dori', 'tagline': page.tagline or ''}
+    header = {'name': page.name or BRAND, 'tagline': page.tagline or ''}
     return await _form(request, session, user, rows, ads, header, notice=request.query_params.get('notice', ''))
 
 
 @router.get('/icons.json', name='admin_links_page_icons')
 async def page_icons(request: Request, session: AsyncSession = Depends(db.get_session)):
-    """Every Lucide icon for the panel: {icons: name → [inner SVG, search tags], groups: [...]}."""
+    """Every Lucide icon for the panel: {icons: name → [inner SVG, search tags], groups: [...]} (the group names in the admin's language)."""
     if await authorize(request, session, 'links_page.manage', api=True) is None:
         return JSONResponse({}, status_code=403)
-    return JSONResponse({'icons': links.lucide(), 'uk': links.lucide_uk(), 'groups': links.icon_groups()}, headers={'Cache-Control': 'private, max-age=86400'})
+    return JSONResponse({'icons': links.lucide(), 'groups': links.icon_groups(i18n.pick(request))},
+                        headers={'Cache-Control': 'private, max-age=86400', 'Vary': 'Cookie, Accept-Language'})
 
 
 @router.post('/save', name='admin_links_page_save')
@@ -121,10 +123,10 @@ async def page_save(request: Request, session: AsyncSession = Depends(db.get_ses
 @router.post('/short-link', name='admin_links_page_short_link')
 async def page_short_link(request: Request, session: AsyncSession = Depends(db.get_session)):
     """A new analytics short link, made from the link picker without leaving the page (same checks as in
-    «Аналітика»). JSON in and out: {id, slug, target_url, title} or {error}."""
+    the analytics section). JSON in and out: {id, slug, target_url, title} or {error}."""
     user = await authorize(request, session, 'links_page.manage', post=True, api=True)
     if user is None:
-        return JSONResponse({'error': 'Сесія скінчилась — увійдіть знову.'}, status_code=403)
+        return JSONResponse({'error': 'Your session has ended. Please sign in again.'}, status_code=403)
     try:
         data = await request.json()
     except ValueError:

@@ -6,8 +6,8 @@ from fastapi import APIRouter, HTTPException, Request
 
 from ..catalog import PRODUCTS, Product, listed
 from ..core.templating import static
-from ..learn import SELF_TESTS, SelfTest
-from ..schemas import AttemptIn, AttemptOut, BandOut, PlanOut, ProductDetailOut, ProductOut, ScaleOut, SelfTestOut, TestQuestionOut
+from ..learn import GUIDES, SELF_TESTS, SelfTest
+from ..schemas import AttemptIn, AttemptOut, BandOut, NoteOut, PlanOut, ProductDetailOut, ProductOut, SelfTestOut, TestQuestionOut
 from ..test_attempts import record_attempt
 
 router = APIRouter(prefix='/api/v1', tags=['v1'])
@@ -49,7 +49,7 @@ async def list_plans(slug: str):
 
 
 def _plan(plan) -> PlanOut:
-    return PlanOut(id=plan.id, title=plan.title, price_uah=plan.price_uah, features=list(plan.features),
+    return PlanOut(id=plan.id, title=plan.title, price_usd=plan.price, features=list(plan.features),
                    gifts=list(plan.gifts), featured=plan.featured, checkout_url=plan.checkout_url)
 
 
@@ -62,34 +62,40 @@ def _test(slug: str) -> SelfTest:
     return test
 
 
+def _public_product_url(request: Request, slug: str | None) -> str | None:
+    product = PRODUCTS.get(slug) if slug else None
+    return str(request.app.url_path_for('product_detail', slug=slug)) if product is not None and product.public else None
+
+
 def evaluate(request: Request, test: SelfTest, answers: list[int]) -> AttemptOut:
-    """Score an attempt; shared by the JSON API and the HTML form."""
-    course_url = str(request.app.url_path_for('learn_course', slug=test.course_slug)) if test.course_slug else None
-    product_url = str(request.app.url_path_for('product_detail', slug=test.product_slug)) if test.product_slug and PRODUCTS[test.product_slug].public else None
-    if test.scales:
-        return AttemptOut(scales=[
-            ScaleOut(key=r.scale.key, title=r.scale.title, description=r.scale.description, score=r.score,
-                     min_score=r.min_score, max_score=r.max_score, reference=r.scale.reference,
-                     above_reference=r.above, text=r.scale.above_text if r.above else r.scale.typical_text)
-            for r in test.scale_results(answers)
-        ], course_url=course_url, product_url=product_url)
+    """Score an attempt; shared by the JSON API and the HTML form. Never diagnoses: a warning sign turns the advice into
+    "see a doctor first" and takes the massage and paid-material links away."""
     score = test.score(answers)
     band = test.band_for(score)
-    return AttemptOut(score=score, max_score=test.max_score, score_unit=test.score_unit,
-                      band=BandOut(key=band.key, title=band.title, text=band.text),
-                      course_url=course_url, product_url=product_url)
+    alert = test.alerted(answers)
+    guide = GUIDES.get(test.guide_slug) if test.guide_slug else None
+    massage = band.massage and not alert
+    return AttemptOut(
+        score=score, max_score=test.max_score,
+        band=BandOut(key=band.key, title=band.title, text=band.text, tips=list(band.tips), doctor=band.doctor),
+        notes=[NoteOut(text=text, warning=warning) for text, warning in test.notes_for(answers)],
+        alert=alert, massage=massage,
+        guide_url=str(request.app.url_path_for('guide', slug=guide.slug)) if guide else None,
+        paid_guide_url=_public_product_url(request, test.paid_guide_slug) if massage else None,
+        course_url=_public_product_url(request, test.course_slug) if massage else None,
+    )
 
 
 @router.get('/tests/{slug}', response_model=SelfTestOut, name='api_test_detail')
 async def get_test(slug: str):
     test = _test(slug)
-    return SelfTestOut(slug=test.slug, title=test.title, kind='scales' if test.scales else 'score',
-                       questions=[TestQuestionOut(text=q.text, options=[label for label, _ in q.options])
-                                  for q in test.questions])
+    return SelfTestOut(slug=test.slug, title=test.title,
+                       questions=[TestQuestionOut(text=q.text, options=[label for label, _ in q.options]) for q in test.questions])
 
 
-@router.post('/tests/{slug}/attempts', response_model=AttemptOut, status_code=201, name='api_test_attempt')
-async def create_attempt(request: Request, slug: str, attempt: AttemptIn):
+@router.post('/tests/{slug}/evaluate', response_model=AttemptOut, name='api_test_evaluate')
+async def evaluate_test(request: Request, slug: str, attempt: AttemptIn):
+    """Score the answers and keep them, anonymously, for the admin's statistics."""
     test = _test(slug)
     if problems := test.validate(attempt.answers):
         raise HTTPException(status_code=422, detail=problems)

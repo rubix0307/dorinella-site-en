@@ -79,12 +79,8 @@ async def record_attempt(request: Request, test: SelfTest, answers: list[int],
     who = visitor_id.hex if visitor_id else f'ip:{request.client.host if request.client else ""}'
     if not _allowed(who, test.slug, answers):
         return
-    if test.scales:
-        score, band_key = None, None
-        scales = {r.scale.key: r.score for r in test.scale_results(answers)}
-    else:
-        score = test.score(answers)
-        band_key, scales = test.band_for(score).key, None
+    score = test.score(answers)
+    band_key = test.band_for(score).key
     try:
         ver = version(test)
         async with sessions() as session:
@@ -94,10 +90,10 @@ async def record_attempt(request: Request, test: SelfTest, answers: list[int],
             if visitor_id is not None:
                 await ensure_row(session, visitor_id)       # the attempt's foreign key
             session.add(TestAttempt(id=uuid7(), visitor_id=visitor_id, test_slug=test.slug, test_version=ver,
-                                    answers=list(answers), score=score, band_key=band_key, scales=scales,
+                                    answers=list(answers), score=score, band_key=band_key,
                                     source=source_of(request), device=device))
             await session.commit()
         _versions_saved.add((test.slug, ver))
-        live.published('attempt')           # the admin «Тести» pages refresh themselves
+        live.published('attempt')           # the admin Tests pages refresh themselves
     except Exception:
         log.exception('could not save the test attempt')

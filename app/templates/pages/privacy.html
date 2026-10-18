@@ -1,70 +1,88 @@
 {% extends 'base.html' %}
 {% block schema %}{{ seo.generic(request, self.title()|trim, self.description()|trim) }}{% endblock %}
 
-
-{% block title %}Політика конфіденційності | dorinellla{% endblock %}
-{% block description %}Які дані збирає сайт dorinellla.com, навіщо вони потрібні і як їх видалити.{% endblock %}
+{% block title %}Privacy Policy | {{ site.BRAND }}{% endblock %}
+{% block description %}What {{ site.DOMAIN }} collects, why, who sees it, how long we keep it, the cookies we set and how to use your privacy rights.{% endblock %}
 
 {% block content %}
+    {#- TODO(owner): have a lawyer read this page and the Terms before the sales open. Open points: (1) whether the visitor-ID cookie needs a consent banner for EU/UK visitors,
+        (2) test answers about stool and digestion may count as health data (GDPR Art. 9) and need an explicit-consent step, (3) the retention periods, (4) the hosting provider and country. #}
     <section class="section legal" aria-labelledby="legal-title">
         <div class="container container--narrow">
-            <p class="eyebrow">Оновлено {{ offer_date }}</p>
-            <h1 class="section-title" id="legal-title">Політика конфіденційності</h1>
+            <p class="eyebrow">Last updated {{ legal.updated }}</p>
+            <h1 class="section-title" id="legal-title">Privacy Policy</h1>
             <div class="prose">
-                <p>Цей сайт — dorinellla.com. Нижче простими словами: що ми про вас знаємо, навіщо і як це прибрати.</p>
+                <p>This page explains, in plain words, what {{ site.DOMAIN }} knows about you, why, who else sees it and what you can do about it. It covers the website, your account and your purchases.</p>
 
-                <h2>Що ми збираємо</h2>
-                <p><strong>Якщо ви входите через Google.</strong> Ми отримуємо вашу адресу електронної пошти та ім’я, вказане в акаунті. Фото, контакти, листи й документи з вашого Google-акаунта ми не бачимо. Пароля в нас немає.</p>
-                <p><strong>Якщо ви проходите курс.</strong> Ми зберігаємо, до яких матеріалів у вас є доступ і який прогрес.</p>
-                <p><strong>Якщо ви залишаєте відгук.</strong> Зберігаємо оцінку, текст, час і попередні версії. Публічно відгук показується без вашого імені та пошти; ви можете сховати текст, залишивши лише оцінку.</p>
-                <p><strong>Якщо ви платите за курс.</strong> Ми зберігаємо номер замовлення, суму, час і статус оплати. Дані вашої банківської картки ми не бачимо й не зберігаємо: ви вводите їх на сторінці платіжної системи Portmone.</p>
-                <p><strong>Якщо ви приймаєте умови.</strong> Ми зберігаємо, яку редакцію умов і коли ви прийняли, підтвердження, що вам виповнилося 16 років, а також адресу, з якої надійшов запит, і дані вашого браузера. Це потрібно, щоб за потреби довести, що ви справді погодилися.</p>
-                <p><strong>Якщо ви обираєте листи.</strong> Ми зберігаємо кожну вашу згоду чи відмову окремим записом: який саме текст вам було показано (редакція й контрольна сума), коли, з якої адреси, чи підтвердили ви підписку листом. Записи не змінюються й не видаляються; після відмови їх зберігають до 3 років, щоб довести законність розсилки й вашу відмову. Адресу з відмови ми можемо зберігати лише у вигляді контрольної суми, щоб більше не писати на неї.</p>
-                <p><strong>Якщо ви відповідаєте в опитуванні.</strong> Ми зберігаємо вибраний варіант (і короткий текст, якщо ви обрали «Інше»), пов’язаний із вашим акаунтом, доки ви не видалите відповідь або акаунт.</p>
-                <p><strong>Усі відвідувачі.</strong> Ми ведемо знеособлену статистику відвідувань і пройдених тестів, для чого використовуємо cookie з анонімним ідентифікатором.</p>
+                <h2>Who is responsible</h2>
+                <p>{{ legal.seller.name }}, {{ legal.seller.address }}{% if legal.seller.tax_id %} ({{ legal.seller.tax_id }}){% endif %}, runs {{ site.BRAND }} and decides how your data is used (the "controller" under GDPR, the "business" under California law). Write to us at <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a> for anything on this page.</p>
 
-                <h2 id="newsletters-short">Рекламні листи, добір і лічильник</h2>
-                <p>Ми надсилаємо рекламні листи лише тим, хто сам обрав їх окремою позначкою й підтвердив підписку листом на свою адресу. Без окремих позначок ми не добираємо листи за вашими діями й не бачимо, чи ви відкрили лист. Правова підстава: ваша згода, яку можна відкликати будь-коли. Відмовитися можна одним натисканням у кожному листі або на сторінці <a href="{{ url('account_notifications') }}">«Листи й згоди»</a> у кабінеті; відмова діє одразу.</p>
+                <h2>What we collect</h2>
+                <p><strong>Just visiting.</strong> When you open a page we record the page, the day and time, the site you came from (its name only), campaign tags in the link (utm_source and the like), your device type (phone, tablet, desktop) and a daily fingerprint made of your IP address and browser details. The fingerprint is a one-way hash that changes every day, so we cannot read an IP address back from it. We use these numbers to see which pages help people. Bots and our own admin pages are not counted. If you click a link that leaves the site, we also record where it went and the browser identification string.</p>
+                <p><strong>Signing in.</strong> You sign in with a Google account; there are no passwords. Google tells us your e-mail address and the name on the account. We do not see your Google password, contacts, mail or files.</p>
+                <p><strong>Tests and the course.</strong> When you take a self-test (for example the Bristol stool scale test) we store your answers and the result so you can see them again. The course keeps what you answer in it (for example the safety check and your goal) and which pages you finished. These answers are linked to your random visitor ID, and to your account once you sign in. Some of them describe your digestion or health. We use them only to show you your result and to run the course; please do not type anything you would not want stored. You can ask us to delete them at any time.</p>
+                <p><strong>Buying.</strong> We store your order: the number, the product, the amount, the time, its status, the version of the legal texts you accepted at checkout and the time you accepted them. Payment is made on a page that Stripe hosts. Your card number never reaches our servers, and we never store it. Stripe sends you the receipt by e-mail.</p>
+                <p><strong>Writing to us.</strong> If you e-mail us, we keep the message and our reply so we can help you.</p>
+                <p><strong>Errors.</strong> If something breaks, an error report with the page address and technical details of the request (which can include your IP address) may be sent to our error-monitoring service.</p>
+
+                <h2>Why we use it, and on what legal basis</h2>
                 <ul>
-                    <li><strong>Рекламні листи:</strong> новини, статті, пропозиції курсів, знижки. Це реклама.</li>
-                    <li><strong>Добір за діями:</strong> окрема згода, щоб ми добирали листи за купівлями, пройденими міні-курсами, прочитаними статтями й відвідуваннями. Без неї всі отримують однакові листи.</li>
-                    <li><strong>Лічильник:</strong> окрема згода, щоб ми бачили, чи ви відкрили лист і на які посилання натиснули. Без неї в листах немає лічильника, а переходи рахуються лише в сумі.</li>
+                    <li><strong>To give you what you asked for</strong> (your account, your purchases, your test results, your access): needed to carry out our agreement with you.</li>
+                    <li><strong>To run and improve the site</strong> (visit statistics, preventing abuse, fixing errors): our legitimate interest in a working, safe site, using as little personal data as we can.</li>
+                    <li><strong>To meet legal duties</strong> (keeping accounting records of sales, answering authorities): legal obligation.</li>
+                    <li><strong>Where you give it</strong> (for example sensitive answers you choose to enter in a test or the course): your consent, which you can withdraw by asking us to delete the answers.</li>
                 </ul>
-                <p>Добір і лічильник діють, тільки поки діє підписка; відкликання підписки відкликає й їх. Підтвердження покупки, доступу чи відповідь підтримки не є рекламою й не потребують цієї згоди.</p>
-                <p>Розсилку ще готуємо: ваш вибір зберігається вже зараз, але листи надходитимуть лише після підтвердження підписки.</p>
+                <p>We do not sell your personal information. We do not use it for advertising, and we do not take decisions about you by automated means that have legal effect on you.</p>
 
-                <h2>Опитування</h2>
-                <p>Питання «Звідки ви дізналися про сайт?» необов’язкове. Правова підстава: наш законний інтерес у статистиці джерел відвідувачів; ви маєте право заперечити. Відповідь не використовується для добору розсилок, співробітники бачать лише підсумки. Не пишіть у відповіді особисту чи медичну інформацію: такий текст ми не зберігаємо.</p>
+                <h2 id="cookies">Cookies and similar technologies</h2>
+                <p>There is no advertising or social-media tracking on the site. The cookies our code sets are listed here, all of them first-party:</p>
+                <div class="legal__table-wrap">
+                    <table class="legal__table">
+                        <thead><tr><th scope="col">Cookie</th><th scope="col">What it is for</th><th scope="col">Lasts</th></tr></thead>
+                        <tbody>
+                            {% for c in legal.cookies %}
+                                <tr><td data-label="Cookie"><code>{{ c.name }}</code><br><span class="muted">{% if c.essential %}needed for the service{% else %}statistics and your results{% endif %}</span></td><td data-label="What it is for">{{ c.purpose }}</td><td data-label="Lasts">{{ c.lifetime }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p>Signed-in staff also get small preference cookies in the admin area (language, time zone, chart choice). The course player remembers your animation speed in your browser's own storage; it never leaves your device. On its payment page Stripe sets its own cookies, described in its privacy policy.</p>
+                <p>You can delete or block cookies in your browser at any time. Blocking the sign-in cookies means you cannot stay signed in. Blocking the visitor ID cookie only means we count you as a new visitor each day and cannot keep your anonymous test results together.</p>
 
-                <h2>Вік</h2>
-                <p>Сайт для користувачів від 16 років, вік підтверджується позначкою під час першого входу, дати народження ми не збираємо. Купівля курсу доступна з 18 років, або з 16 років за дозволом законного представника. Якщо ви дізналися, що акаунтом користується людина молодша за 16 років, напишіть нам: ми видалимо акаунт.</p>
+                <h2>Who else handles your data</h2>
+                <p>We share data only with companies that help us run the site, and only what they need:</p>
+                <ul>
+                    {% for name, what, link in legal.processors %}<li><strong>{{ name }}</strong>: {{ what }}. <a href="{{ link }}" target="_blank" rel="noopener">Their privacy policy</a>.</li>
+                    {% endfor %}
+                    <li><strong>Our hosting provider</strong> stores the website and its database. {# TODO(owner): name the hosting provider and the country of the servers #}</li>
+                    <li><strong>Our error-monitoring service</strong> (Sentry), if switched on, receives error reports.</li>
+                </ul>
+                <p>We may also disclose data when the law requires it, or to protect our rights in a dispute. If the business is ever sold, your data may move to the new owner, who must respect this policy.</p>
+                <p>Some of these companies are in the United States. When data of people in the EU, the UK or Switzerland is transferred there, it is protected by the safeguards the law requires, such as standard contractual clauses or the EU-US Data Privacy Framework.</p>
 
-                <h2>Автоматична перевірка відгуків</h2>
-                <p>Текст відгуку надсилається до сервісу OpenAI, щоб перевірити його на образи, спам і тон. Передається лише текст відгуку, без вашої адреси й імені, і OpenAI, за нашими налаштуваннями, його не зберігає. Автоматика лише схвалює відгук; відхиляє і ховає його людина.</p>
+                <h2>How long we keep it</h2>
+                <ul>
+                    <li>Order records: for as long as the law requires accounting records to be kept, even if you close your account.</li>
+                    <li>Your account, tests and course answers: until you ask us to delete them or delete your account.</li>
+                    <li>Visit statistics contain no name or e-mail address; we keep them while they are useful for statistics.</li>
+                    <li>E-mails to us: as long as needed to help you and to answer follow-up questions.</li>
+                </ul>
 
-                <h2>Сортування звернень до підтримки</h2>
-                <p>Текст першого повідомлення у чаті підтримки надсилається до зовнішнього сервісу моделі TypeSafe AI (Сан-Франциско, США), щоб автоматично визначити, кому його передати: маркетингу, технічній підтримці, блогеру особисто чи як спам. Передається лише початок тексту повідомлення (до 1000 символів), у якому пошту, телефони, посилання та імена користувачів у месенджерах замінено позначками; ім’я, пошта, номер акаунта та файли з вашого акаунта не передаються. Те, що ви самі напишете у тексті (наприклад, своє ім’я чи адресу), може потрапити до сервісу, тож не пишіть зайвого. Модель лише обирає категорію для передачі співробітникам, а відповідь вам завжди пише людина, і співробітник може змінити категорію.</p>
+                <h2>Your rights</h2>
+                <p>Wherever you live you can ask us to show, correct or delete what we hold about you. Write to <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a> from the address of your account; we may ask you to confirm it is you. We answer within one month (45 days in California).</p>
+                <p><strong>If you are in the EU, the UK or Switzerland</strong> you also have the right to receive your data in a portable form, to restrict or object to its use, to withdraw consent at any time (this does not affect what was done before), and to complain to your local data protection authority.</p>
+                <p><strong>If you are a California resident</strong> you have the right to know what personal information we collect, use and disclose, to delete it, to correct it, to limit the use of sensitive personal information, and not to be treated worse for using these rights. In the last 12 months we collected identifiers (e-mail address, name, visitor ID, IP-derived hash), commercial information (your orders), internet activity (pages viewed, clicks) and answers you gave in tests and the course, for the purposes above. We do not sell or "share" personal information for cross-context behavioral advertising, so there is nothing to opt out of. An authorized agent may write to us on your behalf.</p>
 
-                <h2 id="cookies">Cookie</h2>
-                <p>Ми використовуємо лише потрібні для роботи cookie: сесія входу, тимчасовий запис під час входу через Google, запам’ятовування сторінки, на яку ви йшли, поки підтверджуєте умови (на одну годину), та анонімний ідентифікатор відвідувача. Рекламних cookie та сторонніх трекерів немає.</p>
+                <h2>Children</h2>
+                <p>The site is not meant for children under 16, and you must be 18 (or the age of majority where you live) to buy. If you think a child has given us personal data, write to us and we will delete it.</p>
 
-                <h2>Кому ми передаємо дані</h2>
-                <p>Нікому не продаємо. Дані обробляють лише сервіси, без яких сайт не працює: хостинг і зберігання файлів, Google (вхід), OpenAI (перевірка відгуків), TypeSafe AI (сортування звернень до підтримки) і платіжна система Portmone (оплата карткою). Portmone обробляє дані картки за власними правилами; нам вона передає лише підтвердження оплати.</p>
-                <p>Володілець даних і продавець: {{ seller.name }}, РНОКПП {{ seller.tax_id }}, {{ seller.address }}.</p>
+                <h2>Security</h2>
+                <p>Connections to the site are encrypted, sign-in is handled by Google, payments by Stripe, and access to our database is limited. No system is perfectly secure; if a breach affects you, we will tell you and the authorities as the law requires.</p>
 
-                <h2 id="protection">Захист даних</h2>
-                <p><strong>Захист даних:</strong> ми вживаємо необхідних організаційних та технічних заходів для захисту персональних даних від несанкціонованого доступу, зміни або знищення.</p>
+                <h2>Changes</h2>
+                <p>If we change this policy we will update the date at the top, and if the change is important we will tell you by e-mail or on the site. Earlier versions are available on request.</p>
 
-                <h2>Скільки зберігаємо і як видалити</h2>
-                <p>Поки у вас є кабінет. Щоб видалити акаунт, відгуки та пов’язані дані, напишіть нам, і ми зробимо це протягом 30 днів. Відгук можна змінити або сховати текст самостійно. Згоди на листи можна відкликати в будь-який момент, відповідь в опитуванні видалити в кабінеті. Ви також маєте право отримати копію своїх даних, виправити їх, заперечити проти обробки на підставі законного інтересу та поскаржитися до Уповноваженого Верховної Ради України з прав людини. Записи про оплати ми зберігаємо стільки, скільки цього вимагає законодавство про облік; тому акаунт, за яким були оплати, ми можемо знеособити замість повного видалення.</p>
-
-                <h2>Зв’язок</h2>
-                <p>З питань про дані пишіть на <a href="mailto:{{ seller.email }}">{{ seller.email }}</a>, телефонуйте <a href="tel:{{ seller.phone_link }}">{{ seller.phone }}</a> або пишіть в Instagram <a href="{{ out('https://www.instagram.com/dorinellla/', 'privacy:instagram') }}" target="_blank" rel="noopener">@dorinellla</a> або в Telegram-бот <a href="{{ out('https://t.me/dori_nutritioner_bot', 'privacy:telegram') }}" target="_blank" rel="noopener">@dori_nutritioner_bot</a>.</p>
-
-                <h2>Зміни</h2>
-                <p>Ми можемо змінювати цю політику в будь-який час. Нова версія діє з моменту публікації на цій сторінці; дата останнього оновлення вказана вгорі. Користуючись сайтом після змін, ви погоджуєтеся з оновленою політикою.</p>
-
-                <p>Правила користування сайтом: <a href="{{ url('terms') }}">Умови користування</a>.</p>
+                <p>Our <a href="{{ url('terms') }}">Terms of Service</a> and <a href="{{ url('refund') }}">Refund Policy</a> go with this policy.</p>
             </div>
         </div>
     </section>

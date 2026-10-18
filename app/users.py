@@ -15,9 +15,9 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import permissions
+from . import models, permissions
 from .auth import EMAIL_RE, NO_PASSWORD, normalize_email
-from . import models
+from .i18n import Message
 from .models import AdminUser, AdminUserGroup, PermissionGroup, ShortLink
 from .permissions import ADMIN, ROOT, USER
 
@@ -31,16 +31,16 @@ class UserError(ValueError):
 
     def __init__(self, message: str, field: str = '', code: str = ''):
         super().__init__(message)
-        self.field, self.code = field, code
+        self.message, self.field, self.code = message, field, code        # English; an i18n.Message when it carries values (str(error) would lose that)
 
 
-FORBIDDEN = 'Недостатньо прав для цієї дії.'
+FORBIDDEN = 'You do not have the rights for this action.'
 
 
 def check_email(raw: str) -> str:
     email = normalize_email(raw)
     if not email or len(email) > EMAIL_MAX or not EMAIL_RE.match(email) or any(ord(c) < 32 for c in email):
-        raise UserError('Вкажіть коректну пошту.', 'email')
+        raise UserError('Enter a valid e-mail address.', 'email')
     return email
 
 
@@ -96,20 +96,24 @@ async def _lock(session: AsyncSession, actor: AdminUser, target: AdminUser | Non
     actor.perms = await permissions.load(session, actor)
 
 
-async def _guard_last(session: AsyncSession, target: AdminUser, verb: str) -> None:
+LAST_ADMIN = {'off': 'This is the last active admin: it cannot be switched off.', 'demote': 'This is the last active admin: it cannot be demoted.',
+              'delete': 'This is the last active admin: it cannot be deleted.'}
+
+
+async def _guard_last(session: AsyncSession, target: AdminUser, action: str) -> None:
     """The target stops being an active admin (switched off, demoted or deleted): the site keeps at least one other."""
     if target.is_active and target.role != USER:
         others = await session.scalar(select(func.count()).select_from(AdminUser).where(
             AdminUser.is_active.is_(True), AdminUser.role != USER, AdminUser.id != target.id))
         if not others:
-            raise UserError(f'Це останній активний адміністратор: його не можна {verb}.', code='last')
+            raise UserError(LAST_ADMIN[action], code='last')
 
 
 def _refuse_self_or_root(actor: AdminUser, target: AdminUser) -> None:
     if actor.id == target.id:
-        raise UserError('Свій обліковий запис змінюють у профілі.', code='self')
+        raise UserError('You change your own account in your profile.', code='self')
     if target.role == ROOT:
-        raise UserError('Root змінити не можна.', code='root')
+        raise UserError('A root account cannot be changed.', code='root')
 
 
 # ---------------------------------------------------------------- groups of a promoted account
@@ -118,11 +122,11 @@ async def _groups_for(session: AsyncSession, actor: AdminUser, ids: list[int]) -
     wanted = set(ids)
     groups = list((await session.scalars(select(PermissionGroup).where(PermissionGroup.id.in_(wanted)))).all()) if wanted else []
     if len(groups) != len(wanted):
-        raise UserError('Групу не знайдено.', 'groups', code='nogroup')
+        raise UserError('Group not found.', 'groups', code='nogroup')
     effective = await permissions.group_permissions(session, groups)
     for group in groups:
         if not may_grant(actor, effective[group.id], group.is_system):
-            raise UserError(f'Група «{group.name}» дає права, яких немає у вас.', 'groups', code='grant')
+            raise UserError(Message('The group "%(name)s" gives rights you do not have.', name=group.name), 'groups', code='grant')
     return groups
 
 
@@ -148,8 +152,8 @@ async def create(session: AsyncSession, actor: AdminUser, email: str, active: bo
         raise UserError(FORBIDDEN, code='forbidden')
     groups = await _groups_for(session, actor, group_ids or []) if role == ADMIN else []
     if await session.scalar(select(AdminUser.id).where(AdminUser.email == email)):
-        raise UserError('Користувач з такою поштою вже є.', 'email')
-    user = AdminUser(email=email, password_hash=NO_PASSWORD, is_active=active, role=role, session_version=0, onboarding_state='pending')
+        raise UserError('A user with this e-mail already exists.', 'email')
+    user = AdminUser(email=email, password_hash=NO_PASSWORD, is_active=active, role=role, session_version=0)
     session.add(user)
     try:
         await session.flush()
@@ -157,7 +161,7 @@ async def create(session: AsyncSession, actor: AdminUser, email: str, active: bo
         await session.commit()
     except IntegrityError:          # two forms with the same address at the same moment
         await session.rollback()
-        raise UserError('Користувач з такою поштою вже є.', 'email') from None
+        raise UserError('A user with this e-mail already exists.', 'email') from None
     log.info('admin user created: %s (id %s, %s) by %s', user.email, user.id, role, actor.email)
     return user
 
@@ -170,16 +174,16 @@ async def update_user(session: AsyncSession, actor: AdminUser, user: AdminUser, 
     if not may_edit(actor, user):
         raise UserError(FORBIDDEN, code='forbidden')
     if email != user.email and await session.scalar(select(AdminUser.id).where(AdminUser.email == email, AdminUser.id != user.id)):
-        raise UserError('Користувач з такою поштою вже є.', 'email')
+        raise UserError('A user with this e-mail already exists.', 'email')
     if user.is_active and not active:
-        await _guard_last(session, user, 'вимкнути')
+        await _guard_last(session, user, 'off')
         bump(user)
     user.email, user.is_active = email, active
     try:
         await session.commit()
     except IntegrityError:
         await session.rollback()
-        raise UserError('Користувач з такою поштою вже є.', 'email') from None
+        raise UserError('A user with this e-mail already exists.', 'email') from None
     log.info('admin user changed: %s (id %s) by %s', user.email, user.id, actor.email)
 
 
@@ -193,7 +197,7 @@ async def set_access(session: AsyncSession, actor: AdminUser, user: AdminUser, r
         raise UserError(FORBIDDEN, code='forbidden')
     groups = await _groups_for(session, actor, group_ids) if role == ADMIN else []
     if user.role == ADMIN and role == USER:
-        await _guard_last(session, user, 'понизити')
+        await _guard_last(session, user, 'demote')
     before = (user.role, sorted(await target_groups(session, user.id)))
     user.role = role
     await _set_groups(session, user, groups)
@@ -209,7 +213,7 @@ async def set_active(session: AsyncSession, actor: AdminUser, user: AdminUser, a
     if not may_edit(actor, user):
         raise UserError(FORBIDDEN, code='forbidden')
     if user.is_active and not active:
-        await _guard_last(session, user, 'вимкнути')
+        await _guard_last(session, user, 'off')
     if user.is_active != active:
         bump(user)
     user.is_active = active

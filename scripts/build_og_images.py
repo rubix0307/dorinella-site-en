@@ -1,39 +1,37 @@
-"""Open Graph images for recipes (1200×630): the title and a few facts on the left, the video's
-poster on the right. Written next to the videos as media/recipes/<reel>-og.jpg (with them to the bucket).
+"""The Open Graph images of the site (1200x630): the default one and the one of the Gut Massage Guide, written to app/static/img.
 
-Run (in the web container, which has the media folder; Pillow is a dev-only dependency):
+Run (Pillow is a dev-only dependency):
     pip install -r requirements-dev.txt
-    python scripts/build_og_images.py .og-build/fonts            # only missing / outdated images
-    python scripts/build_og_images.py .og-build/fonts --force    # all of them
+    python scripts/build_og_images.py <folder with the fonts>
 
-Fonts — the site's own, from Google Fonts (OFL), not committed:
-    .og-build/fonts/CormorantGaramond.ttf  https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf
-    .og-build/fonts/CormorantGaramond-Italic.ttf  …/cormorantgaramond/CormorantGaramond-Italic%5Bwght%5D.ttf (the logo)
-    .og-build/fonts/Manrope.ttf            https://github.com/google/fonts/raw/main/ofl/manrope/Manrope%5Bwght%5D.ttf
+Fonts: the site's own, from Google Fonts (OFL), not committed. The folder holds
+    CormorantGaramond.ttf, CormorantGaramond-Italic.ttf (the logo), Manrope.ttf
+(https://github.com/google/fonts/tree/main/ofl/cormorantgaramond and /manrope).
 """
 import argparse
-import asyncio
-import hashlib
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app import db, recipes  # noqa: E402
-from app.core.templating import minutes  # noqa: E402
-from app.recipes import store  # noqa: E402
+from app.site import BRAND  # noqa: E402
 
+IMG = ROOT / 'app' / 'static' / 'img'
 W, H = 1200, 630
 BG = (243, 239, 233)           # --bg
 INK = (31, 42, 31)             # --ink
 SOFT = (76, 87, 76)            # --ink-soft
 ACCENT = (47, 74, 44)          # --green-700
-LINE = (222, 215, 204)
+SAGE = (223, 231, 218)         # --sage-100
 PAD = 72
-VERSION = 'og-2'               # bump to rebuild every image after a design change
+
+IMAGES = {
+    'og-default.jpg': ('GUT HEALTH, MADE GENTLE', 'Gentle gut health, step by step', 'Abdominal self-massage, a Bristol stool scale test and practical guides.'),
+    'og-gut-guide.jpg': ('GUIDE', 'Gut Massage Guide', 'Step-by-step abdominal self-massage to ease bloating and look after your gut.'),
+}
 
 
 def font(path: Path, size: int, weight: int) -> ImageFont.FreeTypeFont:
@@ -54,91 +52,48 @@ def wrap(draw: ImageDraw.ImageDraw, text: str, f: ImageFont.FreeTypeFont, width:
     return [*lines, line]
 
 
-def rounded(img: Image.Image, radius: int) -> Image.Image:
-    mask = Image.new('L', img.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, *img.size), radius, fill=255)
-    out = Image.new('RGBA', img.size)
-    out.paste(img, (0, 0), mask)
-    return out
-
-
-def render(recipe: recipes.Recipe, poster: Path, fonts: Path) -> Image.Image:
-    serif = fonts / 'CormorantGaramond.ttf'
-    sans = fonts / 'Manrope.ttf'
+def render(eyebrow: str, title: str, lead: str, fonts: Path) -> Image.Image:
+    serif, sans = fonts / 'CormorantGaramond.ttf', fonts / 'Manrope.ttf'
     img = Image.new('RGB', (W, H), BG)
     draw = ImageDraw.Draw(img)
 
-    # right: the poster, 9:16, rounded, with a soft shadow and a play button
-    ph = H - 2 * 48
-    pw = round(ph * 9 / 16)
-    px, py = W - PAD - pw, 48
-    shot = Image.open(poster).convert('RGB')
-    scale = max(pw / shot.width, ph / shot.height)
-    shot = shot.resize((round(shot.width * scale), round(shot.height * scale)), Image.Resampling.LANCZOS)
-    shot = shot.crop(((shot.width - pw) // 2, (shot.height - ph) // 2, (shot.width - pw) // 2 + pw, (shot.height - ph) // 2 + ph))
-    shadow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).rounded_rectangle((px, py + 14, px + pw, py + ph + 14), 32, fill=(31, 42, 31, 70))
-    img.paste(shadow.filter(ImageFilter.GaussianBlur(22)), (0, 0), shadow.filter(ImageFilter.GaussianBlur(22)))
-    card = rounded(shot, 32)
-    img.paste(card, (px, py), card)
-    cx, cy, r = px + pw // 2, py + ph // 2, 42
-    disc = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(disc).ellipse((cx - r, cy - r, cx + r, cy + r), fill=(255, 255, 255, 235))
-    img.paste(disc, (0, 0), disc)
-    draw.polygon([(cx - 12, cy - 18), (cx - 12, cy + 18), (cx + 20, cy)], fill=ACCENT)
+    # right: the gut illustration on a sage disc
+    r = 250
+    cx, cy = W - PAD - r + 30, H // 2
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=SAGE)
+    art = Image.open(IMG / 'guts-hero-900.webp').convert('RGBA')
+    art.thumbnail((int(r * 1.5), int(r * 1.5)), Image.Resampling.LANCZOS)
+    img.paste(art, (cx - art.width // 2, cy - art.height // 2), art)
 
-    # left: eyebrow, title (fitted), facts, signature
-    left_w = px - PAD - 56
-    eyebrow = font(sans, 22, 700)
-    draw.text((PAD, 78), f'РЕЦЕПТ  ·  {recipe.category_label.upper()}', font=eyebrow, fill=ACCENT)
-
-    for size in (84, 76, 68, 60, 54):
+    left_w = cx - r - PAD - 40
+    draw.text((PAD, 150), eyebrow, font=font(sans, 22, 700), fill=ACCENT)
+    for size in (80, 72, 64, 56):
         title_font = font(serif, size, 600)
-        lines = wrap(draw, recipe.title, title_font, left_w)
+        lines = wrap(draw, title, title_font, left_w)
         if len(lines) <= 3:
             break
-    y = 128
+    y = 192
     for line in lines:
         draw.text((PAD, y), line, font=title_font, fill=INK)
         y += round(size * 1.08)
-
-    facts = font(sans, 26, 600)
-    y += 30
-    parts = [minutes(recipe.total_minutes), recipes.DIFFICULTY[recipe.difficulty]]
-    if recipe.diet:
-        parts.append(recipes.DIETS[recipe.diet[0]][0])
-    draw.text((PAD, y), '   ·   '.join(parts), font=facts, fill=SOFT)
+    lead_font = font(sans, 26, 500)
+    y += 22
+    for line in wrap(draw, lead, lead_font, left_w)[:3]:
+        draw.text((PAD, y), line, font=lead_font, fill=SOFT)
+        y += 40
 
     draw.line((PAD, H - 118, PAD + 64, H - 118), fill=ACCENT, width=3)
-    draw.text((PAD, H - 100), 'dorinellla', font=font(fonts / 'CormorantGaramond-Italic.ttf', 46, 500), fill=INK)
+    draw.text((PAD, H - 100), BRAND, font=font(fonts / 'CormorantGaramond-Italic.ttf', 46, 500), fill=INK)
     return img
-
-
-async def _all_recipes() -> list[recipes.Recipe]:
-    """Every recipe in the database, drafts too (their image is ready when they're published)."""
-    async with db.new_session() as session:
-        return [recipes.parse(store.to_raw(r)) for r in await store.all_records(session)]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('fonts', type=Path)
-    parser.add_argument('--media', type=Path, default=ROOT / 'media' / 'recipes')
-    parser.add_argument('--force', action='store_true')
     args = parser.parse_args()
-    made = 0
-    for recipe in asyncio.run(_all_recipes()):
-        poster = args.media / f'{recipe.reel}.webp'
-        out = args.media / f'{recipe.reel}-og.jpg'
-        stamp = args.media / f'{recipe.reel}-og.txt'   # what it was drawn from: redraw when that changes
-        key = hashlib.sha256(f'{VERSION}|{recipe.title}|{recipe.category}|{recipe.total_minutes}|'
-                             f'{recipe.difficulty}|{recipe.diet}|{poster.stat().st_size}'.encode()).hexdigest()
-        if not args.force and out.exists() and stamp.exists() and stamp.read_text() == key:
-            continue
-        render(recipe, poster, args.fonts).save(out, 'JPEG', quality=86, optimize=True, progressive=True)
-        stamp.write_text(key)
-        made += 1
-    print(f'og images: {made} drawn')
+    for name, (eyebrow, title, lead) in IMAGES.items():
+        render(eyebrow, title, lead, args.fonts).save(IMG / name, 'JPEG', quality=86, optimize=True, progressive=True)
+        print('written', name)
     return 0
 
 

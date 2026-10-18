@@ -1,6 +1,6 @@
 {% set d = b.d %}
 <section class="abm-block abm-safety" data-safety data-version="{{ d.version }}">
-    <p class="abm-safety__meta">Це інформація, а не медична консультація.</p>
+    <p class="abm-safety__meta">This is general information, not medical advice.</p>
 
     <fieldset class="abm-safety__group abm-safety__group--stop">
         <legend><h2 class="abm-h2">{{ d.absolute_title }}</h2></legend>
@@ -15,8 +15,8 @@
     <div class="abm-stop" data-stop role="status" aria-live="polite">
         <span class="abm-callout__icon" aria-hidden="true">{{ icon('triangle-alert') }}</span>
         <div>
-            <h3>Якщо ви відзначили хоч один пункт — не починайте масаж</h3>
-            <p>Зверніться до лікаря. Поки що можна прочитати про <a href="{{ course.BASE }}tilo/">діафрагмальне дихання</a> та <a href="{{ course.BASE }}zapytannia/">часті запитання</a> — вони не потребують масажу.</p>
+            <h3>If you ticked any of these, do not start the massage</h3>
+            <p>Talk to your doctor. In the meantime you can read about <a href="{{ course.BASE }}body/">diaphragmatic breathing</a> and the <a href="{{ course.BASE }}faq/">frequently asked questions</a>, neither of which needs a massage.</p>
         </div>
     </div>
 
@@ -28,10 +28,10 @@
                 <li><label class="abm-check"><input type="checkbox" data-rel="{{ id }}"><span><strong>{{ label }}</strong><small>{{ hint }}</small></span></label></li>
             {% endfor %}
         </ul>
-        <p class="abm-caution" data-caution role="status" aria-live="polite">Відзначено пункт, що потребує обережності: спершу обговоріть масаж із лікарем.</p>
+        <p class="abm-caution" data-caution role="status" aria-live="polite">You ticked something that calls for caution: talk to your doctor about massage first.</p>
     </fieldset>
 
     <div class="abm-ack{% if need_ack %} is-need{% endif %}" id="ack" data-ack-box>
-        <label class="abm-check"><input type="checkbox" name="ack" value="1" form="abm-complete" data-ack aria-describedby="abm-need"><span><strong>Я прочитала(в) протипоказання</strong><small>Розумію, що курс не замінює консультацію лікаря, і зупиняюсь, якщо з’являється біль.</small></span></label>
+        <label class="abm-check"><input type="checkbox" name="ack" value="1" form="abm-complete" data-ack aria-describedby="abm-need"><span><strong>I have read the contraindications</strong><small>I understand that the course does not replace a doctor’s advice, and I will stop if I feel pain.</small></span></label>
     </div>
 </section>

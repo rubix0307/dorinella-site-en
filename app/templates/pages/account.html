@@ -1,82 +1,58 @@
 {% extends 'base.html' %}
 
-{% block title %}Мій кабінет | dorinellla{% endblock %}
-{% block description %}Ваш кабінет на dorinellla.{% endblock %}
+{% block title %}My account | {{ site.BRAND }}{% endblock %}
+{% block description %}Your {{ site.BRAND }} account: your purchases and your guides.{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block content %}
     <section class="section account" aria-labelledby="account-title">
         <div class="container container--narrow">
             <div class="section-head section-head--center">
-                <p class="eyebrow">Кабінет</p>
-                <h1 class="section-title" id="account-title">{% if user.name %}Вітаємо, {{ user.name.split()[0] }}{% else %}Мій кабінет{% endif %}</h1>
+                <p class="eyebrow">My account</p>
+                <h1 class="section-title" id="account-title">{% if user.name %}Hello, {{ user.name.split()[0] }}{% else %}Welcome back{% endif %}</h1>
                 <p class="section-lead">{{ user.email }}</p>
             </div>
 
             <div class="account__actions">
-                {% if is_admin %}<a class="btn btn--primary btn--sm" href="{{ url('admin_dashboard') }}">{{ icon('layers') }}Відкрити адмінку</a>{% endif %}
+                {% if is_admin %}<a class="btn btn--primary btn--sm" href="{{ url('admin_dashboard') }}">{{ icon('layers') }}Open the admin</a>{% endif %}
                 <form method="post" action="{{ url('admin_logout') }}">
-                    <button class="btn btn--ghost btn--sm" type="submit">{{ icon('log-out') }}Вийти</button>
+                    <button class="btn btn--ghost btn--sm" type="submit">{{ icon('log-out') }}Sign out</button>
                 </form>
             </div>
 
-            <a class="account__card account__support" href="{{ url('support') }}">
-                <span class="account__soon-icon">{{ icon('life-buoy') }}</span>
-                <h2 class="account__title">Підтримка</h2>
-                <p class="account__empty">Питання про курс, оплату чи щось не працює — напишіть нам у чаті.{% if support_unread %} <strong>Є нова відповідь.</strong>{% endif %}</p>
-            </a>
-
-            <div class="account__soon">
+            <section class="account__card" aria-labelledby="library-title">
                 <span class="account__soon-icon">{{ icon('graduation-cap') }}</span>
-                <h2 class="account__title">Мої курси</h2>
-                <p class="account__empty">Скоро тут можна буде побачити придбані курси.</p>
-            </div>
-
-            {% if newsletter_offer %}{% include 'includes/newsletter_offer.html' %}{% endif %}
-
-            <section class="account__card tgc" aria-labelledby="tg-title" data-tg-link data-state="{{ 'linked' if tg_link else ('waiting' if tg_url else 'idle') }}" data-check-url="{{ url('account_telegram_check') }}">
-                <span class="account__soon-icon">{{ icon('send') }}</span>
-                <h2 class="account__title" id="tg-title">Telegram</h2>
-
-                <div class="tgc__pane" data-tg-pane="idle">
-                    <p class="account__empty">Підключіть Telegram, щоб ваші покупки й звернення в боті та на сайті були в одному місці. Це займе пів хвилини й не дає входу на сайт.</p>
-                    {% if tg_error %}<p class="account__empty tgc__error" role="alert">{{ tg_error }}</p>{% endif %}
-                    <form method="post" action="{{ url('account_telegram_start') }}" data-tg-start><button class="btn btn--primary" type="submit">{{ icon('send') }}Підключити Telegram</button></form>
-                </div>
-
-                <div class="tgc__pane" data-tg-pane="waiting">
-                    <ol class="tgc__steps">
-                        <li>Відкрийте Telegram за кнопкою нижче</li>
-                        <li>У чаті з ботом натисніть <b>Start</b></li>
-                        <li>Поверніться сюди: підключення завершиться саме</li>
-                    </ol>
-                    <a class="btn btn--primary" href="{{ tg_app }}" data-tg-app>{{ icon('send') }}Відкрити Telegram</a>
-                    <p class="tgc__alt">Не відкрилося? <a href="{{ tg_url }}" target="_blank" rel="noopener" data-tg-web>Відкрити через t.me</a></p>
-                    <p class="tgc__status" data-tg-state role="status" aria-live="polite"><span class="tgc__spin" aria-hidden="true"></span><span data-tg-state-text>Чекаємо підтвердження…</span></p>
-                    <details class="tgc__more">
-                        <summary>Або підтвердити кнопкою Telegram</summary>
-                        <div data-tg-widget>{% if tg_widget %}<script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="{{ tg_widget.bot }}" data-size="large" data-userpic="false" data-radius="12"
-                                data-auth-url="{{ url('account_telegram_widget') }}?state={{ tg_widget.state }}"></script>{% endif %}</div>
-                    </details>
-                    <button class="btn btn--ghost btn--sm" type="button" data-tg-cancel>Скасувати</button>
-                </div>
-
-                <div class="tgc__pane" data-tg-pane="done">
-                    <p class="tgc__done">{{ icon('check') }}Готово! Telegram підключено.</p>
-                </div>
-
-                <div class="tgc__pane" data-tg-pane="linked">
-                    {% if tg_link %}<p class="account__empty">Підключено: {% if tg_link.tg_username %}<strong>@{{ tg_link.tg_username }}</strong>{% else %}<strong>{{ tg_link.tg_name or 'акаунт Telegram' }}</strong>{% endif %}. Це не вхід на сайт: лише звʼязок вашого акаунта з ботом.</p>
-                    <form method="post" action="{{ url('account_telegram_unlink') }}"><button class="btn btn--ghost btn--sm" type="submit">{{ icon('x') }}Відключити</button></form>{% endif %}
-                </div>
+                <h2 class="account__title" id="library-title">My guides and courses</h2>
+                {% if products %}
+                    <ul class="account__list" role="list">
+                        {% for product in products %}
+                            <li class="account__item">
+                                <span class="account__item-text">
+                                    <strong>{{ product.title }}</strong>
+                                    <span class="muted">{% if owned[product.slug] %}{% if is_admin %}Admin preview{% else %}Yours to keep{% endif %}{% elif product.on_sale %}Not purchased yet{% else %}Coming soon{% endif %}</span>
+                                </span>
+                                {% if owned[product.slug] %}
+                                    <a class="btn btn--primary btn--sm" href="{{ product.open_path }}">{{ icon('book-open-text') }}Open</a>
+                                {% else %}
+                                    <a class="btn btn--ghost btn--sm" href="{{ url('product_detail', slug=product.slug) }}">Details</a>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="account__empty">Nothing here yet.</p>
+                {% endif %}
             </section>
-            {% if not tg_link %}<script src="{{ static('js/account-telegram.js') }}" defer></script>{% endif %}
 
-            <a class="account__card account__support" href="{{ url('account_notifications') }}">
-                <span class="account__soon-icon">{{ icon('megaphone') }}</span>
-                <h2 class="account__title">Листи й згоди</h2>
-                <p class="account__empty">Що ви дозволили надсилати на пошту: рекламні листи, добір за діями, лічильник відкриттів. Вимкнути можна в один дотик.</p>
+            {% include 'includes/account_purchases.html' %}
+
+            <a class="account__card account__support" href="{{ url('guide_list') }}">
+                <span class="account__soon-icon">{{ icon('book-open-text') }}</span>
+                <h2 class="account__title">Free guides</h2>
+                <p class="account__empty">Browse the guides library and take the Bristol stool scale test.</p>
             </a>
 
+            <p class="account__help muted">Questions about a purchase, or want your account and data deleted? Email <a href="mailto:{{ site.CONTACT_EMAIL }}">{{ site.CONTACT_EMAIL }}</a>.</p>
         </div>
     </section>
 {% endblock %}

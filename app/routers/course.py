@@ -1,4 +1,4 @@
-"""The «Масаж живота» course: for the admins only while COURSE_ACCESS=admin (see app/course.py).
+"""The «Gut Massage» course: for the admins only while COURSE_ACCESS=admin (see app/course.py).
 
 Whoever may not see a page gets *exactly* the answer of a page that doesn't exist: a plain HTTPException(404) raised
 before anything about the requested path is looked up, for every method (an unknown path under /course answers 404 to
@@ -35,7 +35,7 @@ async def _may_enter(request: Request, session: AsyncSession | None) -> bool:
     if user is not None and course.is_staff(user):
         request.state.course_admin = user
         return _accepted(user)
-    if mode == 'paid' and user is not None and session is not None and await payments.has_entitlement(session, user):
+    if mode == 'paid' and user is not None and session is not None and await payments.has_entitlement(session, user, course.PRODUCT):
         request.state.course_admin = user
         return _accepted(user)
     return False
@@ -99,7 +99,7 @@ async def save_answer(request: Request, session: AsyncSession | None = Depends(d
     state = await progress.load(session, user.id)
     if key == 'safety' and progress.safety_ok(state) and isinstance(cleaned, dict) and not cleaned['ack']:
         return JSONResponse({'ok': True, 'saved': False})        # a confirmation is not taken back
-    if not progress.unlocked(state, 'tekhniky') and key.startswith('list.'):
+    if not progress.unlocked(state, 'techniques') and key.startswith('list.'):
         return JSONResponse({'ok': False}, status_code=400)
     changed = await progress.save(session, user.id, key, cleaned)
     return JSONResponse({'ok': True, 'saved': changed})
@@ -121,7 +121,7 @@ async def track_watching(request: Request, session: AsyncSession | None = Depend
     except Exception:  # noqa: BLE001 — any unreadable body is a 400
         return JSONResponse({'ok': False}, status_code=400)
     state = await progress.load(session, user.id)
-    if progress.unlocked(state, 'tekhniky', to_view=False):
+    if progress.unlocked(state, 'techniques', to_view=False):
         await progress.track(session, user.id, key, seconds, completed, plays)
     return JSONResponse({'ok': True})
 
@@ -176,23 +176,22 @@ async def home(request: Request, session: AsyncSession | None = Depends(db.get_o
         buyer = await _sales_only_user(request, session)
         if buyer is None or session is None:      # (a buyer exists only with a database)
             raise HTTPException(status_code=404)
-        pay = await payments.offer_for(session, buyer)
+        pay = await payments.offer_for(session, buyer, course.PRODUCT)
         if pay is None:
             raise HTTPException(status_code=404)
-        return _render(request, 'pages/course/home.html', first=course.PUBLIC_PAGES[0], my_review=None, pay=pay, sales_only=True, **_progress_context(None))
+        return _render(request, 'pages/course/home.html', first=course.PUBLIC_PAGES[0], pay=pay, sales_only=True, **_progress_context(None))
     state = await _state(request, session)
     first = progress.first_open(state) if state is not None else course.PUBLIC_PAGES[0]
     user = getattr(request.state, 'course_admin', None)
-    my_review = None
-    pay = await payments.offer_for(session, user) if user is not None and session is not None else None
-    return _render(request, 'pages/course/home.html', first=first, my_review=my_review, pay=pay, **_progress_context(state))
+    pay = await payments.offer_for(session, user, course.PRODUCT) if user is not None and session is not None else None
+    return _render(request, 'pages/course/home.html', first=first, pay=pay, **_progress_context(state))
 
 
 @router.get(course.DATA_URL, name='course_data', dependencies=[Depends(gate)])
 @router.head(course.DATA_URL, dependencies=[Depends(gate)])
 async def data(request: Request, session: AsyncSession | None = Depends(db.get_optional_session)):
     state = await _state(request, session)
-    if state is not None and not progress.unlocked(state, 'tekhniky'):
+    if state is not None and not progress.unlocked(state, 'techniques'):
         raise HTTPException(status_code=404)
     response = FileResponse(course.DATA_FILE, media_type='application/json')
     return _private(response, admin_preview=course.access_mode() != 'public')

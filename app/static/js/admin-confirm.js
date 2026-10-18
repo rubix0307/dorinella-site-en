@@ -1,14 +1,16 @@
 /* Our own "are you sure?" for the admin, instead of the browser's confirm().
 
    window.adminConfirm({title, message, confirmLabel, cancelLabel, danger, typed}) -> Promise<boolean>
-     danger: red button, role=alertdialog; typed: the word that must be typed before the button works (true = «так»; «да» is accepted too).
+     danger: red button, role=alertdialog; typed: the word that must be typed before the button works (true = the word for "yes" of the admin's language; the English and the Russian word are accepted in both).
    Declarative: data-confirm="text" on a <form> or on a submit button (the button wins), with optional
-     data-confirm-title, data-confirm-ok, data-confirm-danger (asks to type «так»), data-confirm-typed (the same, without the red).
-   The submit is caught in the capture phase before admin-soft.js and the page scripts see it; after "yes" the form is submitted again with the same
+     data-confirm-title, data-confirm-ok, data-confirm-danger (asks to type "yes"), data-confirm-typed (the same, without the red).
+   The submit is caught in the capture phase before the page scripts see it; after "yes" the form is submitted again with the same
    button (so formaction, name and value stay) and that second submit passes through. Without JS the form simply submits. */
 (() => {
-    const WORDS = ['так', 'да'];
-    const T = {title: 'Підтвердіть дію', ok: 'Так', cancel: 'Скасувати', dangerOk: 'Видалити', label: 'Щоб підтвердити, введіть «так»'};
+    const ACCEPTED = ['yes', '\u0434\u0430'];         // "yes" in English and in Russian: either is accepted in both languages
+    const word = () => t('yes');                         // the word the admin is asked to type
+    const T = {title: () => t('Confirm the action'), ok: () => t('Yes'), cancel: () => t('Cancel'), dangerOk: () => t('Delete'),
+               label: () => t('To confirm, type "yes"')};
     let open = null;                                    // the question on screen: one at a time
     let uid = 0;
 
@@ -16,7 +18,7 @@
         if (open) return open.promise.then(() => adminConfirm(options));     // the next question waits for the first to close (a Back must not be cancelled silently); the answer is never shared
         const o = {...options};
         const danger = !!o.danger;
-        const word = o.typed === true || (o.typed === undefined && danger) ? WORDS[0] : o.typed || '';
+        const asked = o.typed === true || (o.typed === undefined && danger) ? word() : o.typed || '';
         const id = `confirm-${++uid}`;
         const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         const dialog = document.createElement('dialog');
@@ -31,18 +33,18 @@
         const head = document.createElement('h2');
         head.className = 'adc__title';
         head.id = `${id}-t`;
-        head.textContent = o.title || T.title;
+        head.textContent = o.title || T.title();
         const text = document.createElement('p');
         text.className = 'adc__text';
         text.id = `${id}-m`;
         text.textContent = o.message || '';
         form.append(head, text);
         let input = null, hint = null;
-        if (word) {
+        if (asked) {
             const label = document.createElement('label');
             label.className = 'adc__field';
             const span = document.createElement('span');
-            span.textContent = T.label;
+            span.textContent = T.label();
             input = document.createElement('input');
             input.type = 'text';
             input.className = 'adc__input';
@@ -61,17 +63,17 @@
         const cancel = document.createElement('button');
         cancel.type = 'button';
         cancel.className = 'btn btn--ghost';
-        cancel.textContent = o.cancelLabel || T.cancel;
+        cancel.textContent = o.cancelLabel || T.cancel();
         const ok = document.createElement('button');
         ok.type = 'submit';
         ok.className = `btn ${danger ? 'btn--danger' : 'btn--primary'}`;
-        ok.textContent = o.confirmLabel || (danger ? T.dangerOk : T.ok);
+        ok.textContent = o.confirmLabel || (danger ? T.dangerOk() : T.ok());
         foot.append(cancel, ok);
         form.append(foot);
         dialog.append(form);
 
-        const typedOk = () => !input || WORDS.includes(input.value.trim().toLowerCase());
-        const sync = () => { ok.disabled = !typedOk(); if (hint) hint.textContent = ok.disabled ? '' : `Тепер кнопку «${ok.textContent}» можна натиснути`; };
+        const typedOk = () => !input || ACCEPTED.includes(input.value.trim().toLowerCase());
+        const sync = () => { ok.disabled = !typedOk(); if (hint) hint.textContent = ok.disabled ? '' : t('Now you can press "%(button)s"', {button: ok.textContent}); };
         input?.addEventListener('input', sync);
         sync();
 

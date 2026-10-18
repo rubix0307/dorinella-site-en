@@ -6,7 +6,7 @@
             {% include 'includes/nav_elements.html' %}
         </nav>
 
-        <a class="btn btn--sm btn--primary site-header__cta" href="{{ url('product_list') }}">{{ icon('book-open-text') }}Get the guide</a>
+        {% if 'gut-massage-guide' in listed() %}<a class="btn btn--sm btn--primary site-header__cta" href="{{ url('product_detail', slug='gut-massage-guide') }}">{{ icon('book-open-text') }}Get the guide</a>{% endif %}
 
         <button class="burger" type="button" aria-label="Open the menu" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
             {{ micon('menu') }}
@@ -19,7 +19,7 @@
         {% include 'includes/nav_elements.html' %}
     </nav>
     <div class="mobile-menu__social">
-        <a class="btn btn--primary" href="{{ url('product_list') }}">{{ icon('book-open-text') }}Get the guide</a>
+        {% if 'gut-massage-guide' in listed() %}<a class="btn btn--primary" href="{{ url('product_detail', slug='gut-massage-guide') }}">{{ icon('book-open-text') }}Get the guide</a>{% endif %}
         <a class="btn btn--ghost" href="{{ out(site.INSTAGRAM, 'menu:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}Instagram</a>
     </div>
 </div>

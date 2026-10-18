@@ -19,8 +19,7 @@
     let data = null;         // {icons: name → [inner svg, tags], groups: [{key, label, tab, icons}]}
     let found = [];          // search matches not drawn yet
     const current = () => row?.querySelector('[data-image]').value;
-    const ukName = (name) => data.uk?.[name]?.[0] || name;
-    const button = (name) => `<button type="button" data-value="${name}" data-tip="${ukName(name)}" aria-label="${ukName(name)}"${name === current() ? ' class="is-current"' : ''}>${SVG(data.icons[name][0])}</button>`;
+    const button = (name) => `<button type="button" data-value="${name}" data-tip="${name}" aria-label="${name}"${name === current() ? ' class="is-current"' : ''}>${SVG(data.icons[name][0])}</button>`;
 
     // blocks are drawn when they come within 300 px of the visible part of the panel
     const drawer = new IntersectionObserver((entries) => {
@@ -40,9 +39,9 @@
     async function load() {
         if (data) return;
         data = await (await fetch(panel.dataset.iconsUrl, {credentials: 'same-origin'})).json();
-        // one lowercase line per icon to search in: English name and tags, Ukrainian name and words
+        // one lowercase line per icon to search in: its name and tags
         data.index = Object.fromEntries(Object.keys(data.icons).map((name) => [name,
-            [name.replace(/-/g, ' '), data.icons[name][1], ...(data.uk?.[name] || [])].join(' ').toLowerCase()]));
+            [name.replace(/-/g, ' '), data.icons[name][1]].join(' ').toLowerCase()]));
         const per = columns() * ROWS;
         groupsBox.innerHTML = data.groups.map((g) => {
             const blocks = [];
@@ -210,7 +209,7 @@
             pick.querySelector('[data-icon-open]').innerHTML = `<img class="is-photo" src="${URL.createObjectURL(file)}" alt="">`;
         } catch {
             input.value = '';
-            window.adminConfirm({title: 'Фото не відкрито', message: 'Не вдалося відкрити це фото. Спробуйте PNG або JPEG.', confirmLabel: 'Зрозуміло', cancelLabel: 'Закрити'});
+            window.adminConfirm({title: window.t('The photo could not be opened'), message: window.t('This photo could not be opened. Try a PNG or JPEG.'), confirmLabel: window.t('Got it'), cancelLabel: window.t('Close')});
         }
         opener.classList.remove('is-loading');
         if (row) close();

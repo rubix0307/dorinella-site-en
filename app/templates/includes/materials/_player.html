@@ -41,18 +41,18 @@
         <div class="mplayer__ov mplayer__intro" data-mp="intro" hidden></div>
         <div class="mplayer__ov mplayer__cap" data-mp="cap"><div class="mplayer__step" data-mp="step"></div><div class="mplayer__desc" data-mp="desc"></div></div>
         <div class="mplayer__ov mplayer__pill" data-mp="pill" hidden></div>
-        <div class="mplayer__ov mplayer__lbl" style="left: calc(var(--u) * 175)">права сторона</div>
-        <div class="mplayer__ov mplayer__lbl mplayer__lbl--brand" style="left: 50%">@dorinellla</div>
-        <div class="mplayer__ov mplayer__lbl" style="left: calc(var(--u) * 905)">ліва сторона</div>
+        <div class="mplayer__ov mplayer__lbl" style="left: calc(var(--u) * 175)">right side</div>
+        <div class="mplayer__ov mplayer__lbl mplayer__lbl--brand" style="left: 50%">{{ site.INSTAGRAM_HANDLE }}</div>
+        <div class="mplayer__ov mplayer__lbl" style="left: calc(var(--u) * 905)">left side</div>
     </div>
     <div class="mplayer__bar">
-        <button class="mplayer__btn mplayer__btn--main" data-mp="play" type="button" data-label-play="Відтворити" data-label-pause="Пауза" aria-label="Відтворити">
+        <button class="mplayer__btn mplayer__btn--main" data-mp="play" type="button" data-label-play="Play" data-label-pause="Pause" aria-label="Play">
             <svg viewBox="0 0 24 24" aria-hidden="true"><g data-mp="playIcon"></g></svg>
         </button>
-        <button class="mplayer__btn" data-mp="restart" type="button" aria-label="Спочатку">
+        <button class="mplayer__btn" data-mp="restart" type="button" aria-label="Restart">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>
         </button>
-        <input class="mplayer__scrub" data-mp="scrub" type="range" min="0" max="35" step="0.01" value="0" aria-label="Позиція в анімації">
+        <input class="mplayer__scrub" data-mp="scrub" type="range" min="0" max="35" step="0.01" value="0" aria-label="Position in the animation">
         <span class="mplayer__time" data-mp="time">0:00</span>
     </div>
 </div>

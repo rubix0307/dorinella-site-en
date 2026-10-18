@@ -1,4 +1,4 @@
-// The /links/ page admin: «Зберегти» without reloading the page. The form is sent as it is (photos too);
+// The /links/ page admin: «Save» without reloading the page. The form is sent as it is (photos too);
 // the answer is the page itself (after the redirect, or with an error), and only its parts are taken
 // over: the cards, the ads card, the counter. Scroll position, open panels' scripts and focus stay.
 (() => {
@@ -19,7 +19,7 @@
         e.preventDefault();
         submit.disabled = true;
         submit.classList.add('is-loading');
-        say('Зберігаю…', 'busy');
+        say(window.t('Saving…'), 'busy');
         try {
             const response = await fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin'});
             if (response.status === 403) throw new Error('forbidden');
@@ -33,9 +33,9 @@
             window.enhanceLinkSelects?.();
             const error = page.querySelector('.recipe-editor__error');
             if (error) say(error.textContent.trim(), 'error');
-            else say('Збережено. На сторінці — одразу.', 'ok');
+            else say(window.t('Saved. The page is updated at once.'), 'ok');
         } catch (err) {
-            say(err.message === 'forbidden' ? 'Недостатньо прав, щоб змінювати цю сторінку.' : err.message === 'login' ? 'Сесія скінчилась — оновіть сторінку й увійдіть знову.' : 'Не вдалося зберегти: немає зв’язку. Спробуйте ще раз.', 'error');
+            say(window.t(err.message === 'forbidden' ? 'You do not have the rights to change this page.' : err.message === 'login' ? 'Your session has ended. Reload the page and sign in again.' : 'Could not save: no connection. Please try again.'), 'error');
         } finally {
             submit.disabled = false;
             submit.classList.remove('is-loading');

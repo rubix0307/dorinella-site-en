@@ -1,7 +1,7 @@
 {% extends 'pages/course/base.html' %}
 
-{% block title %}Масаж живота — онлайн-курс | dorinellla{% endblock %}
-{% block description %}Покрокові техніки самомасажу живота, підготовка, харчування й напої для здоров’я кишківника.{% endblock %}
+{% block title %}Gut Massage: an online course | {{ site.BRAND }}{% endblock %}
+{% block description %}Step-by-step abdominal self-massage techniques, preparation, food and drinks for a happier gut.{% endblock %}
 
 {% block content %}
     {% set total = course.PUBLIC_PAGES|length %}
@@ -12,49 +12,48 @@
         <div class="container">
             <header class="abm-hero">
                 <div class="abm-hero__copy">
-                    <p class="eyebrow">Онлайн-курс</p>
-                    <h1 class="abm-title">Масаж живота</h1>
-                    <p class="abm-promise">Ваш кишківник — це центр вашого здоров’я. Покрокові техніки самомасажу з анімацією, поради щодо підготовки, харчування й напоїв.</p>
+                    <p class="eyebrow">Online course</p>
+                    <h1 class="abm-title">Gut Massage</h1>
+                    <p class="abm-promise">Your gut does far more than digest food. Animated, step-by-step self-massage techniques, plus tips on preparation, food and drinks.</p>
                     <ul class="abm-hero__facts" role="list">
-                        <li>{{ icon('list-checks') }}{{ total }} кроків</li>
-                        <li>{{ icon('play') }}{{ course.TECHNIQUES|length }} технік з анімацією</li>
-                        <li>{{ icon('heart-pulse') }}Безпека — на першому місці</li>
+                        <li>{{ icon('list-checks') }}{{ total }} steps</li>
+                        <li>{{ icon('play') }}{{ course.TECHNIQUES|length }} animated techniques</li>
+                        <li>{{ icon('heart-pulse') }}Safety comes first</li>
                     </ul>
                 </div>
                 {% if not sales_only %}
-                <aside class="abm-resume" aria-label="Ваш прогрес">
+                <aside class="abm-resume" aria-label="Your progress">
                     {% if course_state is not none %}
-                        <p class="abm-resume__stat{% if finished %} is-finished{% endif %}">{% if finished %}{{ icon('circle-check') }}<strong>Курс пройдено</strong> · {{ total }} з {{ total }} кроків{% else %}<strong>{{ done }}</strong> з {{ total }} кроків пройдено{% endif %}</p>
-                        <span class="abm-resume__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done }}" aria-label="Пройдено кроків"><i style="width: {{ (done * 100 / total)|round|int }}%"></i></span>
-                        <p class="abm-resume__next">{% if finished %}Можна повернутися до будь-якого кроку{% else %}{{ 'Далі' if done else 'Починаємо з' }}: <strong>{{ first.nav }}</strong>{% endif %}</p>
+                        <p class="abm-resume__stat{% if finished %} is-finished{% endif %}">{% if finished %}{{ icon('circle-check') }}<strong>Course complete</strong> · {{ total }} of {{ total }} steps{% else %}<strong>{{ done }}</strong> of {{ total }} steps done{% endif %}</p>
+                        <span class="abm-resume__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done }}" aria-label="Steps completed"><i style="width: {{ (done * 100 / total)|round|int }}%"></i></span>
+                        <p class="abm-resume__next">{% if finished %}You can go back to any step{% else %}{{ 'Next up' if done else 'Starting with' }}: <strong>{{ first.nav }}</strong>{% endif %}</p>
                     {% else %}
-                        <p class="abm-resume__next">Починаємо з: <strong>{{ first.nav }}</strong></p>
+                        <p class="abm-resume__next">Starting with: <strong>{{ first.nav }}</strong></p>
                     {% endif %}
-                    {% if finished %}<a class="btn btn--primary" href="{{ url('review_write', slug=course.SLUG) }}">{{ icon('star') }}<span>{{ 'Змінити відгук' if my_review else 'Залишити відгук' }}</span></a>{% endif %}
-                    {% if not finished %}<a class="btn btn--primary" href="{{ course.BASE }}{{ first.slug }}/" data-cta-top>{{ icon('play') }}<span>{{ 'Продовжити' if done else 'Почати курс' }}</span></a>{% endif %}
+                    {% if not finished %}<a class="btn btn--primary" href="{{ course.BASE }}{{ first.slug }}/" data-cta-top>{{ icon('play') }}<span>{{ 'Continue' if done else 'Start the course' }}</span></a>{% endif %}
                 </aside>
                 {% endif %}
             </header>
 
             {% if pay %}
                 <aside class="abm-pay" aria-labelledby="abm-pay-title">
-                    <h2 class="abm-pay__title" id="abm-pay-title">{{ icon('credit-card') }}Оплата курсу{% if pay.test %} <span class="badge">тест</span>{% endif %}</h2>
+                    <h2 class="abm-pay__title" id="abm-pay-title">{{ icon('credit-card') }}Buy the course{% if pay.test %} <span class="badge">test</span>{% endif %}</h2>
                     {% if pay.bought %}
-                        <p class="abm-pay__text">{{ icon('circle-check') }}<span>Курс придбано{% if pay.test %} (тестова оплата){% endif %}.</span></p>
+                        <p class="abm-pay__text">{{ icon('circle-check') }}<span>You own this course{% if pay.test %} (test payment){% endif %}.</span></p>
                     {% else %}
-                        <p class="abm-pay__text"><span>{{ pay.title }}: <strong>{{ pay.price }}</strong>. Оплата карткою через Portmone; дані картки ми не бачимо.{% if pay.test %} <strong>Тестова оплата: гроші не списуються.</strong> Це бачите лише ви.{% endif %}</span></p>
+                        <p class="abm-pay__text"><span>{{ pay.title }}: <strong>{{ pay.price }}</strong>. Card details go to our payment provider; we never see them.{% if pay.test %} <strong>Test payment: no money is charged.</strong> Only you can see this.{% endif %}</span></p>
                         {% if pay.ready %}
-                            <form method="post" action="{{ url('payment_checkout', slug=pay.slug) }}">
-                                <label class="abm-pay__agree"><input type="checkbox" name="agree" value="1" required> <span>Я ознайомився(лась) і погоджуюся з <a href="{{ url('offer') }}" target="_blank" rel="noopener">публічною офертою</a> та умовами <a href="{{ url('payment_terms') }}" target="_blank" rel="noopener">оплати й повернення</a></span></label>
-                                <button class="btn btn--primary" type="submit">{{ icon('credit-card') }}<span>Оплатити {{ pay.price }}</span></button>
+                            <form method="post" action="{{ url('checkout', slug=pay.slug) }}">
+                                <label class="abm-pay__agree"><input type="checkbox" name="agree" value="1" required> <span>I have read and agree to the <a href="{{ url('terms') }}" target="_blank" rel="noopener">Terms</a> and the <a href="{{ url('privacy') }}" target="_blank" rel="noopener">Privacy Policy</a></span></label>
+                                <button class="btn btn--primary" type="submit">{{ icon('credit-card') }}<span>Pay {{ pay.price }}</span></button>
                             </form>
-                        {% else %}<p class="abm-pay__text"><span>Оплата ще не налаштована.</span></p>{% endif %}
+                        {% else %}<p class="abm-pay__text"><span>Payments are not set up yet.</span></p>{% endif %}
                     {% endif %}
                 </aside>
             {% endif %}
 
             {% if not sales_only %}
-            <ol class="abm-path" role="list" aria-label="Кроки курсу">
+            <ol class="abm-path" role="list" aria-label="Course steps">
                 {% for g in course.GROUPS %}
                     {% set in_group = course.PUBLIC_PAGES|selectattr('group', 'equalto', loop.index0)|list %}
                     {% if in_group %}
@@ -70,7 +69,7 @@
                                         {% else %}<a class="abm-step__body" href="{{ course.BASE }}{{ p.slug }}/"{% if current %} aria-current="step"{% endif %}>{% endif %}
                                             <span class="abm-step__mark" aria-hidden="true">{% if is_done %}{{ icon('check') }}{% elif locked %}{{ icon('lock') }}{% else %}{{ loop.index }}{% endif %}</span>
                                             <span class="abm-step__text"><strong>{{ p.title }}</strong><small>{{ p.promise }}</small></span>
-                                            {% if current %}<span class="abm-step__tag">Зараз</span>{% elif not locked %}{{ icon('chevron-right') }}{% endif %}
+                                            {% if current %}<span class="abm-step__tag">Now</span>{% elif not locked %}{{ icon('chevron-right') }}{% endif %}
                                         {% if locked %}</span>{% else %}</a>{% endif %}
                                     </li>
                                 {% endfor %}
@@ -80,12 +79,12 @@
                 {% endfor %}
             </ol>
             {% endif %}
-            <p class="abm-foot"><span>Курс не замінює консультацію лікаря.</span></p>
+            <p class="abm-foot"><span>This course does not replace a doctor’s advice.</span></p>
         </div>
         {#- shown by the script when the button at the top is out of sight -#}
         {% if not finished and not sales_only %}
         <div class="abm-sticky" data-cta-sticky hidden>
-            <a class="btn btn--primary abm-sticky__btn" href="{{ course.BASE }}{{ first.slug }}/" tabindex="-1">{{ icon('play') }}<span>{{ 'Продовжити' if done else 'Почати курс' }}: {{ first.nav }}</span></a>
+            <a class="btn btn--primary abm-sticky__btn" href="{{ course.BASE }}{{ first.slug }}/" tabindex="-1">{{ icon('play') }}<span>{{ 'Continue' if done else 'Start the course' }}: {{ first.nav }}</span></a>
         </div>
         {% endif %}
     </div>

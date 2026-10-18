@@ -1,4 +1,4 @@
-"""Admin area: login and the analytics dashboard."""
+"""Admin area: the analytics dashboard, the pages report, short links, the live socket and the language switch."""
 import asyncio
 from datetime import date, timedelta
 from urllib.parse import parse_qsl, unquote, urlencode
@@ -9,11 +9,12 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import db, google_login, live, page_stats, permissions, shortlinks, stats
+from .. import dashboard_stats, db, google_login, i18n, live, page_stats, permissions, shortlinks, stats, test_stats
 from ..admin_tables import TRANSIENT_PARAMS, page_state, table_view
 from ..auth import authorize, current_admin, login_response, logout_response, same_origin
 from ..core.monitoring import metric
 from ..core.templating import absolute_url, render
+from ..i18n import Message
 from ..models import FavoriteLink, OutboundClick, ShortLink
 from .account import LOGIN_ERRORS, complete_sign_in, login_page, sign_in_redirect
 
@@ -46,7 +47,7 @@ async def login_form(request: Request):
 async def login_google(request: Request, session: AsyncSession | None = Depends(db.get_optional_session)):
     """Send the browser to Google; the signed flow cookie remembers what must come back."""
     if session is None or not google_login.configured():
-        return login_page(request, session, 'Вхід через Google не налаштований.', 503)
+        return login_page(request, session, 'Sign-in with Google is not set up.', 503)
     url, cookie = google_login.start(request)
     response = RedirectResponse(url, status_code=303, headers=NO_INDEX)
     response.set_cookie(google_login.FLOW_COOKIE, cookie, max_age=google_login.FLOW_TTL, httponly=True, samesite='lax',
@@ -59,7 +60,7 @@ async def login_google_callback(request: Request, code: str = '', state: str = '
                                 session: AsyncSession | None = Depends(db.get_optional_session)):
     """Google sends the person back here. The account of that address is found (an unknown address gets a plain account)."""
     if session is None or not google_login.configured():
-        return login_page(request, session, 'Вхід через Google не налаштований.', 503)
+        return login_page(request, session, 'Sign-in with Google is not set up.', 503)
 
     def back(message: str, status_code: int = 401):
         response = login_page(request, session, message, status_code)
@@ -96,15 +97,16 @@ async def logout(request: Request, session: AsyncSession | None = Depends(db.get
 
 TZ_COOKIE = 'admin_tz'   # the browser's IANA time zone, set by admin.js
 CHART_COOKIE = 'admin_chart'   # which tile the chart shows: views / visitors / clicks (admin.js)
-DEVICES_COOKIE = 'admin_devices'   # «Пристрої» left open (admin.js, data-remember)
+DEVICES_COOKIE = 'admin_devices'   # the Devices card left open (admin.js, data-remember)
 
 
+# English keys of app/locale/ru.py; the page fills in the slug
 NOTICES = {
-    'created': 'Посилання /l/{slug} створено.',
-    'updated': 'Зміни в /l/{slug} збережено.',
-    'enabled': '/l/{slug} знову працює.',
-    'disabled': '/l/{slug} вимкнено: за ним відкриється сторінка 404.',
-    'deleted': '/l/{slug} видалено. Його переходи залишились у статистиці.',
+    'created': 'The link /l/%(slug)s was created.',
+    'updated': 'The changes to /l/%(slug)s were saved.',
+    'enabled': '/l/%(slug)s works again.',
+    'disabled': '/l/%(slug)s is switched off: its address now opens the 404 page.',
+    'deleted': '/l/%(slug)s was deleted. Its clicks stay in the statistics.',
 }
 
 
@@ -124,7 +126,7 @@ async def _analytics(request: Request, session: AsyncSession, user, *, status_co
     chart_metric = request.cookies.get(CHART_COOKIE, 'views')      # the tile the admin picked (admin.js)
     chart_metric = chart_metric if chart_metric in stats.CHARTS else 'views'
     placements = await stats.link_placements(session, rng)        # options of the placement filter
-    sources = await stats.link_sources(session, rng)              # options of the source filter
+    link_sources = await stats.link_sources(session, rng)         # options of the source filter
     statuses = await stats.link_statuses(session, rng)            # options of the status filter
 
     notice = request.query_params.get('notice')
@@ -141,7 +143,11 @@ async def _analytics(request: Request, session: AsyncSession, user, *, status_co
         preset_query={n: urlencode([('from', r.start), ('to', r.end), *keep]) for n, r in stats_presets().items()},
         # clicks
         page=page, links=page.rows, links_view=links_view,
-        placements=placements, sources=sources, source_labels=stats.SOURCE_LABELS,
+        placements=placements, link_sources=link_sources, source_labels=stats.SOURCE_LABELS,
+        # the rest of the dashboard: where visitors come from, the pages, the tests, the funnels
+        sources=await dashboard_stats.sources(session, rng), top_pages=await page_stats.top_pages(session, rng),
+        tests=await test_stats.overview(session, rng), funnels=await dashboard_stats.funnels(session, rng),
+        period_query=urlencode([('from', rng.start), ('to', rng.end)]),
         statuses=statuses, status_labels=stats.STATUS_LABELS,
         chart_data={'step': stats.step_of(rng), 'slots': rng.days * 1440 // stats.step_of(rng),
                     'history_start': (start.isoformat() if (start := await stats.history_start(session)) else None),
@@ -156,7 +162,7 @@ async def _analytics(request: Request, session: AsyncSession, user, *, status_co
         # short links (rows of the same table) and their dialogs
         placement=shortlinks.placement,
         error=error, form=form or {}, dialog=dialog,
-        notice=NOTICES[notice].format(slug=slug) if notice in NOTICES and slug else None,
+        notice=Message(NOTICES[notice], slug=slug) if notice in NOTICES and slug else None,
         notice_kind=notice if notice in NOTICES and slug else None,
         notice_link=notice_link,
         highlight=slug if notice in ('created', 'updated', 'enabled', 'disabled') else '',
@@ -194,6 +200,18 @@ async def chart_day(request: Request, session: AsyncSession = Depends(db.get_ses
                          'clicks': clicks}, headers=NO_INDEX)
 
 
+@router.post('/language', name='admin_language')
+async def set_language(request: Request, lang: str = Form('', max_length=8), back: str = Form('', max_length=2048, alias='next')):
+    """The admin's language (EN / RU): a cookie, then back to the page the switch was on. Only a page of the admin is a valid way back."""
+    if not same_origin(request):
+        return RedirectResponse(request.app.url_path_for('index'), status_code=303)
+    target = back if back.startswith('/admin') and not back.startswith('//') and '\\' not in back else request.app.url_path_for('admin_dashboard')
+    response = RedirectResponse(target, status_code=303, headers=NO_INDEX)
+    if lang in i18n.LANGS:
+        response.set_cookie(i18n.COOKIE, lang, max_age=365 * 24 * 3600, samesite='lax', secure=request.url.scheme == 'https', path='/')
+    return response
+
+
 @router.get('/', name='admin_dashboard')
 async def dashboard(request: Request, session: AsyncSession = Depends(db.get_session)):
     user = await authorize(request, session)
@@ -207,7 +225,7 @@ async def dashboard(request: Request, session: AsyncSession = Depends(db.get_ses
 
 @router.get('/pages/', name='admin_pages')
 async def pages_report(request: Request, session: AsyncSession = Depends(db.get_session)):
-    """«Сторінки»: views by section, then (?section=…) the section's pages — with the analytics' period."""
+    """Pages: views by section, then (?section=…) the section's pages — with the analytics' period."""
     user = await authorize(request, session, 'analytics.view')
     if user is None:
         return _to_login(request)
@@ -326,7 +344,7 @@ async def links_update(
         error, form['duplicate'] = shortlinks.duplicate_message(same), True   # only when the address is changed to it
     if error:
         return await again(error)
-    if slug != link.slug:             # keep the link's history under its new name in «Аналітика»
+    if slug != link.slug:             # keep the link's history under its new name in the analytics
         await session.execute(update(OutboundClick).where(OutboundClick.short_link_id == link_id)
                               .values(placement=shortlinks.placement(slug)))
     link.slug, link.target_url, link.title, link.is_active = slug, new_url, new_title, is_active
@@ -414,7 +432,7 @@ async def links_favorite(request: Request, link_id: int, session: AsyncSession =
 
 @router.websocket('/ws', name='admin_ws')
 async def live_updates(websocket: WebSocket):
-    """Pushes {"type": "click" | "view" | "link" | "recipes" | "attempt" | "course"} whenever new data lands; the page
+    """Pushes {"type": "click" | "view" | "link" | "attempt" | "course" | "order"} whenever new data lands; the page
     re-renders itself if it shows that kind (data-live on its results block). The message is only the kind."""
     if not same_origin(websocket):                       # no cross-site sockets
         await websocket.close(code=1008)
@@ -438,8 +456,7 @@ async def live_updates(websocket: WebSocket):
             if get in done:
                 kind = get.result()
                 get = asyncio.create_task(queue.get())
-                if not kind.startswith(live.SUPPORT_PREFIX):          # the chats have sockets of their own
-                    await websocket.send_json({'type': kind})
+                await websocket.send_json({'type': kind})
             if receive in done:
                 receive.result()                                  # raises WebSocketDisconnect
                 receive = asyncio.create_task(websocket.receive_text())
@@ -458,7 +475,7 @@ async def live_updates(websocket: WebSocket):
 
 
 RECHECK_SECONDS = 120
-LIVE_PERMS = frozenset({'analytics.view', 'tests.view', 'telegram.posts'})   # the pages that update live: analytics, «Тести»
+LIVE_PERMS = frozenset({'analytics.view', 'tests.view', 'course.view', 'orders.view'})   # the pages that update live
 
 
 async def _still_admin(websocket: WebSocket) -> bool:

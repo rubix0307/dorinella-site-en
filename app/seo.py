@@ -1,8 +1,11 @@
 """Search engines: the sitemap (sitemap.xml) and the schema.org markup of the public pages.
 
 The sitemap lists only what the site shows to everybody: the main pages, the products, the guides and the tests. Never the
-admin, the cabinet, the sign-in, the closed course or the tracked redirects (robots.txt says the same). A page written in code has no edit date in the database, so it gets the date of the last git commit of the files it is made of (its template and its data); without a git
-checkout (a deployed image) it reads app/lastmod.json (baked by scripts/bake_lastmod.py at deploy); without that too the sitemap leaves `lastmod` out: a date is never invented.
+admin, the cabinet, the sign-in, the closed course or the tracked redirects (robots.txt says the same).
+
+A page written in code has no edit date in the database, so it gets the date of the last git commit of the files it is made of
+(its template and its data); without a git checkout (a deployed image) it reads app/lastmod.json (baked by scripts/bake_lastmod.py
+at deploy); without that too the sitemap leaves `lastmod` out: a date is never invented.
 """
 import asyncio
 import json
@@ -78,7 +81,8 @@ def _head() -> list[tuple[str, date | None]]:
     out.append(('/guides/', _page('pages/learn/index.html', *learn)))
     out += [(f'/guides/{slug}/', _page('pages/learn/guide.html', *learn)) for slug in GUIDES]
     out += [(f'/tests/{slug}/', _page('pages/tests/test.html', *learn)) for slug in SELF_TESTS]
-    out += [('/links/', _page('pages/links.html')), ('/privacy/', _page('pages/privacy.html')), ('/terms/', _page('pages/terms.html'))]
+    out += [('/links/', _page('pages/links.html')), ('/privacy/', _page('pages/privacy.html')), ('/terms/', _page('pages/terms.html')),
+            ('/refund/', _page('pages/refund.html'))]
     return out
 
 
@@ -199,11 +203,11 @@ def item_list(request, items: list[tuple[str, str]]) -> dict:
 
 
 def product(request, product: Product) -> dict:
-    """A guide is a Product, a course is a Course; plans become offers (the price in dollars). Reviews are not marked up: a seller may not rate itself."""
+    """A guide is a Product, a course is a Course; plans become offers (the price in dollars) while the product is on sale. Reviews are not marked up: a seller may not rate itself."""
     base = _base(request)
     url = f'{base}/products/{product.slug}/'
     offers = [{'@type': 'Offer', 'name': f'{plan.label}: {plan.title}', 'price': plan.price, 'priceCurrency': CURRENCY, 'url': url,
-               'availability': 'https://schema.org/InStock' if product.on_sale else 'https://schema.org/PreOrder'} for plan in product.plans]
+               'availability': 'https://schema.org/InStock'} for plan in product.plans if product.on_sale]     # a price is published only once the product is on sale
     node: dict[str, Any] = {'@type': 'Course' if product.type == ProductType.COURSE else 'Product', '@id': f'{url}#product', 'url': url, 'name': product.title,
             'description': product.summary, 'image': f'{base}/static/{product.og_image}', 'inLanguage': LOCALE, 'offers': offers or None}
     if product.type == ProductType.COURSE:

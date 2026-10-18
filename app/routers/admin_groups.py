@@ -7,14 +7,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import db, groups, permissions
 from ..auth import authorize
 from ..models import AdminUserGroup, GroupPermission, PermissionGroup
-from ..users import UserError
+from ..users import FORBIDDEN, UserError
 from .admin import NO_INDEX, _page, _to_login
 
 router = APIRouter(prefix='/admin/groups', default_response_class=HTMLResponse, include_in_schema=False)
 
 PERM = 'groups.manage'
-NOTICES = {'created': 'Групу створено.', 'saved': 'Групу збережено.', 'deleted': 'Групу видалено.'}
-ERRORS = {'missing': 'Групу не знайдено.', 'system': 'Системну групу не можна змінити чи видалити.', 'forbidden': 'Недостатньо прав для цієї дії.'}
+# English keys: the templates translate them (`|t`)
+NOTICES = {'created': 'Group created.', 'saved': 'Group saved.', 'deleted': 'Group deleted.'}
+ERRORS = {'missing': 'Group not found.', 'system': 'The system group cannot be changed or deleted.', 'forbidden': FORBIDDEN}
 
 
 def _back(request: Request, notice: str = '', error: str = '') -> RedirectResponse:
@@ -43,10 +44,10 @@ async def groups_list(request: Request, notice: str = '', error: str = '', sessi
         notice=NOTICES.get(notice, ''), error=ERRORS.get(error, ''))
 
 
-def _form(request: Request, user, group: PermissionGroup | None, values: dict, error: str = '', field: str = '',
+def _form(request: Request, user, group: PermissionGroup | None, values: dict, error: UserError | None = None, field: str = '',
           status_code: int = 200, members: int = 0):
     return _page(request, 'admin/group_form.html', status_code=status_code, user=user, group=group, values=values,
-                 error=error, error_field=field, sections=_sections(), implies=permissions.IMPLIES, members=members)
+                 error=error.message if error else '', error_field=field, sections=_sections(), implies=permissions.IMPLIES, members=members)
 
 
 @router.get('/new', name='admin_group_new')
@@ -69,7 +70,7 @@ async def group_create(request: Request, name: str = Form('', max_length=300), d
     except UserError as error:
         await session.rollback()
         await session.refresh(user)
-        return _form(request, user, None, values, str(error), error.field, status_code=422)
+        return _form(request, user, None, values, error, error.field, status_code=422)
     return _back(request, 'created')
 
 
@@ -81,7 +82,6 @@ async def _group(session: AsyncSession, group_id: int) -> tuple[PermissionGroup 
         select(GroupPermission.code).where(GroupPermission.group_id == group_id))).all()))
     members = await session.scalar(select(func.count()).select_from(AdminUserGroup).where(AdminUserGroup.group_id == group_id)) or 0
     return group, set(codes), members
-
 
 
 @router.get('/{group_id:int}', name='admin_group_edit')
@@ -113,7 +113,7 @@ async def group_save(group_id: int, request: Request, name: str = Form('', max_l
         await session.refresh(group)
         if error.code:
             return _back(request, error=error.code)
-        return _form(request, user, group, values, str(error), error.field, status_code=422, members=members)
+        return _form(request, user, group, values, error, error.field, status_code=422, members=members)
     return _back(request, 'saved')
 
 

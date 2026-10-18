@@ -6,9 +6,9 @@
             {% set t = course.TECH_BY_KEY[key] %}
             <li><span class="abm-seq__n" aria-hidden="true">{{ loop.index }}</span>
                 <div><h3>{{ title }}</h3><p>{{ note }}</p></div>
-                <a class="abm-chip" href="{{ course.BASE }}tekhniky/#{{ key }}">{{ icon('play') }}№{{ t.number }} · {{ t.name }}</a></li>
+                <a class="abm-chip" href="{{ course.BASE }}techniques/#{{ key }}">{{ icon('play') }}№{{ t.number }} · {{ t.name }}</a></li>
         {% endfor %}
     </ol>
     <p class="abm-lead">{{ d.note }}</p>
-    <button class="abm-linkbtn abm-print" type="button" data-print>Надрукувати шпаргалку</button>
+    <button class="abm-linkbtn abm-print" type="button" data-print>Print the cheat sheet</button>
 </section>

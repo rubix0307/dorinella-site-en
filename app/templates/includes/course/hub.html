@@ -4,15 +4,15 @@
     <div class="abm-safebar" data-safebar data-version="{{ course.SAFETY_VERSION }}">
         <span class="abm-callout__icon" aria-hidden="true">{{ icon('triangle-alert') }}</span>
         <div>
-            <p><strong>Біль — це сигнал зупинитися.</strong> Масаж має бути м’яким. <a href="{{ course.BASE }}protypokazannia/">Протипоказання</a></p>
+            <p><strong>Pain is a signal to stop.</strong> Massage should be gentle. <a href="{{ course.BASE }}safety/">Contraindications</a></p>
             <details class="abm-stoplist">
-                <summary>Коли зупинитись і звернутись до лікаря</summary>
+                <summary>When to stop and see a doctor</summary>
                 <ul>{% for r in course.STOP_RULES %}<li>{{ r }}</li>{% endfor %}</ul>
             </details>
         </div>
     </div>
 
-    <ol class="abm-toc abm-toc--nojs" role="list" aria-label="Техніки">
+    <ol class="abm-toc abm-toc--nojs" role="list" aria-label="Techniques">
         {% for t in techniques %}<li><a href="#{{ t.key }}">№{{ t.number }} · {{ t.title }}</a></li>{% endfor %}
     </ol>
 
@@ -20,7 +20,7 @@
         <div class="abm-hub__stage" data-stage>
             <div class="mplayer abm-player" data-player data-mp-id="mp">
                 <div class="mplayer__card" data-mp="card">
-                    <svg class="mplayer__stage" viewBox="0 0 896 1200" role="img" aria-label="Анімація техніки масажу" data-mp="svg">
+                    <svg class="mplayer__stage" viewBox="0 0 896 1200" role="img" aria-label="Massage technique animation" data-mp="svg">
                         <defs>
                             <image id="mp-photo" width="896" height="1200" preserveAspectRatio="none" href="{{ static('img/course/belly-896.webp') }}"></image>
                             <linearGradient id="mp-fadeG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="191">
@@ -51,22 +51,22 @@
                     <div class="mplayer__ov mplayer__intro" data-mp="intro" hidden></div>
                     <div class="mplayer__ov mplayer__cap" data-mp="cap"><div class="mplayer__step" data-mp="step"></div><div class="mplayer__desc" data-mp="desc"></div></div>
                     <div class="mplayer__ov mplayer__pill" data-mp="pill" hidden></div>
-                    <div class="mplayer__ov mplayer__lbl mplayer__lbl--brand" style="left: 50%">@dorinellla</div>
+                    <div class="mplayer__ov mplayer__lbl mplayer__lbl--brand" style="left: 50%">{{ site.INSTAGRAM_HANDLE }}</div>
                 </div>
-                <div class="abm-ctl" role="group" aria-label="Керування анімацією">
+                <div class="abm-ctl" role="group" aria-label="Animation controls">
                     <div class="abm-ctl__row">
-                        <button class="mplayer__btn mplayer__btn--main" data-mp="play" type="button" data-label-play="Відтворити" data-label-pause="Пауза" aria-label="Пауза">
+                        <button class="mplayer__btn mplayer__btn--main" data-mp="play" type="button" data-label-play="Play" data-label-pause="Pause" aria-label="Pause">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><g data-mp="playIcon"></g></svg>
                         </button>
-                        <button class="mplayer__btn" data-mp="restart" type="button" aria-label="Спочатку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button>
+                        <button class="mplayer__btn" data-mp="restart" type="button" aria-label="Restart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button>
                         <span class="abm-ctl__sep" aria-hidden="true"></span>
-                        <button class="abm-toggle" data-mp="loop" type="button" aria-pressed="false" title="Повторювати поточний крок">{{ icon('rotate-ccw') }}<span>Крок</span></button>
-                        <button class="abm-toggle" data-mp="speed" type="button" aria-pressed="false" title="Повільніше">{{ icon('gauge') }}<span>0,5×</span></button>
+                        <button class="abm-toggle" data-mp="loop" type="button" aria-pressed="false" title="Repeat the current step">{{ icon('rotate-ccw') }}<span>Step</span></button>
+                        <button class="abm-toggle" data-mp="speed" type="button" aria-pressed="false" title="Slower">{{ icon('gauge') }}<span>0.5×</span></button>
                     </div>
                     <div class="abm-ctl__seek">
                         <div class="abm-seekbar">
                             <div class="abm-seg" data-mp="seg" aria-hidden="true"></div>
-                            <input class="mplayer__scrub" data-mp="scrub" type="range" min="0" max="35" step="0.01" value="0" aria-label="Позиція в анімації">
+                            <input class="mplayer__scrub" data-mp="scrub" type="range" min="0" max="35" step="0.01" value="0" aria-label="Position in the animation">
                         </div>
                         <span class="mplayer__time" data-mp="time">0:00</span>
                     </div>
@@ -76,7 +76,7 @@
         </div>
 
         <div class="abm-hub__side">
-            <div class="abm-chips" role="radiogroup" aria-label="Оберіть техніку" data-chips hidden>
+            <div class="abm-chips" role="radiogroup" aria-label="Choose a technique" data-chips hidden>
                 {% for t in techniques %}
                     <button class="abm-tech-chip" type="button" role="radio" aria-checked="false" data-key="{{ t.key }}" tabindex="-1">
                         <span class="abm-tech-chip__n">№{{ t.number }}</span><span class="abm-tech-chip__name">{{ t.name }}</span><span class="abm-tech-chip__t">{{ t.time }}</span>
@@ -95,11 +95,11 @@
                             {% endfor %}
                         </ol>
                         {% if t.closing %}<p class="abm-tech__note">{{ t.closing }}</p>{% endif %}
-                        <p class="abm-tech__gives"><strong>Що це дає:</strong> {{ t.gives|join(' · ') }}</p>
+                        <p class="abm-tech__gives"><strong>What it may do:</strong> {{ t.gives|join(' · ') }}</p>
                     </section>
                 {% endfor %}
             </div>
-            <p class="abm-hint">Натисніть на крок — і анімація перейде до нього.</p>
+            <p class="abm-hint">Tap a step and the animation jumps to it.</p>
         </div>
     </div>
 </section>

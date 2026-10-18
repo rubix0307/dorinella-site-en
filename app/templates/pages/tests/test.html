@@ -1,20 +1,18 @@
 {% extends 'base.html' %}
-{% block schema %}{{ seo.graph(request, seo.page(request, test.title, test.tagline), seo.crumbs(request, ('Корисне', '/learn/'), (test.title, request.url.path))) }}{% endblock %}
+{% block schema %}{{ seo.graph(request, seo.page(request, test.title, test.tagline), seo.crumbs(request, ('Guides', '/guides/'), (test.title, request.url.path))) }}{% endblock %}
 
-
-{% block title %}Тест «{{ test.title }}» | dorinellla{% endblock %}
-{% block description %}{{ test.tagline }}. Тест від нутриціолога Дорі.{% endblock %}
-{% block og_title %}Тест: {{ test.title }}{% endblock %}
+{% block title %}{{ test.title }} | {{ site.BRAND }}{% endblock %}
+{% block description %}Find your type on the Bristol stool scale and read what it can mean, with simple everyday tips and clear guidance on when to see a doctor. Educational, not a diagnosis.{% endblock %}
+{% block og_title %}{{ test.title }}{% endblock %}
 {% block og_description %}{{ test.tagline }}{% endblock %}
-{% block og_image %}{{ static(catalog[test.product_slug].og_image if test.product_slug else 'img/og-default.jpg') }}{% endblock %}
-{% block og_image_alt %}Тест «{{ test.title }}»{% endblock %}
+{% block og_image_alt %}{{ test.title }}{% endblock %}
 {% block body_class %}{{ test.theme or 'theme-main' }}{% endblock %}
 
 {% block content %}
     <section class="section quiz-page" aria-labelledby="quiz-title">
         <div class="container container--narrow">
             <div class="section-head section-head--center">
-                <p class="eyebrow">{% if test.guide_slug %}<a href="{{ url('learn_guide', slug=test.guide_slug) }}">Гайд</a>{% else %}<a href="{{ url('learn_index') }}#tests">Корисне</a>{% endif %} · тест</p>
+                <p class="eyebrow"><a href="{{ url('guide_list') }}#tests">Library</a> · test</p>
                 <h1 class="section-title" id="quiz-title">{{ test.title }}</h1>
                 <p class="section-lead">{{ test.intro }}</p>
             </div>

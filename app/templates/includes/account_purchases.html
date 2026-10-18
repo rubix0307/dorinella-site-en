@@ -1,0 +1,19 @@
+{# The purchases list of the account page. Needs `purchases` (payments.purchases_for). #}
+<section class="account__card" aria-labelledby="purchases-title">
+    <span class="account__soon-icon">{{ icon('receipt') }}</span>
+    <h2 class="account__title" id="purchases-title">Your purchases</h2>
+    {% if purchases %}
+        <ul class="account__purchases" role="list">
+            {% for p in purchases %}
+                <li>
+                    <p><strong>{{ p.title }}</strong> <span class="muted">{{ p.price }}{% if p.paid_at %} · {{ p.paid_at|en_date }}{% endif %}{% if p.test %} · test order{% endif %}</span></p>
+                    <p class="muted">Order {{ p.number }} · {{ p.label }}{% if p.refunded %} ({{ p.refunded }} refunded){% endif %}. Your receipt was e-mailed by Stripe.</p>
+                    {% if p.open_path %}<a class="btn btn--ghost btn--sm" href="{{ p.open_path }}">{{ icon('arrow-right') }}Open</a>{% endif %}
+                    {% if p.refundable_until %}<p class="muted">You can ask for a full refund until {{ p.refundable_until|en_date }}: <a href="mailto:{{ site.CONTACT_EMAIL }}?subject=Refund%20{{ p.number }}">write to us</a> with the order number. <a href="{{ url('refund') }}">Refund Policy</a></p>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="account__empty">Nothing here yet. Guides and courses you buy will appear here.</p>
+    {% endif %}
+</section>

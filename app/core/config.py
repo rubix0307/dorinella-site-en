@@ -41,6 +41,17 @@ class Settings:
     backup_s3_region: str = field(default_factory=lambda: os.getenv('BACKUP_S3_REGION', ''))
     backup_key: str = field(default_factory=lambda: os.getenv('BACKUP_KEY', ''))
     backup_hour: int = field(default_factory=lambda: int(os.getenv('BACKUP_HOUR', '3')))     # UTC
+    # Card payments through Stripe Checkout (app/payments.py). A key that starts with sk_test_ is the test mode: no money moves.
+    # Without a secret key nobody can pay; without a webhook secret (whsec_…) a payment could never be confirmed.
+    stripe_secret_key: str = field(default_factory=lambda: os.getenv('STRIPE_SECRET_KEY', '').strip())
+    stripe_webhook_secret: str = field(default_factory=lambda: os.getenv('STRIPE_WEBHOOK_SECRET', '').strip())
+    # False (default): only admins and PAYMENTS_TESTERS can start a payment; True: everybody.
+    payments_public: bool = field(default_factory=lambda: os.getenv('PAYMENTS_PUBLIC', '0').strip() == '1')
+    # E-mail addresses (comma-separated) that may pay while the sales are closed to everybody else.
+    payments_testers: tuple[str, ...] = field(default_factory=lambda: tuple(
+        e.strip().lower() for e in os.getenv('PAYMENTS_TESTERS', '').split(',') if e.strip()))
+    # Days after the payment when a refund is promised on the Refund Policy page (the text shows this number).
+    refund_days: int = field(default_factory=lambda: int(os.getenv('REFUND_DAYS', '14')))
 
 
 settings = Settings()

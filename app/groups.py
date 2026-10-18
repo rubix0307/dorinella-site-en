@@ -24,12 +24,12 @@ async def _root(session: AsyncSession, actor: AdminUser) -> None:
 def _clean(name: str, description: str, codes: list[str]) -> tuple[str, str, frozenset[str]]:
     name, description = ' '.join(name.split()), description.strip()
     if not name or len(name) > 80 or any(ord(c) < 32 for c in name):
-        raise UserError('Вкажіть назву групи (до 80 символів).', 'name')
+        raise UserError('Enter a group name (up to 80 characters).', 'name')
     if len(description) > 200 or any(ord(c) < 32 and c not in '\n\t' for c in description):
-        raise UserError('Опис задовгий (до 200 символів).', 'description')
+        raise UserError('The description is too long (up to 200 characters).', 'description')
     unknown = set(codes) - permissions.ASSIGNABLE
     if unknown:
-        raise UserError('Невідоме право у запиті.', 'codes')
+        raise UserError('The request names an unknown right.', 'codes')
     return name, description, permissions.closure(codes)
 
 
@@ -45,9 +45,9 @@ async def save(session: AsyncSession, actor: AdminUser, group: PermissionGroup |
     name, description, effective = _clean(name, description, codes)
     await _root(session, actor)
     if group is not None and group.is_system:
-        raise UserError('Системну групу змінити не можна.', code='system')
+        raise UserError('The system group cannot be changed.', code='system')
     if await _taken(session, name, group.id if group else None):
-        raise UserError('Група з такою назвою вже є.', 'name')
+        raise UserError('A group with this name already exists.', 'name')
     if group is None:
         group = PermissionGroup(name=name, description=description, is_system=False)
         session.add(group)
@@ -61,7 +61,7 @@ async def save(session: AsyncSession, actor: AdminUser, group: PermissionGroup |
         await session.commit()
     except IntegrityError:
         await session.rollback()
-        raise UserError('Група з такою назвою вже є.', 'name') from None
+        raise UserError('A group with this name already exists.', 'name') from None
     log.info('permission group saved: %s %s by %s', group.name, sorted(effective), actor.email)
     return group
 
@@ -69,7 +69,7 @@ async def save(session: AsyncSession, actor: AdminUser, group: PermissionGroup |
 async def remove(session: AsyncSession, actor: AdminUser, group: PermissionGroup) -> None:
     await _root(session, actor)
     if group.is_system:
-        raise UserError('Системну групу видалити не можна.', code='system')
+        raise UserError('The system group cannot be deleted.', code='system')
     await session.execute(delete(AdminUserGroup).where(AdminUserGroup.group_id == group.id))
     await session.execute(delete(GroupPermission).where(GroupPermission.group_id == group.id))
     name = group.name

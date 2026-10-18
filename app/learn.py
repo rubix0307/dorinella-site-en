@@ -1,394 +1,16 @@
-"""«Корисне» section: mini-courses and self-check tests (ported from the Telegram bot)."""
+"""The guide library and the Bristol stool scale test. The text is health education, not medical advice: it never diagnoses."""
 from dataclasses import dataclass
 
+# ---------------------------------------------------------------- test
 
-@dataclass(frozen=True)
-class Side:
-    """One column of a comparison table (kind 'compare'): its tone ('bad' / 'good') and the cells, row by row."""
-    title: str
-    tone: str
-    cells: tuple[str | tuple[str, ...], ...]
-
-
-@dataclass(frozen=True)
-class Material:
-    """A lesson material. `kind` picks the template in includes/materials/:
-      image    — a picture (image, alt, width, height), opened full size in a new tab (the cycle course);
-      facts    — items: the texts, a numbered list;
-      gutlink  — items: ((side title, (points…)), …), a two-way diagram;
-      steps    — items: ((name, text), …), a step list with a body outline for each step; the cautions and the player go first;
-      tags     — items: ((group, (names…)), …);
-      compare  — items: (Side, Side) and `rows`, the row labels;
-      bristol  — items: ((type, description, verdict, tone), …);
-      posture  — items: ((title, text), …) beside the picture (image, alt).
-      drops    — items: ((name, colour, text), …), coloured drops; the note is the disclaimer;
-      bingo    — items: the texts of the squares, ticked by tapping (no script);
-      seasons  — items: ((season, phase, icon, text, word, state), …);
-      checklist — items: ((group, (tasks…)), …), ticked by tapping;
-      phasefood — items: ((phase, days, length in days, tone, (foods…)), …) and a strip of the cycle's days;
-      prompts  — items: ((question, hint, (points…)), …).
-    `image` names the original picture in static/img/learn/ (the posture material shows it)."""
-    title: str
-    kind: str = 'image'
-    image: str = ''
-    alt: str = ''
-    width: int = 0
-    height: int = 0
-    intro: str = ''
-    items: tuple = ()
-    rows: tuple[str, ...] = ()
-    cautions: tuple[str, ...] = ()
-    note: str = ''
-    player: str = ''    # the technique player: the route's data is static/data/massage-<player>.json
-    photo: str = ''     # its photo in the media bucket: «learn/name» (name.webp), scripts/upload_media.py
-
-
-@dataclass(frozen=True)
-class Lesson:
-    number: int
-    title: str
-    topic: str
-    points: tuple[str, ...]
-    youtube_id: str
-    materials: tuple[Material, ...] = ()
-    homework: tuple[str, ...] = ()
-    note: str = ''
-
-
-@dataclass(frozen=True)
-class MiniCourse:
-    slug: str
-    title: str
-    short_title: str
-    tagline: str
-    intro: str
-    icon: str
-    theme: str                   # body theme class
-    lessons: tuple[Lesson, ...]
-    product_slug: str            # paid product the course leads to (its picture and the product page)
-    outro_title: str = ''        # the «Що далі» card of the course page and last lesson; empty: no card
-    outro: str = ''
-    telegram_start: str = ''     # bot deep-link payload, the same course inside Telegram (the card's second button)
-    # Selling the full course on the site (includes/buy_full_course.html): the blocks show when `buy_title` is set.
-    # An empty `full_course_url` keeps the button switched off; put the course page's address here when it exists.
-    full_course_url: str = ''
-    buy_title: str = ''
-    buy_text: str = ''           # under the three lesson cards
-    buy_lesson_text: str = ''    # under every lesson
-    buy_last_text: str = ''      # under the last lesson
-    benefits_title: str = ''     # «what you get» of the course page
-    benefits: tuple[str, ...] = ()
-
-
-def _m(image: str, title: str, alt: str, height: int) -> Material:
-    return Material(kind='image', image=image, title=title, alt=alt, width=480, height=height)
-
-
-GUT_HEALTH = MiniCourse(
-    slug='gut-health',
-    title='Міні-курс «GUT HEALTH»',
-    short_title='GUT HEALTH',
-    tagline='Три уроки про здоров’я кишківника, корисні матеріали та прості практики',
-    intro=('Закрепи, здуття, важкість у животі? Я сама через це пройшла й знайшла підхід, який працює. '
-           'Три короткі уроки, матеріали й прості домашні завдання — починай у своєму темпі.'),
-    icon='leaf',
-    theme='theme-guts',
-    product_slug='gut-massage-guide',
-    full_course_url='/products/massage-course/',      # the paid course «Масаж живота»: the page that sells it
-    benefits_title='Що ти отримаєш',
-    benefits=('Зрозумієш, як кишківник впливає на настрій, енергію й імунітет',
-              'Навчишся простої техніки масажу «I Love You», яку можна робити вдома',
-              'Отримаєш матеріали й завдання до кожного уроку, щоб бачити свій прогрес'),
-    buy_title='Хочеш піти глибше?',
-    buy_text='Безкоштовні уроки — це початок. Повний курс допоможе піти глибше й закріпити результат.',
-    buy_lesson_text='Сподобався урок? Повний курс — наступний крок, коли захочеш піти глибше.',
-    buy_last_text='Три уроки позаду — тепер ти знаєш, як прислухатися до свого кишківника. '
-                  'Повний курс — наступний крок.',
-    lessons=(
-        Lesson(
-            number=1,
-            title='Основи здоров’я кишківника',
-            topic='Чому здоровий кишківник — це ключ до гарного самопочуття',
-            points=('Як кишківник впливає на здоров’я, настрій та енергію',
-                    'Чому мікрофлора — ваш головний союзник',
-                    'Як кишківник пов’язаний з імунітетом і мозком'),
-            youtube_id='gdvzbyZCwa4',
-            materials=(
-                Material(
-                    kind='facts', image='gut-1-facts', title='А ви знали? 5 фактів про кишківник',
-                    items=('Кишківник часто називають другим мозком: у ньому виробляється значна частина серотоніну.',
-                           'Близько 70% імунних клітин розташовані саме в кишківнику.',
-                           'Для здоров’я кишківника важливі клітковина, вода та пробіотики.',
-                           'Регулярне спорожнення — ознака здорового кишківника. Зазвичай це від 1 разу на день '
-                           'до 3 разів на тиждень — орієнтир, а не норма для всіх.',
-                           'Стрес і нестача сну погіршують стан кишківника.'),
-                    note='Матеріал має освітній характер і не замінює консультацію лікаря.'),
-                Material(
-                    kind='gutlink', image='gut-1-brain-gut', title='Зв’язок між мозком та кишківником',
-                    alt='Схема зв’язку між мозком і кишківником',
-                    items=(('Кишківник впливає на', ('Нейромедіатори', 'Стрес і тривогу', 'Настрій', 'Поведінку')),
-                           ('Мозок впливає на', ('Вагу', 'Випорожнення', 'Засвоєння поживних речовин',
-                                                 'Мікробний баланс')))),
-            ),
-            homework=('Зверніть увагу на свої відчуття після їжі: легкість, тяжкість, здуття?',
-                      'Запишіть свої спостереження — це допоможе краще розуміти свій організм.'),
-        ),
-        Lesson(
-            number=2,
-            title='Як працює масаж кишківника?',
-            topic='Що таке масаж кишківника і як він допомагає',
-            points=('Що таке масаж кишківника та чому він такий ефективний',
-                    'Як масаж стимулює кровообіг, покращує перистальтику та знімає напруження',
-                    'Які проблеми він може вирішити: закрепи, здуття, СПК',
-                    'Практика: проста техніка «I Love You», яку можна виконувати вдома'),
-            youtube_id='zMosdn7gHhk',
-            materials=(
-                Material(
-                    kind='steps', image='gut-2-ilu-steps', title='Техніка «I Love You» крок за кроком',
-                    player='ilu', photo='learn/gut-body',
-                    intro=('Обома руками, одна на одній, з комфортним, але твердим тиском. Кожен крок повторіть '
-                           '5 разів; кожен наступний — разом із попередніми. Робіть масаж не раніше ніж через '
-                           '1,5–2 години після їжі.'),
-                    cautions=('вагітність',
-                              'гострі запалення в животі (апендицит, коліт) або кишкова непрохідність',
-                              'грижа, виразка, онкологічне захворювання або свіжа операція на животі',
-                              'менструація, гострий біль чи підвищена температура'),
-                    items=(('Крок 1', 'Почніть із лівого боку, прямо всередині лівої тазостегнової кістки, '
-                                      'і ведіть руки вниз за стрілкою.'),
-                           ('Крок 2: «I»', 'Почніть прямо під лівою грудною кліткою й ведіть руки вниз до лівої '
-                                           'кістки таза, а далі — за стрілкою з першого кроку.'),
-                           ('Крок 3: «L»', 'Почніть прямо під правою грудною кліткою, проведіть руки поперек '
-                                           'живота ліворуч і вниз — разом із попередніми рухами.'),
-                           ('Крок 4: «U»', 'Почніть всередині правої кістки стегна, ведіть руки вгору, поперек '
-                                           'живота й униз ліворуч — разом з усіма попередніми рухами.'))),
-                Material(
-                    kind='tags', image='gut-2-products', title='Продукти для здоров’я кишківника',
-                    intro='Ці продукти традиційно вважають корисними для кишківника.',
-                    items=(('Ферментовані', ('Квашена капуста', 'Кімчі', 'Кефір', 'Комбуча', 'Йогурт', 'Темпе')),
-                           ('Підтримка травлення', ('Гхі', 'Кістковий бульйон', 'Куркума', 'Артишок')))),
-                Material(
-                    kind='compare', image='gut-2-bacteria', title='Типи бактерій: корисні та шкідливі',
-                    rows=('Приклади', 'Що роблять', 'Вплив', 'Причини домінування'),
-                    items=(Side('Шкідливі', 'bad',
-                                (('Патогенні клостридії', 'Сальмонела', 'Шигела'),
-                                 'Викликають запалення, токсини, порушують баланс мікрофлори',
-                                 'Можуть сприяти здуттю, закрепам, набору ваги, запальним процесам',
-                                 'Надмірне споживання цукру, перероблена їжа, стрес, антибіотики')),
-                           Side('Корисні', 'good',
-                                (('Лактобактерії', 'Біфідобактерії', 'Ацидофільні бактерії'),
-                                 'Сприяють травленню, виробляють вітаміни (наприклад, K), підтримують імунітет',
-                                 'Покращують травлення, зміцнюють імунітет, підтримують здорову вагу',
-                                 'Збалансоване харчування, клітковина, пробіотики, регулярна фізична активність')))),
-            ),
-            homework=('Виконайте техніку «I Love You» з відео або інструкції — сьогодні ввечері або зранку.',
-                      'Запишіть свої відчуття: чи стало легше, чи зменшилося здуття?'),
-            note=('Виконуйте масаж обережно, з легким натисканням. Якщо відчуваєте гострий біль, запаморочення '
-                  'або сильний дискомфорт — негайно зупиніться й зверніться до лікаря.'),
-        ),
-        Lesson(
-            number=3,
-            title='Як правильно ходити в туалет?',
-            topic='Здоров’я кишківника починається з правильної дефекації',
-            points=('Як правильна поза, режим та харчування впливають на організм',
-                    'Знання, які допоможуть досягти ще кращих результатів у практиках з гайду'),
-            youtube_id='R-G0oDpF8As',
-            materials=(
-                Material(
-                    kind='posture', image='gut-3-posture', title='Поза для здорової дефекації',
-                    alt='Порівняння природної пози з підставкою та стандартної пози на унітазі',
-                    items=(('Природна поза', 'Ноги стоять на невисокій підставці, коліна вище стегон, тулуб злегка '
-                                             'нахилений уперед. Така поза імітує присідання й може полегшувати '
-                                             'процес та зменшувати напруження.'),
-                           ('Стандартна поза', 'Сидіння під прямим кутом. Якщо довго сидіти й тужитися, це може '
-                                               'сприяти напруженню та закрепам.')),
-                    note='Не тужтеся. Якщо закрепи тривають або у стільці є кров — зверніться до лікаря.'),
-                Material(
-                    kind='bristol', image='gut-3-bristol', title='Бристольська шкала',
-                    intro='Знайдіть свій тип: так легше помітити запор, діарею й те, що є нормою.',
-                    items=((1, 'Окремі тверді грудки, як горіхи', 'Важкий запор', 'hard'),
-                           (2, 'Грудкувата «ковбаска»', 'Легкий запор', 'hard'),
-                           (3, 'Форма ковбаски з тріщинами на поверхні', 'Нормально', 'ok'),
-                           (4, 'Гладка м’яка ковбаска або «змійка»', 'Нормально', 'ok'),
-                           (5, 'М’які шматочки з чіткими краями', 'Бракує клітковини', 'low'),
-                           (6, 'М’яка консистенція з рваними краями', 'Легка діарея', 'loose'),
-                           (7, 'Рідка консистенція без твердих шматочків', 'Важка діарея', 'loose')),
-                    note='Це орієнтир, а не діагноз.'),
-            ),
-            homework=('Спробуйте техніку дихання, показану у відео.',
-                      'Оцініть свій стілець за Бристольською шкалою.',
-                      'Використайте нову позу для дефекації — з підставкою під ноги.'),
-        ),
-    ),
-)
-
-CYCLE = MiniCourse(
-    slug='menstrual-health',
-    title='Міні-курс про менструальне здоров’я',
-    short_title='Менструальне здоров’я',
-    tagline='Три відеоуроки, матеріали й прості пояснення — без сорому й складних слів',
-    intro=('Болючі менструації, ПМС, емоційні гойдалки чи відчуття, ніби тіло живе «окремо від тебе»? '
-           'Тут не буде «біології для медиків» — лише реальні знання, які можна застосувати вже сьогодні.'),
-    icon='sprout',
-    theme='theme-cycle',
-    product_slug='cycle-course',
-    benefits_title='Що ти отримаєш',
-    benefits=('Зрозумієш, що про твоє тіло говорять колір і характер менструації',
-              'Дізнаєшся про чотири «сезони» циклу й підлаштуєш під них енергію та їжу',
-              'Отримаєш чек-листи й матеріали, які можна використати одразу'),
-    buy_title='Хочеш піти глибше?',
-    buy_text=('На основному курсі ми занурюємось глибше: цикл і гормони, їжа, енергія й настрій, рух, емоції, '
-              'стосунки. Шість уроків, візуальні PDF, практики, підтримка й доступ назавжди.'),
-    buy_lesson_text='Сподобався урок? На основному курсі — ще більше про цикл, їжу, рух і емоції.',
-    buy_last_text=('Три уроки позаду — ти вже краще чуєш свій цикл. На основному курсі ми йдемо глибше: '
-                   'гормони, рух, емоції, стосунки.'),
-    lessons=(
-        Lesson(
-            number=1,
-            title='Що менструація говорить про тебе',
-            topic='Як менструація відображає стан усього тіла',
-            points=('Чому менструація — не просто «місячні», а важливий показник здоров’я',
-                    'Як вигляд, тривалість і біль можуть підказати, що відбувається всередині',
-                    'Чи справді «болі — це норма», і що варто перевірити'),
-            youtube_id='OS7QI3VRbb8',
-            materials=(
-                Material(
-                    kind='drops', image='cycle-1-blood-colours', title='Що менструація говорить про тебе?',
-                    items=(('Червона', '#E8323C', 'ознака здорової циркуляції, достатньої кількості заліза та добре '
-                                                  'насиченої крові'),
-                           ('Рожева', '#E98FB4', 'може вказувати на нестачу еритроцитів. Часто супроводжується ПМС '
-                                                 'та тривожністю'),
-                           ('Чорна', '#2B2B2E', 'сильно застійна кров, іноді пов’язана з фібромами. Часто '
-                                                'супроводжується сильним болем'),
-                           ('Іржаво-коричнева', '#8A4B3F', 'застійна, стара кров. Може бути при ранній овуляції '
-                                                           'та слабкому кровотоку'),
-                           ('Темно-пурпурова', '#5A3B57', 'сильно застійна кров, іноді пов’язана з фібромами. '
-                                                          'Часто — сильний біль')),
-                    note=('Це лише спостереження, а не медична діагностика. Колір крові може бути вашою '
-                          'індивідуальною нормою. Якщо щось турбує — зверніться до гінеколога.')),
-                Material(
-                    kind='bingo', image='cycle-1-bingo', title='Менструальне бінго',
-                    intro='Чи ти коли-небудь…? Познач те, що тобі знайоме.',
-                    items=('перевіряла, який біль можеш витримати, перш ніж приймати знеболювальне',
-                           'мала харчові бажання під час менструації',
-                           'користувалася додатками для відстеження циклу',
-                           'забруднила простирадла',
-                           'боялась, що сукня або одяг заплямовані',
-                           'використовувала грілку для полегшення болю',
-                           'бажала, щоб менструація затрималась',
-                           'використовувала серветку замість засобу гігієни',
-                           'протекла на публіці',
-                           'вважала певні штани своїми «менструальними»',
-                           'пропускала заняття через біль',
-                           'мала діарею під час менструації',
-                           'користувалася тампоном',
-                           'позичала гігієнічні прокладки, тампони, щоденні',
-                           'лякалась затримки менструації',
-                           'плакала від болю',
-                           'мала подразнення, висип від прокладок',
-                           'ненавиділа свої місячні',
-                           'просила когось перевірити, чи немає плям',
-                           'відчувала, що синхронізувалась із менструацією подруги',
-                           'хотіла, щоб чоловіки могли відчути менструальні болі',
-                           'провела менструацію, не виходячи з дому',
-                           'залишала засіб гігієни довше, ніж на 6 годин',
-                           'пропускала захід через біль',
-                           'ділилась прокладкою, тампоном з іншою')),
-            ),
-        ),
-        Lesson(
-            number=2,
-            title='Як працює цикл і що таке «сезони»',
-            topic='Чотири тижні — чотири сезони твого тіла',
-            points=('Чому цикл — це цілий гормональний сценарій на чотири тижні',
-                    'Що таке «весняна», «літня», «осіння» і «зимова» фаза і як вони впливають на енергію, '
-                    'настрій та апетит',
-                    'Як дізнатися, в якому сезоні ти зараз',
-                    'Чому ми такі різні протягом місяця — і чому це не нестабільність, а сила'),
-            youtube_id='7bHlUknQkOg',
-            materials=(
-                Material(
-                    kind='seasons', image='cycle-2-seasons', title='4 пори року твого менструального циклу',
-                    items=(('Зима', 'Менструальна фаза', 'snowflake',
-                            'бажання тиші, уповільнення, інтуїція загострюється', 'відновлення',
-                            'глибина, чесність, втома'),
-                           ('Весна', 'Фолікулярна фаза', 'flower-2',
-                            'енергія пробуджується, хочеться планувати, змінювати, будувати плани', 'новий старт',
-                            'ясність, легкість'),
-                           ('Літо', 'Овуляторна фаза', 'sun',
-                            'соціальність, бажання бути серед людей, сексуальність, відчуття сили і впевненості',
-                            'яскравість', 'бажання ділитись, вести, говорити'),
-                           ('Осінь', 'Лютеїнова фаза', 'leaf',
-                            'повільне згортання енергії, дратівливість, чутливість, потреба у спокої',
-                            'увага до себе', 'самокритика'))),
-                Material(
-                    kind='checklist', image='cycle-2-self-care', title='Догляд за собою під час менструації',
-                    intro='Познач те, що хочеш зробити для себе.',
-                    items=(('Усвідомлена підготовка до місячних',
-                            ('Створити плейлист для періоду', 'Холодний душ',
-                             'Список речей для догляду під час менструації', 'Масажна терапія',
-                             'Прибрати в спальні', 'Здорове харчування з мінімальними зусиллями')),
-                           ('Щотижневе перезавантаження',
-                            ('Змінити та попрати постіль', 'Завантажити посудомийку', 'Прибрати в спальні',
-                             'Прийняти ванну', 'Догляд за шкірою', 'Зручна тепла піжама', 'Почитати книгу')),
-                           ('Якщо/коли починається кровотеча',
-                            ('Щоденник вдячності', 'Рутинний догляд за шкірою',
-                             'Довга ванна з піною, музикою, книжкою та свічкою',
-                             'Продукти, багаті на магній (дослідіть тему)', 'Зайнятись йогою',
-                             'Полежати на ковдрі на природі', 'Подрімати')))),
-            ),
-        ),
-        Lesson(
-            number=3,
-            title='Що просить твоє тіло?',
-            topic='Їжа, енергія та фази циклу',
-            points=('Як харчування впливає на цикл — і навпаки',
-                    'Чому змінюється апетит, тяга до солодкого чи відсутність голоду в різні дні',
-                    'Як їсти, щоб підтримати себе, а не тиснути на тіло дієтами'),
-            youtube_id='_FRzywOvRTs',
-            materials=(
-                Material(
-                    kind='phasefood', image='cycle-3-food-by-phase', title='Харчування для кожної фази',
-                    intro='Дні орієнтовні — для циклу в 28 днів.',
-                    items=(('Менструальна фаза', 'дні 1–5', 5, 'menstrual',
-                            ('морепродукти', 'свинина', 'гарбуз',
-                             'червоні овочі: буряк, болгарський перець, виноград')),
-                           ('Фолікулярна фаза', 'дні 6–10', 5, 'follicular',
-                            ('курка, яйця', 'ягоди, виноград',
-                             'зелені овочі: броколі, салат, цукіні, авокадо', 'цитрусові, гранат',
-                             'ячмінь, овес, пшениця')),
-                           ('Овуляторна фаза', 'дні 11–18', 8, 'ovulatory',
-                            ('лосось, тунець', 'ягнятина', 'помідори', 'абрикоси', 'шоколад', 'кукурудза, кіноа')),
-                           ('Лютеїнова фаза', 'дні 19–28', 10, 'luteal',
-                            ('червона картопля', 'часник, імбир', 'цвітна капуста', 'темно-зелені листові овочі',
-                             'яблуко, груша, персик', 'коричневий рис')))),
-                Material(
-                    kind='prompts', image='cycle-3-appetite', title='Чек-лист «Як звучить мій апетит?»',
-                    intro='Перш ніж їсти, зупинись на хвилину й запитай себе.',
-                    items=(('Чи я справді голодна тілом?',
-                            'Відчуваю порожнечу в животі, бурчить, трохи слабкість?', ()),
-                           ('Чи це більше схоже на емоційний голод?',
-                            'Мені сумно, самотньо, нудно або тривожно? Я просто хочу «заглушити» щось?', ()),
-                           ('Чи це соціальний голод?',
-                            'Просто всі їдять, і я не хочу «бути білою вороною»?', ()),
-                           ('Можливо, це голод на щось інше?', '',
-                            ('дотик', 'підтримку', 'нові враження', 'паузу', 'любов')),
-                           ('Що я ще зараз відчуваю тілом?', '',
-                            ('напругу?', 'тремтіння?', 'втому?', 'хочеться лягти або побути наодинці?')))),
-            ),
-        ),
-    ),
-)
-
-MINI_COURSES: dict[str, MiniCourse] = {c.slug: c for c in (GUT_HEALTH, CYCLE)}
-
-
-# ---------------------------------------------------------------- tests
 
 @dataclass(frozen=True)
 class Question:
     text: str
     options: tuple[tuple[str, int], ...]   # (label, points)
-    label: str = ''                        # short heading above the text (a guide's checklist marker)
+    label: str = ''                        # short heading above the text
+    notes: tuple[str, ...] = ()            # per option: a sentence added to the result when it is chosen ('' for none)
+    alert: bool = False                    # the notes are a warning (shown as one), not a remark
 
 
 @dataclass(frozen=True)
@@ -398,38 +20,9 @@ class Band:
     min_score: int
     title: str
     text: str
-
-
-@dataclass(frozen=True)
-class Scale:
-    """One dimension of a multi-scale test (e.g. DEBQ): sum of the given questions."""
-    key: str
-    title: str
-    description: str
-    questions: tuple[int, ...]      # 1-based question numbers
-    reference: int                  # typical value for comparison
-    above_text: str
-    typical_text: str
-
-
-@dataclass(frozen=True)
-class ScaleResult:
-    scale: Scale
-    score: int
-    min_score: int
-    max_score: int
-
-    @property
-    def above(self) -> bool:
-        return self.score > self.scale.reference
-
-    @property
-    def percent(self) -> float:
-        return (self.score - self.min_score) / (self.max_score - self.min_score) * 100
-
-    @property
-    def reference_percent(self) -> float:
-        return (self.scale.reference - self.min_score) / (self.max_score - self.min_score) * 100
+    tips: tuple[str, ...] = ()
+    doctor: str = ''                # when to see a doctor, specific to this result
+    massage: bool = False           # whether gentle abdominal self-massage is a reasonable thing to mention
 
 
 @dataclass(frozen=True)
@@ -441,13 +34,11 @@ class SelfTest:
     questions: tuple[Question, ...]
     minutes: int
     theme: str = ''
-    bands: tuple[Band, ...] = ()       # single-score tests, highest min_score first
-    scales: tuple[Scale, ...] = ()     # multi-scale tests
-    score_unit: str = 'балів'
+    bands: tuple[Band, ...] = ()       # highest min_score first
     note: str = ''
-    course_slug: str | None = None
-    product_slug: str | None = None
-    guide_slug: str | None = None      # the test is a guide's checklist: shown inside the guide, not in «Тести»
+    guide_slug: str | None = None      # the free guide the result points to
+    paid_guide_slug: str | None = None
+    course_slug: str | None = None     # a product slug
 
     @property
     def max_score(self) -> int:
@@ -459,17 +50,13 @@ class SelfTest:
     def band_for(self, score: int) -> Band:
         return next((b for b in self.bands if score >= b.min_score), self.bands[-1])
 
-    def scale_results(self, answers: list[int]) -> list[ScaleResult]:
-        results = []
-        for scale in self.scales:
-            qs = [self.questions[n - 1] for n in scale.questions]
-            results.append(ScaleResult(
-                scale=scale,
-                score=sum(self.questions[n - 1].options[answers[n - 1]][1] for n in scale.questions),
-                min_score=sum(min(p for _, p in q.options) for q in qs),
-                max_score=sum(max(p for _, p in q.options) for q in qs),
-            ))
-        return results
+    def notes_for(self, answers: list[int]) -> list[tuple[str, bool]]:
+        """(sentence, is_warning) for every chosen option that carries a note."""
+        return [(q.notes[a], q.alert) for q, a in zip(self.questions, answers, strict=False) if q.notes and q.notes[a]]
+
+    def alerted(self, answers: list[int]) -> bool:
+        """Whether a warning-type answer was chosen."""
+        return any(q.alert and q.notes and q.notes[a] for q, a in zip(self.questions, answers, strict=False))
 
     def validate(self, answers: list[int]) -> list[str]:
         """Problems with a submitted answer list (empty when it is valid)."""
@@ -479,169 +66,123 @@ class SelfTest:
                 if not 0 <= a < len(q.options)]
 
 
-GUT_TEST = SelfTest(
-    slug='gut',
-    title='Як працює ваш кишківник?',
-    tagline='10 запитань, 2 хвилини — і ви знатимете, на що звернути увагу',
-    intro='Відповідайте чесно — правильних чи неправильних відповідей тут немає. Результат побачите одразу.',
-    minutes=2,
+_TYPE_LABELS = (
+    'Type 1: separate hard lumps, like nuts, hard to pass',
+    'Type 2: sausage-shaped, but lumpy',
+    'Type 3: like a sausage, with cracks on the surface',
+    'Type 4: like a sausage or snake, smooth and soft',
+    'Type 5: soft blobs with clear-cut edges',
+    'Type 6: fluffy, mushy pieces with ragged edges',
+    'Type 7: watery, no solid pieces',
+)
+
+_DOCTOR_ANY = ('Blood in or on the stool, black or tar-like stool, unexplained weight loss, severe or lasting abdominal pain, '
+               'or a clear change from your usual pattern that lasts more than a few weeks are always worth a visit to a doctor.')
+
+BRISTOL = SelfTest(
+    slug='bristol',
+    title='Bristol Stool Scale Test',
+    tagline='Three quick questions, about a minute, and a plain-language reading of what your stool shape may be telling you',
+    intro=('The Bristol Stool Scale is a simple chart doctors use to describe stool shape, which reflects how quickly food moves through the gut. '
+           'Answer for what is usual for you over the past few weeks. There are no right or wrong answers, and nothing here is a diagnosis.'),
+    minutes=1,
     theme='theme-guts',
     questions=(
-        Question('Як часто ви ходите в туалет «по-великому»?',
-                 (('Щодня', 3), ('3–5 разів на тиждень', 2), ('Рідше ніж 3 рази на тиждень', 1))),
-        Question('Чи відчуваєте ви дискомфорт або здуття після їжі?',
-                 (('Рідко або ніколи', 3), ('Інколи, після важкої їжі', 2), ('Часто, навіть після легкої їжі', 1))),
-        Question('Яка консистенція вашого стільця найчастіше?',
-                 (('Нормальна, сформована', 3), ('М’яка або рідка', 2),
-                  ('Тверда, суха або у вигляді «грудочок»', 1))),
-        Question('Як часто у вас бувають закрепи?',
-                 (('Практично ніколи', 3), ('Раз-два на місяць', 2), ('Часто, кілька разів на тиждень', 1))),
-        Question('Ви вживаєте достатньо клітковини (овочів, фруктів, круп)?',
-                 (('Щодня', 3), ('Інколи', 2), ('Рідко або майже ніколи', 1))),
-        Question('Чи п’єте ви достатньо води (1,5–2 літри щодня)?',
-                 (('Так, регулярно', 3), ('Не завжди, але намагаюся', 2), ('Ні, п’ю мало води', 1))),
-        Question('Чи впливає стрес на ваш кишківник?',
-                 (('Рідко або ніколи', 3), ('Інколи', 2), ('Часто', 1))),
-        Question('Як ви оцінюєте свій рівень фізичної активності?',
-                 (('Регулярний спорт, багато рухаюся', 3), ('Середній рівень активності', 2),
-                  ('Малорухливий спосіб життя', 1))),
-        Question('Чи вживаєте ви пробіотики?',
-                 (('Регулярно', 3), ('Інколи', 2), ('Практично ніколи', 1))),
-        Question('Чи буває у вас печія або інші травні проблеми?',
-                 (('Рідко або ніколи', 3), ('Інколи, після важкої їжі', 2), ('Часто, майже щодня', 1))),
+        Question('Which description fits your stool on most days?', tuple((label, n) for n, label in enumerate(_TYPE_LABELS, 1)),
+                 label='Shape'),
+        Question('How often do you usually have a bowel movement?',
+                 (('More than three times a day', 0), ('One to three times a day', 0), ('Three to six times a week', 0),
+                  ('Fewer than three times a week', 0), ('It changes a lot from week to week', 0)),
+                 label='Frequency',
+                 notes=('Going more than three times a day is normal for some people. If it is new for you, or comes with loose stools or urgency, '
+                        'mention it to a doctor.',
+                        '',
+                        'That is within the usual range.',
+                        'Fewer than three bowel movements a week is how constipation is commonly defined. If this is your pattern and it bothers you, '
+                        'talk with a doctor or pharmacist.',
+                        'Swings between hard and loose stools are worth tracking for a couple of weeks. Bring your notes to a doctor if they keep happening.')),
+        Question('In the past month, have you noticed any of these: blood in or on the stool, black or tar-like stool, unexplained weight loss, '
+                 'severe or lasting abdominal pain, or diarrhea that wakes you at night?',
+                 (('No, none of these', 0), ('Yes, one or more', 0), ('I am not sure', 0)),
+                 label='Warning signs', alert=True,
+                 notes=('',
+                        'Those signs should be checked by a doctor. Please book an appointment soon rather than waiting. If the pain is severe, '
+                        'you are vomiting, feel faint or are passing a lot of blood, seek urgent care. Self-help and massage can wait until you have been seen.',
+                        'If you are not sure whether what you noticed counts, it is fine to check with a doctor or pharmacist. Asking costs nothing.')),
     ),
     bands=(
-        Band('great', 25, 'Ваш кишківник працює чудово!',
-             'Ви вже знаєте, як піклуватися про своє здоров’я. Але навіть у вас є можливість покращити стан '
-             'за допомогою масажу кишківника.\n\nВін посилює кровообіг, підтримує мікрофлору та знімає стрес, '
-             'допомагаючи тілу працювати ще краще. Спробуйте техніки масажу — і ви відчуєте ще більше '
-             'легкості та енергії.'),
-        Band('middle', 15, 'Ваш кишківник у середньому стані',
-             'Є певні моменти, на які варто звернути увагу: регулярне вживання клітковини, води або зниження '
-             'стресу.\n\nРекомендую пройти триденний міні-курс, щоб дізнатися, як покращити його '
-             'роботу.'),
-        Band('needs_help', 0, 'Ваш кишківник потребує допомоги',
-             'Є ознаки, що вказують на закрепи, стрес чи брак корисних звичок. Зверніть увагу на харчування, '
-             'питний режим та фізичну активність.\n\nТриденний міні-курс допоможе зробити перші кроки '
-             'до здорового кишківника.'),
+        Band('type-7', 7, 'Type 7: watery stool',
+             'Completely liquid stool means food is moving through very quickly. It is the pattern of diarrhea. Most short bouts come from a stomach bug, '
+             'something you ate, a medicine or stress, and settle within a couple of days.\n\n'
+             'The main risk is losing too much fluid. Rest, and replace what you lose.',
+             ('Sip fluids all day. An oral rehydration solution from a pharmacy works better than plain water because it also replaces salts.',
+              'Eat small, plain meals when you are hungry (rice, bananas, toast, soup) and skip alcohol, very sugary drinks and greasy food for now.',
+              'Wash your hands often; a gut infection can spread to others.'),
+             'See a doctor if diarrhea lasts more than two days, if you have a fever of 102°F (39°C) or higher, blood or black stool, severe pain, or signs of '
+             'dehydration (very dark urine, dizziness, a dry mouth, passing little urine). Young children, older adults and pregnant people should get advice sooner.'),
+        Band('type-6', 6, 'Type 6: mushy stool',
+             'Mushy stool with ragged edges is on the loose side. It is often short-lived, for example after a stomach bug, a rich meal, too much '
+             'coffee or alcohol, a stressful week or a new medicine or supplement (magnesium is a common one).\n\n'
+             'If it keeps coming back, it can have other causes such as food intolerances or irritable bowel syndrome, which only a doctor can tell apart.',
+             ('Keep a short food and symptom diary for two weeks; patterns often show up that way.',
+              'Cut back on common triggers for a while: lots of coffee, alcohol, sugar-free sweeteners (sorbitol, xylitol) and very fatty meals.',
+              'Soluble fiber such as oats, bananas and cooked apples can help firm things up. Drink enough water.'),
+             'See a doctor if loose stools last more than two weeks, wake you at night, come with weight loss, or if you see blood. '
+             'If you are also very thirsty, dizzy or passing little urine, get care sooner.'),
+        Band('type-5', 5, 'Type 5: soft blobs',
+             'Soft pieces with clear edges that pass easily are on the softer side of normal. For many people this is simply how they are, '
+             'especially if it happens after meals and they feel fine.\n\n'
+             'It can also be a sign of food moving through a little faster than ideal, or of a diet low in fiber. If your stool is usually firmer and this is a change, '
+             'think about what changed recently.',
+             ('Add fiber you tolerate (oats, beans, vegetables, seeds) a little at a time and see whether stools become better formed.',
+              'Eat regular meals and chew well; irregular eating can speed things up.',
+              'If it is new and lasts, jot down what you eat and how you feel and see how it evolves over a couple of weeks.'),
+             _DOCTOR_ANY, True),
+        Band('type-4', 4, 'Type 4: smooth, soft sausage',
+             'This is the shape doctors usually describe as the easiest to pass and the most typical of a gut that is working well. '
+             'Normal is a range, though: anywhere from three times a day to three times a week can be healthy if it is steady and comfortable for you.\n\n'
+             'Nothing here needs fixing. What helps keep it this way is the ordinary basics.',
+             ('Keep up fluids, a variety of plant foods and daily movement.',
+              'Try to go when you feel the urge instead of holding on.',
+              'If you are curious about gentle abdominal self-massage as part of a calm routine, it is a pleasant extra, not a requirement.'),
+             _DOCTOR_ANY, True),
+        Band('type-3', 3, 'Type 3: sausage with cracks',
+             'A sausage shape with cracks on the surface is within the normal range, slightly on the firm side. It often means there is room for a little more fluid or fiber, '
+             'especially if passing it takes some effort.',
+             ('Drink water regularly through the day.',
+              'Add fruit, vegetables, oats or beans gradually, and keep an eye on how you feel.',
+              'Move every day; even a daily walk helps the gut keep its rhythm.'),
+             _DOCTOR_ANY, True),
+        Band('type-2', 2, 'Type 2: lumpy sausage',
+             'A lumpy, sausage-shaped stool is firm and bunched together. It usually points to mild constipation: stool is moving a little more slowly than ideal '
+             'and giving up extra water on the way.\n\n'
+             'It is very common, and often responds to ordinary habits. If it is your regular pattern and you feel fine, it may simply be your normal.',
+             ('Drink water through the day and have a warm drink in the morning.',
+              'Increase fiber slowly over a few weeks (oats, pears, kiwi, prunes, beans, vegetables, chia or ground flaxseed). A sudden jump can cause gas and bloating.',
+              'Sit on the toilet for a few relaxed minutes after breakfast, when the gut is naturally most active, and rest your feet on a small stool so your knees sit above your hips.',
+              'Walk or move every day.'),
+             'See a doctor if stools stay hard for more than three weeks, if you strain a lot or feel you never empty completely, or if this is a change for you. '
+             + _DOCTOR_ANY, True),
+        Band('type-1', 1, 'Type 1: separate hard lumps',
+             'Hard, separate lumps like nuts mean stool has been in the colon for a long time and has lost a lot of its water. It is hard to pass and is a common pattern of constipation.\n\n'
+             'Many things can slow the gut: too little fluid or fiber, a change of routine, travel, stress, little movement, and some medicines or supplements '
+             '(iron, certain painkillers and antacids). Sometimes a medical condition is behind it, which is why a lasting pattern deserves a conversation with a doctor.',
+             ('Drink water regularly and add a warm drink to your morning routine.',
+              'Raise fiber gradually, and drink more as you do; adding it fast can make bloating worse.',
+              'Do not strain and do not hold it in. A few relaxed minutes on the toilet after breakfast, feet on a small stool, can help.',
+              'Move every day. Gentle activity helps the gut move.'),
+             'See a doctor if hard stools last more than three weeks, if you strain a lot or have pain when passing them, or if this is a new change. '
+             'Get care promptly for blood in or on the stool, black stool, or severe belly pain with vomiting and no stool or gas passing. ' + _DOCTOR_ANY,
+             True),
     ),
-    course_slug='gut-health',
-    product_slug='gut-massage-guide',
+    note=('This test is for education only. It does not diagnose, treat or screen for any condition and does not replace advice from a doctor. '
+          'If something worries you, or you are unsure, please talk with a healthcare professional.'),
+    guide_slug='gut-basics',
+    paid_guide_slug='gut-massage-guide',
+    course_slug='massage-course',
 )
 
-_YES_NO = (('Так', 1), ('Ні', 0))
-
-CYCLE_TEST = SelfTest(
-    slug='cycle',
-    title='Що сигналізує твоя менструація?',
-    tagline='10 тверджень «так» чи «ні» — і ти побачиш, на які сигнали тіла варто звернути увагу',
-    intro='Познач «так» або «ні» для кожного твердження. Результат з’явиться одразу після останньої відповіді.',
-    minutes=2,
-    theme='theme-cycle',
-    questions=tuple(Question(text, _YES_NO) for text in (
-        'Твій цикл коротший за 24 дні або довший за 35?',
-        'У тебе сильні болі в перші дні менструації, які заважають тобі функціонувати?',
-        'У крові помітні великі згустки (розміром з 5-гривневу монету і більше)?',
-        'Виділення настільки рясні, що прокладку або чашу треба міняти щогодини (і це триває більше доби)?',
-        'Є мажучі коричневі виділення за кілька днів до або після менструації?',
-        'Ти часто відчуваєш запаморочення, втому або холод у період менструації?',
-        'У тебе бувають затримки менструації більше ніж на 7–10 днів (без вагітності)?',
-        'У тебе часті перепади настрою перед менструацією (ПМС), які суттєво впливають на життя?',
-        'Під час менструації з’являються сильні болі в ногах, попереку або шлунково-кишкові симптоми?',
-        'Ти регулярно приймаєш знеболювальні, щоби пережити перші дні?',
-    )),
-    bands=(
-        Band('signals', 6, 'Тілу вже важко',
-             'Це може бути пов’язано з ендометріозом, СПКЯ, хронічним стресом чи дефіцитами. Цей тест не '
-             'замінює візит до лікаря — але може стати твоєю точкою опори.\n\nНа курсі ми глибше розбираємо '
-             'мову тіла: що означають згустки, біль, перепади настрою, і як допомогти собі з любов’ю, а не '
-             'через примус.'),
-        Band('attention', 3, 'Є сигнали, на які варто звернути увагу',
-             'Це можуть бути легкі гормональні коливання або наслідки способу життя. Нічого страшного — але '
-             'тіло просить підтримки.\n\nНа курсі ти дізнаєшся, як відновлювати баланс м’яко: через '
-             'харчування, ритм, турботу й розуміння себе.'),
-        Band('normal', 0, 'Твоя менструація близька до фізіологічної норми',
-             'Тіло працює злагоджено, а сигнали — м’які й природні. Але навіть за «нормального» циклу важливо '
-             'знати свою природу глибше: як змінюються апетит, енергія та настрій у різні фази.\n\nСаме про '
-             'це — міні-курс про менструальне здоров’я.'),
-    ),
-    score_unit='відповідей «так»',
-    note='Тест не є діагнозом. Якщо тебе турбує біль, рясні виділення чи затримки — звернись до гінеколога.',
-    course_slug='menstrual-health',
-    product_slug='cycle-course',
-)
-
-_FREQUENCY = ('Ніколи', 'Рідко', 'Іноді', 'Часто', 'Дуже часто')
-_DIRECT = tuple(zip(_FREQUENCY, (1, 2, 3, 4, 5), strict=False))
-_REVERSED = tuple(zip(_FREQUENCY, (5, 4, 3, 2, 1), strict=False))  # DEBQ item 31 is reverse-scored
-
-DEBQ_TEST = SelfTest(
-    slug='eating-behaviour',
-    title='Голландський опитувальник харчової поведінки (DEBQ)',
-    tagline='33 запитання про те, що спонукає вас їсти: самообмеження, емоції чи зовнішні сигнали',
-    intro=('DEBQ (Dutch Eating Behaviour Questionnaire) — простий і перевірений інструмент, що оцінює три типи '
-           'харчової поведінки: обмежувальну, емоційну та екстернальну. Відповідайте, як буває зазвичай.'),
-    minutes=6,
-    questions=tuple(Question(text, _REVERSED if n == 31 else _DIRECT) for n, text in enumerate((
-        'Якщо ви набрали вагу, ви їсте менше, ніж зазвичай?',
-        'Чи намагаєтесь ви їсти менше, ніж вам хотілося б під час звичайного прийому їжі?',
-        'Чи часто ви відмовляєтеся від запропонованої їжі чи напоїв через те, що турбуєтеся про свою вагу?',
-        'Чи стежите ви за тим, що саме їсте?',
-        'Ви навмисне вживаєте продукти, які сприяють схудненню?',
-        'Якщо ви з’їли занадто багато, чи їсте ви менше, ніж зазвичай, наступні дні?',
-        'Чи намагаєтеся ви їсти менше, щоб не погладшати?',
-        'Як часто ви намагаєтеся не їсти між прийомами їжі, тому що стежите за своєю вагою?',
-        'Як часто ввечері ви намагаєтеся не їсти, тому що стежите за своєю вагою?',
-        'Чи має значення ваша вага, коли ви їсте?',
-        'Чи є у вас бажання їсти, коли ви роздратовані?',
-        'Чи є у вас бажання їсти, коли вам нічого робити?',
-        'Чи є у вас бажання їсти, коли ви пригнічені чи збентежені?',
-        'Чи є у вас бажання поїсти, коли вам самотньо?',
-        'Чи є у вас бажання їсти, коли вас хтось підводить?',
-        'Чи виникає у вас бажання їсти, коли вам щось перешкоджає, стає на вашому шляху?',
-        'Чи виникає у вас бажання їсти, коли наближається щось неприємне?',
-        'Чи виникає у вас бажання їсти, коли ви хвилюєтесь чи напружені?',
-        'Чи є у вас бажання їсти, коли справи йдуть проти вас?',
-        'Чи є у вас бажання їсти, коли ви налякані?',
-        'Чи виникає у вас бажання їсти, коли ви розчаровані?',
-        'Чи виникає у вас бажання їсти, коли ви схвильовані чи засмучені?',
-        'Чи є у вас бажання їсти, коли вам нудно?',
-        'Якщо їжа вам смакує, ви їсте більше, ніж зазвичай?',
-        'Якщо їжа добре пахне і виглядає, ви їсте більше, ніж зазвичай?',
-        'Якщо ви бачите або відчуваєте запах смачної їжі, чи є у вас бажання це з’їсти?',
-        'Якщо у вас є щось смачне, ви їсте це відразу?',
-        'Якщо ви проходите повз пекарню, у вас виникає бажання купити щось смачне?',
-        'Якщо ви проходите повз закусочну або кафе, у вас є бажання купити щось смачне?',
-        'Якщо ви бачите, як їдять інші, чи виникає у вас бажання їсти?',
-        'Чи можете ви встояти перед смачною їжею?',
-        'Ви їсте більше, ніж зазвичай, коли бачите, як інші їдять?',
-        'Готуючи їжу, ви схильні щось з’їсти?',
-    ), start=1)),
-    scales=(
-        Scale('restrained', 'Обмежувальна харчова поведінка',
-              'Навмисні зусилля досягти чи втримати бажану вагу через самообмеження в їжі.',
-              questions=tuple(range(1, 11)), reference=24,
-              above_text=('Ви частіше за середнє обмежуєте себе в їжі. Жорсткі правила нерідко запускають '
-                          'коло «обмеження — зрив — провина».'),
-              typical_text='Самообмеження в межах або нижче середніх значень.'),
-        Scale('emotional', 'Емоційна харчова поведінка',
-              'Бажання поїсти у відповідь на негативні чи змішані емоції: роздратування, тривогу, самотність, нудьгу.',
-              questions=tuple(range(11, 24)), reference=23,
-              above_text=('Їжа частіше за середнє стає способом впоратися з емоціями. Варто шукати й інші '
-                          'способи підтримки себе.'),
-              typical_text='Емоційне переїдання в межах або нижче середніх значень.'),
-        Scale('external', 'Екстернальна харчова поведінка',
-              'Бажання їсти викликає не голод, а вигляд і запах їжі чи те, що їдять інші.',
-              questions=tuple(range(24, 34)), reference=27,
-              above_text=('Зовнішні сигнали частіше за середнє запускають бажання їсти. Допомагає '
-                          'усвідомлене харчування й увага до справжнього голоду.'),
-              typical_text='Реакція на зовнішні харчові сигнали в межах або нижче середніх значень.'),
-    ),
-    note=('Середні значення для людей з нормальною вагою — за даними досліджень DEBQ. Опитувальник не ставить '
-          'діагноз; якщо результат вас непокоїть — напишіть мені, розберемо разом.'),
-)
-
-SELF_TESTS: dict[str, SelfTest] = {t.slug: t for t in (GUT_TEST, CYCLE_TEST, DEBQ_TEST)}
+SELF_TESTS: dict[str, SelfTest] = {BRISTOL.slug: BRISTOL}
 
 
 # ---------------------------------------------------------------- guides
@@ -654,261 +195,138 @@ class GuideSection:
 
 @dataclass(frozen=True)
 class Guide:
-    """A short practical guide (lead magnet to a reel): text sections, a self-check test, steps, focus questions."""
+    """A guide in the library. A paid guide (`product_slug` set) shows its first `preview_sections` to everybody and the rest to people who bought it."""
     slug: str
     title: str
     subtitle: str
-    tagline: str                         # on the /learn/ card
+    tagline: str                         # on the library card
     icon: str
-    key_idea: tuple[str, str]            # (label, text) — the callout under the title
-    sections: tuple[GuideSection, ...]   # before the test
-    test_title: str
-    test: SelfTest
+    key_idea: tuple[str, str]            # (label, text): the callout under the title
+    sections: tuple[GuideSection, ...]
     steps_title: str
     steps: tuple[tuple[str, str], ...]   # (title, text)
     focus_title: str
     focus_intro: str
     focus_questions: tuple[str, ...]
     conclusion: str
-    after_test: tuple[GuideSection, ...] = ()   # between the test and the steps
+    product_slug: str | None = None
+    preview_sections: int = 0            # a paid guide: how many sections (from the start) are free to read
+    highlights: tuple[str, ...] = ()     # a paid guide: what is inside, shown on the locked page
+
+    @property
+    def paid(self) -> bool:
+        return self.product_slug is not None
 
 
-_ABOUT_ME = (('Так, це про мене', 1), ('Ні, не про мене', 0))
-
-
-def _checklist(slug: str, title: str, markers: tuple[tuple[str, str], ...], bands: tuple[Band, ...],
-               note: str = '') -> SelfTest:
-    return SelfTest(
-        slug=slug, title=title,
-        tagline=f'{len(markers)} маркерів «так» чи «ні» — і ви побачите, наскільки пастка впливає на ваші будні',
-        intro=('Позначте, чи відгукується кожне твердження у вашій щоденній поведінці. '
-               'Результат — одразу після останньої картки.'),
-        minutes=2, questions=tuple(Question(text, _ABOUT_ME, label=label) for label, text in markers),
-        bands=bands, score_unit='збігів', note=note, guide_slug=slug,
-    )
-
-
-BEYOND_SUFFERING = Guide(
-    slug='beyond-suffering',
-    title='Поза пасткою страждання',
-    subtitle='Як перестати оцінювати свою цінність через позбавлення, втому та культ вигорання',
-    tagline='Чому ми пишаємося виснаженням і як вийти з культу страждань — чек-лист і покроковий план',
-    icon='hand-heart',
-    key_idea=('Головний механізм культу виснаження',
-              'Сприйняття успішності змістилося зі сфери естетики («я гарно виглядаю») у сферу моралі («я хороша '
-              'й правильна, бо стримую себе, мало сплю й багато працюю»). У результаті цінністю стає не результат, '
-              'а шкода, якої ви собі завдали.'),
+GUT_BASICS = Guide(
+    slug='gut-basics',
+    title='Gut Basics: A Gentle Starter Guide',
+    subtitle='Everyday habits that help a sluggish or unsettled gut, and how to tell when it is time to ask a professional',
+    tagline='Free. Fluids, fiber, rhythm and movement, plus how to read your stool and when to see a doctor.',
+    icon='leaf',
+    key_idea=('The short version',
+              'Your gut likes rhythm. Regular meals, enough fluid, fiber that you add slowly, daily movement and unhurried time on the toilet '
+              'do more for most people than any single trick. And if something looks like a warning sign, getting it checked comes first.'),
     sections=(
-        GuideSection('Анатомія пастки: від естетики до моральної переваги', (
-            'У сучасному суспільстві стався небезпечний зсув. Тренд на виснаження повернув жорсткі обмеження під '
-            'виглядом моральної переваги. Худнути заради краси чи користуватися «легкими шляхами» (препарати, '
-            'хірургія) вважається неетичним — суспільство вимагає показати силу волі, дисципліну й позбавлення.',
-            'Те саме працює і в кар’єрі: через феномен humblebragging (хвастощі під виглядом скарги) ми змагаємося '
-            'в тому, хто менше спав, хто випив четверту каву і хто сильніше вигорів, — аби отримати соціальне '
-            'схвалення.',
+        GuideSection('What "regular" actually means', (
+            'There is no single normal. Doctors usually consider anything from three bowel movements a day to three a week healthy, as long as it is steady for you and comfortable.',
+            'What matters more than the number is the pattern and how you feel. The Bristol Stool Scale describes stool in seven shapes: types 3 and 4 are the easiest to pass, '
+            'types 1 and 2 point toward constipation, and types 6 and 7 toward loose stools. You can check where you are with the Bristol stool test on this site.',
+        )),
+        GuideSection('Water and fiber, in that order', (
+            'Fiber adds bulk and holds water in the stool, but it needs fluid to work. If you raise fiber without drinking more, constipation can get worse.',
+            'Add it slowly, over two to three weeks: oats, pears, kiwi, prunes, beans, lentils, vegetables, chia or ground flaxseed. A good start is one new fiber-rich food at a time. '
+            'Drink water regularly through the day rather than all at once.',
+        )),
+        GuideSection('Give your gut a rhythm', (
+            'The gut is most active in the morning and after meals. Eating at regular times and keeping a few unhurried minutes after breakfast for the toilet works with that rhythm.',
+            'Do not ignore the urge or strain against it. A small footstool that lifts your knees above your hips straightens the angle of the rectum and makes emptying easier for many people.',
+        )),
+        GuideSection('Movement and stress', (
+            'Walking, stretching and anything that gets you moving help the gut move too. Even 20 minutes a day makes a difference for many people.',
+            'The gut and the nervous system talk constantly, so stress can speed things up or slow them down. A few slow breaths before a meal or on the toilet is a small, free tool.',
+        )),
+        GuideSection('When to talk to a doctor', (
+            'Home habits are for ordinary, mild trouble. Please see a doctor if you notice blood in or on the stool, black or tar-like stool, unexplained weight loss, '
+            'severe or lasting belly pain, diarrhea that wakes you at night, or a clear change from your usual pattern that lasts more than a few weeks.',
+            'Get urgent care for severe pain with vomiting and no stool or gas passing, heavy bleeding, or fainting.',
         )),
     ),
-    test_title='Чек-лист самодіагностики: 10 маркерів пастки',
-    test=_checklist('beyond-suffering', 'Чи потрапили ви в пастку страждання?', (
-        ('Почуття провини за відпочинок', 'Пасивний відпочинок здається «марнуванням часу», яке треба заслужити.'),
-        ('Хвастощі шкодою', 'Розповіді про те, як мало ви спите, багато працюєте й давно не були у відпустці.'),
-        ('Їжа як оцінка моралі',
-         'Прийом їжі пов’язується з оцінкою «я молодець / я зірвалася», а не з утамуванням голоду.'),
-        ('Знецінення легких шляхів', 'Якщо задачу вирішено швидко й легко, результат здається «неповноцінним».'),
-        ('Страждання як гарантія якості', 'Переконання, що лише через біль і вигорання можна досягти успіху.'),
-        ('Романтизація виснаження', 'Схвальне ставлення до синців під очима, чашки кави замість обіду й поспіху.'),
-        ('Контроль тіла, коли довкола хаос',
-         'Жорстка фіксація на калоріях чи вазі, коли в житті наростає невизначеність.'),
-        ('Ігнорування сигналів тіла', 'Придушення втоми кавою, робота «на ногах» під час хвороби.'),
-        ('Цінність через позбавлення',
-         'Відчуття, що ви «хороша людина», з’являється лише за сильного дискомфорту.'),
-        ('Страх розслабитися', 'Побоювання, що без постійного бігу й самообмежень ви втратите статус.'),
-    ), bands=(
-        Band('trapped', 7, 'Пастка страждання вже керує вашими буднями',
-             'Більшість маркерів — про вас: цінність себе зараз міряється втомою, обмеженнями й тим, скільки ви '
-             'витримали.\n\nПочніть із першого кроку нижче — відділіть цінність від зусиль. А якщо відпочинок '
-             'тижнями не повертає сил — це привід поговорити з фахівцем.'),
-        Band('partly', 4, 'Пастка частково впливає на вас',
-             'Деякі установки культу виснаження вже стали звичкою. Добра новина: ви їх помічаєте — а отже, можете '
-             'змінити.\n\nОберіть один крок із плану нижче й практикуйте його цього тижня.'),
-        Band('balanced', 0, 'Ви тримаєте баланс',
-             'Ви здебільшого не вимірюєте свою цінність стражданням. Бережіть це: щоденні фокус-питання нижче '
-             'допоможуть не скотитися в пастку в напружені періоди.'),
-    )),
-    after_test=(
-        GuideSection('Ілюзія контролю: чому ми контролюємо тарілку й графік', (
-            'Коли зовнішній світ сповнений невизначеності, мозок шукає територію абсолютного контролю — власне '
-            'тіло або список задач. Вмикається ефект дефіциту: увага звужується до тунелю (калорії, години, '
-            'грами), витісняючи глобальну тривогу.',
-            'Але це лише ілюзія контролю: вона не розв’язує проблему, а тільки виснажує ресурс вашої психіки.',
-        )),
-    ),
-    steps_title='Покроковий план виходу з культу страждань',
+    steps_title='A gentle 7-day reset',
     steps=(
-        ('Розділіть цінність і зусилля', 'Перестаньте транслювати втому як предмет гордості. Коли хочеться '
-         'поскаржитися на 3 години сну, запитайте себе: «Що я хочу цим отримати — схвалення чи статус?»'),
-        ('Запровадьте екологічні межі контролю', 'Перенесіть фокус із заборон на наповнення. Замість жорстких '
-         'обмежень запитайте: «Що реально поверне мені стійкість просто зараз — сон, їжа чи прогулянка?»'),
-        ('Легалізуйте «легкі шляхи»', 'Дозвольте собі розв’язувати задачі з найменшим опором. Легко виконана '
-         'робота — це маркер майстерності, а не лінощів.'),
-        ('Практикуйте відпочинок без виправдань', 'Заплануйте час відпочинку в календарі. Відпочинок — це не '
-         'нагорода за страждання, а базова умова фізіології.'),
+        ('Day 1: notice', 'Do not change anything yet. Write down when you eat, drink, move and go to the toilet, and the shape of the stool (the Bristol test helps).'),
+        ('Day 2: water', 'Spread your fluids through the day, and start with a glass of water or a warm drink in the morning.'),
+        ('Day 3: one fiber food', 'Add one fiber-rich food you enjoy, such as oats, a pear or a handful of beans.'),
+        ('Day 4: the toilet routine', 'Spend a few unhurried minutes on the toilet after breakfast, feet on a small stool, no phone, no pushing.'),
+        ('Day 5: move', 'Take a 20-minute walk, ideally after a meal.'),
+        ('Day 6: slow down', 'Eat one meal without screens and chew well. Take three slow breaths before you start.'),
+        ('Day 7: review', 'Look at your notes. What helped? Keep that and drop the rest. If nothing has changed after a few weeks, or a warning sign appears, book a visit with a doctor.'),
     ),
-    focus_title='Щоденні фокус-питання для самоперевірки',
-    focus_intro='Ставте собі ці три запитання наприкінці дня:',
+    focus_title='Questions to notice',
+    focus_intro='A few quiet questions to ask yourself during the week.',
     focus_questions=(
-        'Чи не оцінюю я сьогодні себе за рівнем утоми? Нагадайте собі: втома не дорівнює продуктивності.',
-        'Чи зробив(ла) я щось лише зі страху здатися «недостатньо старанним(ою)»?',
-        'Чим я сьогодні подбав(ла) про свій ресурс без почуття провини?',
+        'When in the day does my gut feel most settled?',
+        'What did I eat or drink the day before an easier or harder day?',
+        'Do I hurry or hold on when I feel the urge?',
+        'Is this a lasting pattern, or a change from what is normal for me?',
     ),
-    conclusion=('Ваша людська й професійна цінність — це константа. Вона не стає вищою, коли ви страждаєте, '
-                'і не зменшується, коли ви щасливі, ситі й відпочилі.'),
+    conclusion='Small, steady habits work better than dramatic ones, and a warning sign is a reason to ask a professional, not to try one more trick at home.',
 )
 
-BURNOUT = Guide(
-    slug='burnout',
-    title='Поза культом вигорання',
-    subtitle='Чек-лист самодіагностики та інструкція з повернення відпочинку без почуття провини',
-    tagline='Чому ми хизуємося втомою, як розпізнати humblebragging і повернути собі право на відпочинок',
-    icon='flame',
-    key_idea=('Парадокс сучасної культури',
-              'Університетські дослідження (Гарвард, 2017) показують, що надмірна зайнятість зчитується '
-              'суспільством як ознака високого статусу та затребуваності. У результаті ми змагаємося не '
-              'досягненнями, а шкодою, якої собі завдаємо, — хронічним недосипом, вигоранням і жменями кави. '
-              'Цей гайд допоможе розпізнати пастку humblebragging (хвастощів під виглядом скарги) та повернути '
-              'собі право на відпочинок.'),
+GUT_MASSAGE_GUIDE = Guide(
+    slug='gut-massage-guide',
+    title='Gut Massage Guide',
+    subtitle='A gentle, practical way to ease bloating and look after your digestion, with clear safety guidance',
+    tagline='Paid. A calm, step-by-step approach to abdominal self-massage, with the safety guidance that comes with it.',
+    icon='book-open-text',
+    key_idea=('What it is for',
+              'Abdominal self-massage is a gentle, comfortable routine that some people find helps with bloating and sluggish digestion. '
+              'It is not a treatment for any condition, and it is not for everyone. The guide begins with who should skip it or ask a doctor first.'),
+    product_slug='gut-massage-guide',
+    preview_sections=1,
+    highlights=(
+        'Who should not do abdominal massage, and when to ask a doctor first',
+        'How to set up: timing, position, pressure and warmth',
+        'A step-by-step routine that follows the direction of the colon',
+        'How often to practice and how to tell it is not right for you',
+        'Everyday habits that support the routine',
+    ),
+    # TODO(owner): replace the sections below with the text of the finished guide.
     sections=(
-        GuideSection('Психологія пастки: чому ми хизуємося втомою?', (
-            'Термін humblebragging означає хвастощі, замасковані під скаргу (наприклад: «Так загреблася, веду '
-            '3 проєкти без вихідних»). Це дозволяє людині водночас отримати і високий статус затребуваного '
-            'фахівця, і співчуття оточення.',
-            'Якщо в XIX столітті статус підкреслювався дозвіллям, то сьогодні вільний час зчитується як '
-            '«непотрібність». Ми потрапляємо в замкнене коло: щоб почуватися цінними, ми змушені демонструвати '
-            'постійне виснаження.',
+        GuideSection('Before you begin: is it right for you?', (
+            'Skip abdominal massage and talk with a doctor first if you are pregnant, have had recent abdominal surgery, have a hernia, an inflammatory bowel disease flare, '
+            'diverticulitis, an abdominal aneurysm or a known abdominal tumor, or have belly pain, fever or blood in your stool that has not been explained.',
+            'If you are unsure, ask your doctor. Stop right away if anything hurts, and never press hard.',
+        )),
+        GuideSection('Setting up', (
+            'Choose a time at least one to two hours after a large meal, and empty your bladder first. Lie on your back with your knees bent and a pillow under your head, in a warm, quiet place.',
+            'Rest your hands on your belly and take a few slow breaths so the abdomen can soften.',
+        )),
+        GuideSection('The basic routine', (
+            'Using the flat of your hand or fingertips with light to moderate pressure, move in slow circles clockwise around the navel, following the path of the colon: '
+            'up on your right side, across under the ribs, and down on your left side.',
+            'Keep the movement slow and relaxed for about five minutes. The pressure should always feel comfortable.',
+        )),
+        GuideSection('How often', (
+            'Once or twice a day is plenty, for example in the morning or in the evening. Give it a few weeks before judging it, and keep notes on how you feel.',
+            'If it makes you more uncomfortable, stop. If you are not getting better or symptoms are worrying you, see a doctor.',
         )),
     ),
-    test_title='Чек-лист самодіагностики: 10 маркерів культу вигорання',
-    test=_checklist('burnout', 'Наскільки культ вигорання впливає на вас?', (
-        ('Хвастощі виснаженням',
-         'Перетворення нехтування сном (2–4 години) або відсутності відпустки на тему для гордості.'),
-        ('Сором за пасивне дозвілля',
-         'Відчуття провини або тривоги, якщо ви просто лежите чи дивитеся фільм без «користі».'),
-        ('Вигорання як знак якості',
-         'Переконання, що робота зроблена недостатньо добре, якщо ви після неї не виснажені.'),
-        ('Праця під час хвороби',
-         'Ігнорування сигналів тіла, відмова від лікарняних і робота з температурою або болем.'),
-        ('Цінність через щільність графіка',
-         'Вимірювання власної значущості виключно кількістю завдань і зустрічей у календарі.'),
-        ('Обід над клавіатурою',
-         'Регулярна відмова від повноцінних перерв та їжа поспіхом під час виконання робочих задач.'),
-        ('Кавова стимуляція', 'Надмірна кількість кави чи енергетиків, щоб штучно придушити природну втому.'),
-        ('Страх сповільнення',
-         'Побоювання, що якщо ви зменшите темп, вас сприймуть як некомпетентного або легко замінного.'),
-        ('Знецінення легких перемог',
-         'Якщо завдання виконано швидко й без мучень, результат здається «занадто простим».'),
-        ('Службовий розмив меж',
-         'Постійна перевірка робочих чатів у вихідні, пізно ввечері та під час сімейних подій.'),
-    ), bands=(
-        Band('trapped', 7, 'Культ вигорання вже диктує ваш ритм',
-             'Втома стала для вас мірилом цінності, а відпочинок — чимось, що треба заслужити.\n\nПочніть із '
-             'третього кроку нижче: внесіть відновлення в календар так само жорстко, як робочі зустрічі. Якщо '
-             'виснаження не минає навіть після відпустки — зверніться до фахівця.'),
-        Band('partly', 4, 'Деякі звички вигорання вже з вами',
-             'Ви ще не в пастці повністю, але частина установок працює на автоматі. Саме зараз їх найлегше '
-             'змінити.\n\nОберіть маркер, який відгукнувся найбільше, і почніть із відповідного кроку нижче.'),
-        Band('balanced', 0, 'Ви бережете свій ресурс',
-             'Ви не вимірюєте свою цінність виснаженням — і це рідкість. Фокус-питання нижче допоможуть зберегти '
-             'баланс у напружені періоди.'),
-    )),
-    steps_title='Чотири кроки для виходу зі змагання у виснаженні',
+    steps_title='A five-minute routine',
     steps=(
-        ('Відділіть цінність від утоми', 'Ваша професійна та особиста цінність є константою. Вона не зростає від '
-         'того, що ви виснажені, і не зменшується, коли ви відпочили. Перестаньте подавати втому як показник '
-         'старанності.'),
-        ('Зупиніть культивування humblebragging', 'Свідомо вийдіть зі змагання «кому гірше». Коли співрозмовник '
-         'ділиться скаргою на недосип, не відповідайте своїм рекордом виснаження, а змініть фокус на підтримку.'),
-        ('Легалізуйте відпочинок як обов’язковий ресурс', 'Відпочинок — це не нагорода за виснажливу працю, а '
-         'базове паливо для нормальної роботи нервової системи. Заплануйте час для відновлення в календарі так '
-         'само жорстко, як і робочі зустрічі.'),
-        ('Нормалізуйте легкі рішення', 'Якщо завдання можна виконати за 15 хвилин без страждань — це ознака вашої '
-         'майстерності та ефективності, а не привід шукати додаткові складнощі.'),
+        ('Settle', 'Lie down, knees bent. Breathe slowly for one minute with your hands resting on your belly.'),
+        ('Warm up', 'Make small, light circles around the navel, clockwise.'),
+        ('Follow the colon', 'Widen the circles along the path of the colon, light pressure, slow pace.'),
+        ('Finish', 'Rest your hands on your belly for a minute and breathe. Drink a glass of water.'),
     ),
-    focus_title='Щоденні фокус-питання для самоперевірки',
-    focus_intro='Ставте собі ці три запитання наприкінці кожного робочого дня:',
+    focus_title='Notice and adjust',
+    focus_intro='After each session, a few things to notice.',
     focus_questions=(
-        'Чи не оцінюю я сьогодні свою ефективність лише через рівень виснаження?',
-        'Чи зробив(ла) я якусь задачу тільки для того, щоб не здатися «недостатньо зайнятим(ою)»?',
-        'Яку дію для відновлення власних сил я дозволив(ла) собі зробити без почуття провини?',
+        'Did my belly feel softer or more tense?',
+        'Was there any pain or discomfort?',
+        'What else changed that day: food, water, sleep, stress?',
     ),
-    conclusion=('Перестаньте вимірювати успіх кількістю шкоди, якої ви собі завдали. Справжня продуктивність і '
-                'стійкість народжуються там, де є повага до власних ресурсів та відновлення.'),
+    conclusion='Be gentle, be consistent, and let comfort set the pressure. Pair the routine with water, fiber, movement and rest, and see a doctor for anything that worries you.',
 )
 
-CONTROL_ANCHORS = Guide(
-    slug='control-anchors',
-    title='Повернення опор у хаотичному світі',
-    subtitle='Як подолати ілюзію контролю через їжу та відновити психологічну стійкість',
-    tagline='Чому відмова від їжі стає спробою повернути контроль — і які опори працюють насправді',
-    icon='sprout',
-    key_idea=('Психологічний механізм',
-              'Коли зовнішній світ охоплений невизначеністю (економічні коливання, політика, новини), власне тіло '
-              'стає останньою територією абсолютного контролю. Відмова від їжі або жорстке обмеження калорій '
-              'створює «ефект дефіциту»: мислення звужується до тунелю (калорії, вага, грами), що дозволяє '
-              'тимчасово витіснити тривогу. Проте це лише ілюзія контролю, яка виснажує ресурс вашої психіки.'),
-    sections=(),
-    test_title='Чек-лист самодіагностики: 10 маркерів втрати опор',
-    test=_checklist('control-anchors', 'Чи стала їжа вашою спробою контролю?', (
-        ('Фіксація на калоріях при стресі', 'Посилення контролю за раціоном у моменти тривоги за майбутнє.'),
-        ('Тіло як остання фортеця', 'Відчуття, що тіло — єдине, чим ви реально володієте та розпоряджаєтеся.'),
-        ('«Тунельне мислення»', 'Зосередженість на вазі та меню як спосіб відволіктися від неприємних новин.'),
-        ('Поранення себе голодом', 'Відмова від їжі як покарання за помилки або «непродуктивний» день.'),
-        ('Ігнорування фізичного голоду', 'Випробування власної витривалості та гордість за вміння терпіти.'),
-        ('Страх втрати ритуалів', 'Паніка або сильна тривога, якщо запланований графік харчування порушено.'),
-        ('Тихий протест без вимог', 'Вираження внутрішнього розпачу чи протесту через самообмеження.'),
-        ('Злиття моралі та харчування', 'Поділ днів на «хороші» (з дотриманням суворих правил) та «ганебні».'),
-        ('Уникнення соціальних подій',
-         'Відмова від зустрічей із близькими через страх втратити контроль над їжею.'),
-        ('Відчуття безпорадності', 'Переконання, що ви ніяк не можете вплинути на своє життя поза тарілкою.'),
-    ), bands=(
-        Band('trapped', 7, 'Їжа стала вашою головною опорою — і це виснажує',
-             'Контроль над тарілкою зараз виконує роботу, яку мали б робити інші опори: безпека, близькі люди, '
-             'відпочинок.\n\nПочніть із першого кроку нижче — назвіть свою тривогу. І будь ласка, не залишайтеся '
-             'з цим наодинці: розмова з психотерапевтом допоможе повернути опори значно швидше.'),
-        Band('partly', 4, 'Частина опор уже зміщується на їжу',
-             'У напружені моменти ви інколи шукаєте контроль через харчування. Це сигнал, а не вирок.\n\nДругий '
-             'і третій кроки нижче допоможуть знайти інші, справжні зони контролю.'),
-        Band('balanced', 0, 'Ваші опори стоять міцно',
-             'Ви здебільшого не використовуєте їжу як спосіб упоратися з невизначеністю. Фокус-питання нижче '
-             'знадобляться, якщо колись з’явиться бажання жорстко себе обмежити.'),
-    ), note=('Тест не є діагнозом. Якщо відмова від їжі або жорсткі обмеження стали регулярними — зверніться до '
-             'психотерапевта чи лікаря. Ви заслуговуєте на підтримку.')),
-    steps_title='П’ять кроків для повернення справжніх психологічних опор',
-    steps=(
-        ('Легалізуйте та назвіть свою тривогу', 'Усвідомте: бажання жорстко обмежити їжу — це не про калорії, а '
-         'про страх перед зовнішньою невизначеністю. Запитайте себе: «Що насправді лякає мене просто зараз?»'),
-        ('Розширте «тунель» уваги', 'Коли мозок зациклюється на вазі, свідомо перемикайте увагу на відчуття в '
-         'тілі: зробіть розтяжку, пройдіться пішки, випийте теплої води. Повертайтеся до реального фізичного '
-         'контакту з собою.'),
-        ('Знайдіть реальні мікрозони контролю', 'Замість тарілки візьміть під контроль маленькі побутові речі: '
-         'наведіть лад на робочому столі, налаштуйте режим сну, встановіть ліміт на перегляд новин '
-         '(інформаційна гігієна).'),
-        ('Перейдіть від «тихого протесту» до висловлення', 'Самоушкодження голодом не змінює зовнішній світ. '
-         'Навчитися говорити про свої межі, втому й незгоду словами — це дорослий спосіб захисту себе.'),
-        ('Змініть парадигму: тіло — союзник, а не ворог', 'Тіло не потребує покарання чи суворого нагляду. Воно '
-         'дає вам ресурс жити. Спробуйте годувати та відновлювати його з почуття турботи, а не з бажання '
-         '«перемогти».'),
-    ),
-    focus_title='Щоденні фокус-питання для самоперевірки',
-    focus_intro='Задавайте собі ці питання щоразу, коли виникає бажання жорстко себе обмежити:',
-    focus_questions=(
-        'Чи намагаюся я зараз контролювати їжу тому, що не можу впоратися з тривогою від новин чи стосунків?',
-        'Яка моя справжня потреба просто зараз — відпочинок, безпека, розмова, обійми?',
-        'Яку маленьку дію турботи про себе я можу зробити замість відмови від їжі?',
-    ),
-    conclusion=('Контроль над тарілкою не розв’язує зовнішній хаос, а лише відбирає останні сили. Справжня '
-                'психологічна опора будується не на жорстких заборонах, а на турботі про свій стан і внутрішній '
-                'впевненості.'),
-)
-
-GUIDES: dict[str, Guide] = {g.slug: g for g in (BEYOND_SUFFERING, BURNOUT, CONTROL_ANCHORS)}
-SELF_TESTS.update({g.test.slug: g.test for g in GUIDES.values()})
+GUIDES: dict[str, Guide] = {g.slug: g for g in (GUT_BASICS, GUT_MASSAGE_GUIDE)}

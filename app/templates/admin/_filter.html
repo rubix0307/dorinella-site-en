@@ -1,39 +1,39 @@
-{# One period filter scopes every block below it. Phones: presets + a "Період" chip that opens a sheet #}
+{# One period filter scopes every block below it. Phones: presets + a "Custom dates" chip that opens a sheet #}
 <form class="period" method="get" action="{{ request.url.path }}" data-admin-filter data-admin-form>
-    <div class="period__presets" role="group" aria-label="Період">
+    <div class="period__presets" role="group" aria-label="{{ _('Period') }}">
         {% for n, preset in presets.items() %}
             <a class="chip" href="?{{ preset_query[n] }}"
-               {% if rng.preset() == n %}aria-current="true"{% endif %} data-admin-preset>{{ 'Сьогодні' if n == 1 else n ~ ' днів' }}</a>
+               {% if rng.preset() == n %}aria-current="true"{% endif %} data-admin-preset>{{ _('Today') if n == 1 else _('%(n)s days', n=n) }}</a>
         {% endfor %}
     </div>
     {#- one chip for a range of your own: it names the range when one is picked; the dates live in a panel -#}
     {% set custom = not rng.preset() %}
     <details class="period__custom" data-period-custom>
         <summary class="chip"{% if custom %} aria-current="true"{% endif %}>
-            {{ micon('calendar', open='x') }}<span>{% if custom %}{{ rng.start.strftime('%d.%m') }} — {{ rng.end.strftime('%d.%m.%Y') }}{% else %}Свої дати{% endif %}</span>
+            {{ micon('calendar', open='x') }}<span>{% if custom %}{{ rng.start.strftime('%d.%m') }} — {{ rng.end.strftime('%d.%m.%Y') }}{% else %}{{ _('Custom dates') }}{% endif %}</span>
         </summary>
-        <div class="period__sheet" role="group" aria-label="Свій період">
+        <div class="period__sheet" role="group" aria-label="{{ _('Custom period') }}">
             <div class="period__sheet-head">
-                <p class="period__sheet-title">Свій період</p>
-                {% set n = rng.days %}<p class="period__count" data-period-count aria-live="polite">{{ n }} {{ 'день' if n % 10 == 1 and n % 100 != 11 else ('дні' if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else 'днів') }}</p>
+                <p class="period__sheet-title">{{ _('Custom period') }}</p>
+                <p class="period__count" data-period-count aria-live="polite">{{ _('%(n)s day', n=rng.days) if rng.days == 1 else _('%(n)s days', n=rng.days) }}</p>
             </div>
             <div class="period__quick">
-                <button class="chip chip--sm" type="button" data-period-quick="this-month">Цей місяць</button>
-                <button class="chip chip--sm" type="button" data-period-quick="last-month">Минулий місяць</button>
+                <button class="chip chip--sm" type="button" data-period-quick="this-month">{{ _('This month') }}</button>
+                <button class="chip chip--sm" type="button" data-period-quick="last-month">{{ _('Last month') }}</button>
             </div>
             <div class="period__dates">
-                <label class="field field--compact"><span class="field__label">Від</span>
+                <label class="field field--compact"><span class="field__label">{{ _('From') }}</span>
                     <input type="date" name="from" value="{{ rng.start }}" max="{{ rng.end }}" required data-period-from></label>
-                <label class="field field--compact"><span class="field__label">До</span>
+                <label class="field field--compact"><span class="field__label">{{ _('To') }}</span>
                     <input type="date" name="to" value="{{ rng.end }}" min="{{ rng.start }}" max="{{ presets[7].end }}" required data-period-to></label>
             </div>
             {% for name, value in page_state %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
             <div class="period__actions">
-                <button class="btn btn--ghost btn--sm" type="button" data-period-cancel>Скасувати</button>
-                <button class="btn btn--primary btn--sm period__apply" type="submit">Показати</button>
+                <button class="btn btn--ghost btn--sm" type="button" data-period-cancel>{{ _('Cancel') }}</button>
+                <button class="btn btn--primary btn--sm period__apply" type="submit">{{ _('Show') }}</button>
             </div>
         </div>
     </details>
-    {# the page's main action sits on the same row (wide screens; phones use the table's "+ Нове") #}
-    {% if not hide_new_link %}<button class="btn btn--primary period__new" type="button" data-link-new>{{ icon('plus') }}Нове посилання</button>{% endif %}
+    {# the page's main action sits on the same row (wide screens; phones use the table's "+ New") #}
+    {% if not hide_new_link %}<button class="btn btn--primary period__new" type="button" data-link-new>{{ icon('plus') }}{{ _('New link') }}</button>{% endif %}
 </form>

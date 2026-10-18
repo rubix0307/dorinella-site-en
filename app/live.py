@@ -16,23 +16,12 @@ from . import db
 log = logging.getLogger(__name__)
 
 CHANNEL = 'dori_live'
-KINDS = frozenset({'click', 'view', 'link', 'recipes', 'attempt', 'course', 'reviews', 'tgposts'})
-SUPPORT_PREFIX = 'support:'      # `support:<ticket id>`: a message or a change in a ticket; read by the sockets of the chat pages only
-                                 # `support:<ticket id>:<category>`: the ticket just LEFT that category; only the staff lists of it are told (so they drop the row)
-
-
-def support_event(kind: str) -> tuple[int, str] | None:
-    """(ticket id, the category it left or '') of a `support:` event, None for anything else or malformed."""
-    if not kind.startswith(SUPPORT_PREFIX):
-        return None
-    number, _, left = kind[len(SUPPORT_PREFIX):].partition(':')
-    if not (number.isascii() and number.isdigit()) or (left and not (left.isascii() and left.isalpha() and len(left) <= 16)):
-        return None
-    return int(number), left
+KINDS = frozenset({'click', 'view', 'link', 'attempt', 'course', 'order'})
 
 
 def known(kind: str) -> bool:
-    return kind in KINDS or support_event(kind) is not None
+    return kind in KINDS
+
 
 class Hub:
     """Fan-out of events to the sockets of this process. Slow consumers drop events, never block.
@@ -52,11 +41,6 @@ class Hub:
         self._queues.pop(queue, None)
 
     def publish(self, kind: str) -> None:
-        for callback in _callbacks.get(kind, ()):     # in-process reactions, e.g. reload the recipes
-            try:
-                callback(kind)
-            except Exception:
-                log.exception('live: %s callback failed', kind)
         for queue, loop in list(self._queues.items()):
             loop.call_soon_threadsafe(self._put, queue, kind)
 
@@ -68,12 +52,6 @@ class Hub:
     @property
     def listeners(self) -> int:
         return len(self._queues)
-_callbacks: dict[str, list] = {}
-
-
-def on(kind: str, callback) -> None:
-    """Run `callback(kind)` in every worker when an event of this kind arrives (from any worker)."""
-    _callbacks.setdefault(kind, []).append(callback)
 
 
 hub = Hub()
@@ -94,16 +72,6 @@ def published(kind: str) -> None:
     _pending.add(kind)
     if _flush is None or _flush.done():
         _flush = asyncio.get_running_loop().create_task(_send_pending(), name='live-flush')
-async def notify(kind: str) -> None:
-    """For another process (the Telegram sender): tells the web workers right away, in its own short transaction (no coalescing: such events are rare). Never raises."""
-    if not _is_postgres():
-        hub.publish(kind)
-        return
-    try:
-        async with db.get_engine().begin() as conn:
-            await conn.execute(text('SELECT pg_notify(:c, :k)'), {'c': CHANNEL, 'k': kind})
-    except Exception:
-        log.warning('live: could not send %s', kind, exc_info=True)
 async def _send_pending() -> None:
     await asyncio.sleep(FLUSH_DELAY)
     kinds = sorted(_pending)

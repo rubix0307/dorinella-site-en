@@ -1,0 +1,66 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{{ _('Orders') }}{% endblock %}
+{% block head %}<link href="{{ static('css/admin-sections.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main pay-page">
+        <header class="page-head">
+            <div>
+                <h1 class="admin-title">{{ _('Orders') }}</h1>
+                <p class="page-head__lead">{{ _('Card payments through Stripe Checkout. Amounts are in US dollars.') }}</p>
+            </div>
+        </header>
+
+        {% if test_keys %}<p class="admin-alert" role="status">{{ icon('triangle-alert') }}{{ _('Test mode: no money moves. Test orders are not counted as revenue (switch to "Live" to see the real numbers).') }}</p>{% endif %}
+        {% if not stripe_ready %}<p class="admin-alert" role="status">{{ icon('triangle-alert') }}{{ _('Stripe is not connected on the server yet, so nobody can pay.') }}</p>{% endif %}
+
+        <section class="admin-card" aria-labelledby="orders-sum">
+            <div class="card-head"><h2 class="admin-card__title" id="orders-sum">{{ _('Totals') }}</h2></div>
+            <dl class="pay-facts">
+                <div><dt>{{ _('Paid orders') }}</dt><dd>{{ totals.paid }}</dd></div>
+                <div><dt>{{ _('Revenue') }}</dt><dd>{{ cents(totals.revenue) }}</dd></div>
+                <div><dt>{{ _('Refunded') }}</dt><dd>{{ cents(totals.refunded) }}</dd></div>
+                <div><dt>{{ _('Net') }}</dt><dd>{{ cents(totals.net) }}</dd></div>
+                {% if totals.review %}<div><dt>{{ _('Need a look') }}</dt><dd>{{ totals.review }}</dd></div>{% endif %}
+            </dl>
+        </section>
+
+        <section class="admin-card admin-card--table" aria-labelledby="orders-list">
+            <div class="card-head"><h2 class="admin-card__title" id="orders-list">{{ _('All orders') }} <span class="count">{{ total }}</span></h2></div>
+            <form class="users-tools" method="get" action="{{ url('admin_orders') }}" role="search" data-autofilter>
+                <input class="field" type="search" name="q" value="{{ q }}" placeholder="{{ _('Order number, e-mail or product') }}" aria-label="{{ _('Search') }}">
+                <select class="field" name="status" aria-label="{{ _('Status') }}"><option value="">{{ _('All statuses') }}</option>
+                    {% for s in statuses %}<option value="{{ s }}"{% if s == status %} selected{% endif %}>{{ labels[s]|t }}</option>{% endfor %}</select>
+                <select class="field" name="mode" aria-label="{{ _('Mode') }}">{% for code, label in modes %}<option value="{{ code }}"{% if code == mode %} selected{% endif %}>{{ label|t }}</option>{% endfor %}</select>
+                <span class="spinner users-tools__wait" data-wait hidden role="status" aria-label="{{ _('Loading') }}"></span>
+                <noscript><button class="btn btn--ghost btn--sm" type="submit">{{ icon('search') }}{{ _('Search') }}</button></noscript>
+                {% if q or status or mode != 'live' %}<a class="tool-btn tool-btn--quiet" href="{{ url('admin_orders') }}">{{ icon('rotate-ccw') }}<span class="tool-btn__text">{{ _('Reset') }}</span></a>{% endif %}
+            </form>
+            {% if rows %}
+                <div class="admin-table-wrap"><table class="admin-table pay-table">
+                    <thead><tr><th scope="col">{{ _('Created') }}</th><th scope="col">{{ _('Order') }}</th><th scope="col">{{ _('Buyer') }}</th><th scope="col">{{ _('Amount') }}</th><th scope="col">{{ _('Status') }}</th></tr></thead>
+                    <tbody>
+                        {% for o, email in rows %}
+                            <tr>
+                                <td class="nowrap" data-label="{{ _('Created') }}"><time datetime="{{ o.created_at.isoformat() }}">{{ o.created_at|local }}</time></td>
+                                <td data-label="{{ _('Order') }}"><a href="{{ url('admin_order', order_id=o.id) }}">{{ o.number }}</a><br><span class="tgl-hint">{{ title(o.product_slug) }}</span>{% if o.test_mode %} <span class="badge">{{ _('test') }}</span>{% endif %}{% if o.needs_review %} <span class="badge badge--off" title="{{ _('The money came late, twice or in another amount: check it') }}">{{ _('check') }}</span>{% endif %}</td>
+                                <td class="cell-link pay-email" data-label="{{ _('Buyer') }}">{{ email }}</td>
+                                <td class="nowrap" data-label="{{ _('Amount') }}">{{ cents(o.amount) }}</td>
+                                <td data-label="{{ _('Status') }}"><span class="badge pay-status pay-status--{{ o.status }}">{{ labels[o.status]|t }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table></div>
+                <nav class="tgl-pager" aria-label="{{ _('Pages') }}">
+                    {% if page > 1 %}<a class="btn btn--sm" href="?q={{ q|urlencode }}&amp;status={{ status }}&amp;mode={{ mode }}&amp;page={{ page - 1 }}">{{ _('Newer') }}</a>{% endif %}
+                    {% if more %}<a class="btn btn--sm" href="?q={{ q|urlencode }}&amp;status={{ status }}&amp;mode={{ mode }}&amp;page={{ page + 1 }}">{{ _('Older') }}{{ icon('chevron-right') }}</a>{% endif %}
+                </nav>
+            {% else %}
+                <p class="users-more">{{ _('No orders found.') }}</p>
+            {% endif %}
+        </section>
+    </main>
+{% endblock %}

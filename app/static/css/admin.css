@@ -210,7 +210,7 @@ main.admin-main:focus { outline: none; }
 /* ---------- period filter ---------- */
 .period { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .period__presets { display: flex; gap: .5rem; }
-/* «Свої дати»: a chip (naming the range when it's a custom one) that opens a panel under it */
+/* Custom dates: a chip (naming the range when it's a custom one) that opens a panel under it */
 .period__custom { position: relative; }
 .period__custom > summary { display: inline-flex; list-style: none; }
 .period__custom > summary::-webkit-details-marker { display: none; }
@@ -577,7 +577,7 @@ button.admin-tile {
 @media (max-width: 1100px) {
     .page-head { align-items: center; }
 
-    /* period: 3 presets + "Свої дати" in one row; the dates open as a sheet */
+    /* period: 3 presets + "Custom dates" in one row; the dates open as a sheet */
     .period { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; }
     .period__presets { display: contents; }
     .period__new { grid-column: 1 / -1; justify-self: start; margin-left: 0; }
@@ -639,7 +639,7 @@ button.admin-tile {
     .admin-link__path { max-width: 100%; }
     .cell-placement { grid-column: span 2; }
     /* analytics card: link + copy (top-right), where it was placed, two stat tiles, last click.
-       The source badge is left out: the placement already says "Коротке посилання · …" or a site area. */
+       The source badge is left out: the placement already says "Short link · …" or a site area. */
     .admin-table--links tbody tr {
         position: relative;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -654,8 +654,8 @@ button.admin-tile {
     .admin-table--links td.cell-tag { display: none; }
     .admin-table--links td.cell-placement { grid-area: place; margin-top: -.35rem; color: var(--ink-soft); }
     .admin-table--links td.cell-placement::before { display: none; }
-    .admin-table--links td.cell-stat[data-label="Переходи"] { grid-area: clicks; }
-    .admin-table--links td.cell-stat[data-label="Унікальні"] { grid-area: visitors; }
+    .admin-table--links td.cell-stat[data-col="clicks"] { grid-area: clicks; }
+    .admin-table--links td.cell-stat[data-col="visitors"] { grid-area: visitors; }
     .admin-table--links td.cell-date { grid-area: last; color: var(--muted); font-size: var(--fs-xs); }
     .admin-table--links td.cell-date::before { display: inline; margin: 0 .3rem 0 0; font-size: inherit; font-weight: 600; letter-spacing: 0; text-transform: none; }
 
@@ -683,12 +683,12 @@ button.admin-tile {
     .admin-table--short td.cell-stat { display: flex; flex-direction: column-reverse; padding: .65rem .8rem; border-radius: var(--r-s); background: var(--bg); }
     .admin-table--short td.cell-stat::before { margin: .1rem 0 0; font-size: .78rem; letter-spacing: 0; text-transform: none; }
     .admin-table--short td.cell-stat strong { color: var(--ink); font-size: 1.5rem; line-height: 1.1; }
-    .admin-table--short td.cell-stat[data-label="Переходи"] { grid-area: clicks; }
-    .admin-table--short td.cell-stat[data-label="Унікальні"] { grid-area: visitors; }
+    .admin-table--short td.cell-stat[data-col="clicks"] { grid-area: clicks; }
+    .admin-table--short td.cell-stat[data-col="visitors"] { grid-area: visitors; }
     .admin-table--short td.cell-date { color: var(--muted); font-size: var(--fs-xs); }
     .admin-table--short td.cell-date::before { display: inline; margin: 0 .3rem 0 0; font-size: inherit; font-weight: 600; letter-spacing: 0; text-transform: none; }
-    .admin-table--short td.cell-date[data-label="Останній"] { grid-area: last; }
-    .admin-table--short td.cell-date[data-label="Створено"] { grid-area: created; text-align: right; }
+    .admin-table--short td.cell-date[data-col="last"] { grid-area: last; }
+    .admin-table--short td.cell-date[data-col="created"] { grid-area: created; text-align: right; }
     .admin-table--short td.cell-actions { position: absolute; top: 1rem; right: 1rem; display: flex; gap: .35rem; width: auto; }
     .admin-table--short td.cell-actions .act-btn + .act-btn { margin-left: 0; }
     .link-row.is-highlight { animation: highlight-card 3s var(--ease) both; }
@@ -900,7 +900,7 @@ button.admin-tile {
 }
 
 /* ==========================================================================
-   «Сторінки»: sections → pages
+   Pages: sections → pages
    ========================================================================== */
 
 .pages-report { display: grid; gap: .9rem; }
@@ -1726,7 +1726,7 @@ body.has-viewer { overflow: hidden; }
     body.admin:has(.admin-side) .tg-tabs { display: none; }       /* the pages of the section are in the sidebar */
 }
 
-/* ---------------------------------------------------------------- «Пристрої» on the analytics page */
+/* ---------------------------------------------------------------- Devices on the analytics page */
 .devices-card { display: block; }
 .devices-card__head { display: flex; align-items: center; gap: .75rem; min-height: var(--h); margin: -.5rem 0; list-style: none; cursor: pointer; }
 .devices-card__head::-webkit-details-marker { display: none; }
@@ -2474,11 +2474,6 @@ div.tgp-math { margin: .45em 0; font-size: 1.15em; text-align: center; }
 .admin-nav button.admin-nav__item:hover { background: var(--surface-2); color: var(--ink); }
 .admin-nav button.admin-nav__item[aria-current="page"] { background: var(--accent-soft); color: var(--accent-text); }
 .admin-nav button.admin-nav__item[aria-current="page"] .icon { color: var(--accent-text); }
-
-/* a thin bar on top while a page is being fetched in place (admin-soft.js) */
-.soft-bar { position: fixed; inset: 0 0 auto 0; z-index: 100; height: 3px; background: var(--accent); transform: scaleX(0); transform-origin: left; opacity: 0; pointer-events: none; }
-.soft-bar.is-busy { opacity: 1; transform: scaleX(.85); transition: transform 8s cubic-bezier(.1, .8, .2, 1), opacity .15s; }
-@media (prefers-reduced-motion: reduce) { .soft-bar.is-busy { transition: opacity .15s; transform: scaleX(1); } }
 .tgt-grid .tgt-controls th { position: sticky; top: 0; z-index: 1; background: var(--bg); }
 @media (pointer: coarse) { .tgt-align, .tgt-drop { width: 44px; height: 44px; } }
 .tgp[data-theme="dark"] .tgp-edit { color: #10230a; }
@@ -2997,3 +2992,36 @@ textarea.field { min-height: 6rem; resize: vertical; line-height: 1.5; }
 /* the spinner that stands where a list filter's button was (static/js/admin-autofilter.js) */
 .users-tools__wait { width: 1.1rem; height: 1.1rem; color: var(--muted); }
 .users-tools__wait[hidden] { display: none; }
+
+/* ---------------------------------------------------------------- Dashboard blocks: sources, top pages, tests, funnels */
+.dash-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .dash-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dash-grid > .admin-card { margin: 0; min-width: 0; }
+.dash-card__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem; margin-bottom: .6rem; }
+.dash-card__head .admin-card__title { margin: 0; }
+.dash-card__lead { margin: 0 0 .6rem; color: var(--muted); font-size: var(--fs-sm); }
+.dash-empty { margin: 0; padding: 1rem 0; color: var(--muted); }
+.bars { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.bars__row { display: grid; gap: .25rem; }
+.bars__label { display: flex; justify-content: space-between; gap: .75rem; font-size: var(--fs-sm); }
+.bars__label b { flex: none; color: var(--ink-soft); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; text-align: right; }
+.bars__name { display: grid; min-width: 0; }
+.bars__name a { color: var(--ink); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.bars__name a:hover { text-decoration: underline; }
+.bars__name small { color: var(--muted); font-size: var(--fs-xs); overflow-wrap: anywhere; }
+.bars .share-bar { display: block; width: 100%; }
+.dash-test + .dash-test { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.dash-test__head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem .75rem; margin-bottom: .6rem; }
+.dash-test__head a { color: var(--ink); font-weight: 600; text-decoration: none; }
+.dash-test__head a:hover { text-decoration: underline; }
+.dash-test__head span { color: var(--muted); font-size: var(--fs-sm); }
+.funnel + .funnel { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.funnel__title { margin: 0 0 .6rem; font-size: var(--fs-base); font-weight: 700; }
+
+/* the language switch of the admin (EN / RU) */
+.lang-switch { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
+.lang-switch button { flex: 1; min-height: 40px; padding: 0 .75rem; border: 0; border-radius: var(--r-s); background: none; color: var(--ink-soft); font: inherit; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; transition: background var(--dur), color var(--dur); }
+.lang-switch button:hover { background: var(--surface-2); color: var(--ink); }
+.lang-switch button[aria-current="true"] { background: var(--accent-soft); color: var(--accent-text); }
+.lang-switch--menu { grid-column: 1 / -1; }
+.mobile-menu__social .lang-switch button { min-height: 44px; }

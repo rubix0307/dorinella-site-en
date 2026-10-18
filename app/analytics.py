@@ -166,7 +166,7 @@ async def record_click(session: AsyncSession | None, request: Request, url: str,
 # ---------------------------------------------------------------- page views
 
 # Only public pages count as visits.
-_UNTRACKED_PREFIXES = ('/admin', '/login', '/account', '/auth/', '/api/', '/static/', '/go/', '/health', '/course/')
+_UNTRACKED_PREFIXES = ('/admin', '/login', '/account', '/auth/', '/api/', '/static/', '/go/', '/health', '/course/', '/checkout')
 
 
 def is_trackable_view(request: Request, status_code: int, content_type: str) -> bool:

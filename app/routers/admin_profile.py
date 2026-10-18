@@ -1,4 +1,4 @@
-"""Admin: the account's own profile — role and rights."""
+"""Admin: the account's own profile — role, rights, time zone and language."""
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,7 @@ async def profile_page(request: Request, session: AsyncSession = Depends(db.get_
     user = await authorize(request, session)
     if user is None:
         return _to_login(request)
-    return _profile(request, user, 'Часовий пояс збережено.' if request.query_params.get('saved') else '')
+    return _profile(request, user, 'Time zone saved.' if request.query_params.get('saved') else '')
 
 
 @router.post('/timezone', name='admin_profile_timezone')
@@ -39,7 +39,7 @@ async def save_timezone(request: Request, timezone: str = Form('', max_length=64
     if user is None:
         return _to_login(request)
     if not timezones.is_valid_setting(timezone):
-        return _profile(request, user, error='Такого часового поясу немає в списку.', status_code=422)
+        return _profile(request, user, error='This time zone is not in the list.', status_code=422)
     user.timezone = timezone
     await session.commit()
     return RedirectResponse(request.app.url_path_for('admin_profile') + '?saved=1', status_code=303, headers=NO_INDEX)

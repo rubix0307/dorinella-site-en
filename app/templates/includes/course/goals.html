@@ -1,13 +1,13 @@
 {#- «What bothers you?»: pick a goal and see its preparation, the order of techniques (open the player when the techniques page is open) and
     tips. Without JS every goal is listed; with JS only the chosen one (kept in the database). -#}
 <section class="abm-block abm-goals" data-goals>
-    <p class="abm-lead">Масаж можна налаштовувати залежно від стану вашого тіла та конкретних проблем. Оберіть, що вас турбує.</p>
-    <div class="abm-goalpick" role="radiogroup" aria-label="Що вас турбує" data-goalpick hidden>
+    <p class="abm-lead">You can tailor the massage to how your body feels and what is bothering you. Pick what applies.</p>
+    <div class="abm-goalpick" role="radiogroup" aria-label="What is bothering you" data-goalpick hidden>
         {% for g in course.GOALS %}
             <label class="abm-goalcard"><input type="radio" name="goal" value="{{ g.id }}"><span><strong>{{ g.title }}</strong><small>{{ g.lead }}</small></span></label>
         {% endfor %}
     </div>
-    <p class="abm-goals__empty" data-goal-empty hidden>Оберіть, що вас турбує, — і тут з’являться підготовка, порядок технік і поради.</p>
+    <p class="abm-goals__empty" data-goal-empty hidden>Pick what is bothering you and the preparation, the order of techniques and tips will appear here.</p>
 
     {% for g in course.GOALS %}
         <article class="abm-goal" id="goal-{{ g.id }}" data-goal="{{ g.id }}" aria-labelledby="goal-{{ g.id }}-h">
@@ -17,28 +17,28 @@
             </header>
             <div class="abm-goal__flow">
                 <section class="abm-goal__step" aria-labelledby="goal-{{ g.id }}-prep">
-                    <h3 id="goal-{{ g.id }}-prep"><span class="abm-goal__n" aria-hidden="true">1</span>Підготовка</h3>
+                    <h3 id="goal-{{ g.id }}-prep"><span class="abm-goal__n" aria-hidden="true">1</span>Preparation</h3>
                     <ul class="abm-bullets">{% for i in g.prep %}<li>{{ i }}</li>{% endfor %}</ul>
                 </section>
                 <section class="abm-goal__step abm-goal__step--main" aria-labelledby="goal-{{ g.id }}-order">
-                    <h3 id="goal-{{ g.id }}-order"><span class="abm-goal__n" aria-hidden="true">2</span>Порядок технік</h3>
+                    <h3 id="goal-{{ g.id }}-order"><span class="abm-goal__n" aria-hidden="true">2</span>Order of techniques</h3>
                     <p>{{ g.order }}</p>
                     <ol class="abm-route" role="list">
                         {% for key, label in g.chips %}
                             {% set t = course.TECH_BY_KEY[key] %}
-                            <li>{% if course_unlocked is none or 'tekhniky' in course_unlocked %}
-                                <a class="abm-route__item" href="{{ course.BASE }}tekhniky/#{{ key }}"><span class="abm-route__n">№{{ t.number }}</span><span class="abm-route__name">{{ label }}</span><span class="abm-route__t">{{ t.time }}</span>{{ icon('chevron-right') }}</a>
+                            <li>{% if course_unlocked is none or 'techniques' in course_unlocked %}
+                                <a class="abm-route__item" href="{{ course.BASE }}techniques/#{{ key }}"><span class="abm-route__n">№{{ t.number }}</span><span class="abm-route__name">{{ label }}</span><span class="abm-route__t">{{ t.time }}</span>{{ icon('chevron-right') }}</a>
                                 {% else %}<span class="abm-route__item"><span class="abm-route__n">№{{ t.number }}</span><span class="abm-route__name">{{ label }}</span><span class="abm-route__t">{{ t.time }}</span></span>{% endif %}</li>
                         {% endfor %}
                     </ol>
                 </section>
                 <section class="abm-goal__step" aria-labelledby="goal-{{ g.id }}-tips">
-                    <h3 id="goal-{{ g.id }}-tips"><span class="abm-goal__n" aria-hidden="true">3</span>Додаткові поради</h3>
+                    <h3 id="goal-{{ g.id }}-tips"><span class="abm-goal__n" aria-hidden="true">3</span>More tips</h3>
                     <ul class="abm-bullets">{% for i in g.tips %}<li>{{ i }}</li>{% endfor %}</ul>
                 </section>
             </div>
         </article>
     {% endfor %}
     <aside class="abm-callout abm-callout--warn" role="note"><span class="abm-callout__icon" aria-hidden="true">{{ icon('triangle-alert') }}</span>
-        <div><h3>Про ефірні олії</h3><p>{{ course.OILS_NOTE }}</p></div></aside>
+        <div><h3>About essential oils</h3><p>{{ course.OILS_NOTE }}</p></div></aside>
 </section>

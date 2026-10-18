@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .i18n import Message
 from .models import ShortLink
 
 PREFIX = '/l/'
@@ -30,14 +31,20 @@ def normalize_slug(raw: str) -> str:
 def validate(slug: str, target_url: str) -> str | None:
     """Error message or None."""
     if slug and not SLUG_RE.fullmatch(slug):
-        return 'Код: лише латинські літери, цифри та дефіс, до 32 символів.'
+        return 'Code: Latin letters, digits and hyphens only, up to 32 characters.'
     if not re.fullmatch(r'https?://[^\s/]+\.[^\s]+', target_url) or len(target_url) > 2048:
-        return 'Вкажіть повну адресу, що починається з https://'
+        return 'Enter a full address starting with https://'
     return None
 
 
-def taken_message(slug: str) -> str:
-    return f'Код «{slug}» вже зайнятий — оберіть інший.'
+# English keys of app/locale/ru.py; the helpers return an i18n.Message, which reads as the English sentence and is translated by `|t`.
+TAKEN = 'The code "%(slug)s" is already taken: choose another.'
+DUPLICATE = '%(path)s already leads to this address.'
+DUPLICATE_TITLED = '%(path)s ("%(title)s") already leads to this address.'
+
+
+def taken_message(slug: str) -> Message:
+    return Message(TAKEN, slug=slug)
 
 
 async def free_auto_slug(session: AsyncSession) -> str:
@@ -74,6 +81,5 @@ async def duplicate(session: AsyncSession, target_url: str, except_id: int | Non
     return None
 
 
-def duplicate_message(link: ShortLink) -> str:
-    title = f' («{link.title}»)' if link.title else ''
-    return f'На цю адресу вже веде {PREFIX}{link.slug}{title}.'
+def duplicate_message(link: ShortLink) -> Message:
+    return Message(DUPLICATE_TITLED if link.title else DUPLICATE, path=f'{PREFIX}{link.slug}', title=link.title)

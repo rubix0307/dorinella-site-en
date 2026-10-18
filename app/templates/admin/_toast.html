@@ -1,11 +1,11 @@
 {# Result of the last action and copy feedback; admin.js shows and hides it. The next likely step is one tap away. #}
 <div class="toast" role="status" aria-live="polite" data-toast{% if notice %} data-show-on-load{% endif %}>
-    {{ icon('circle-check', 'toast__icon') }}<span data-toast-text>{{ notice or '' }}</span>
+    {{ icon('circle-check', 'toast__icon') }}<span data-toast-text>{{ (notice|t) if notice else '' }}</span>
     {% if notice_link and notice_kind == 'created' %}
-        <button class="toast__action" type="button" data-copy="{{ short_base ~ notice_link.slug }}" data-toast-keep>Копіювати</button>
+        <button class="toast__action" type="button" data-copy="{{ short_base ~ notice_link.slug }}" data-toast-keep>{{ _('Copy') }}</button>
     {% elif notice_link and notice_kind in ('enabled', 'disabled') %}
         <form method="post" action="{{ url('admin_links_toggle', link_id=notice_link.id) }}">
-            <button class="toast__action" type="submit">Повернути</button>
+            <button class="toast__action" type="submit">{{ _('Undo') }}</button>
         </form>
     {% endif %}
 </div>

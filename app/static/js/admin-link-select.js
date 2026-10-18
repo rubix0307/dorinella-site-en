@@ -1,7 +1,8 @@
 // A searchable picker in place of a plain <select data-link-select> of short links: the select stays
 // (hidden) and is what the form sends; search matches the short address, the title and the target URL.
-// «Нове посилання» at the bottom makes a new analytics short link right here and picks it.
+// «New link» at the bottom makes a new analytics short link right here and picks it.
 (() => {
+    const t = (text, values) => window.t(text, values);
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
     const PLUS = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
     const LOUPE = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>';
@@ -9,7 +10,7 @@
 
     function label(select) {
         const o = select.selectedOptions[0];
-        if (!o || !o.value) return `<span class="link-pick__empty">${esc(o?.textContent.trim() || 'Оберіть посилання')}</span>`;
+        if (!o || !o.value) return `<span class="link-pick__empty">${esc(o?.textContent.trim() || t('Pick a link'))}</span>`;
         return `<span class="link-pick__slug">${esc(o.dataset.slug)}</span><span class="link-pick__target">${esc(o.dataset.target)}</span>`;
     }
 
@@ -18,10 +19,10 @@
         const items = [...state.select.options].filter((o) => !q || (o.value && `${o.dataset.slug} ${o.dataset.title} ${o.dataset.target}`.toLowerCase().includes(q)));
         state.list.innerHTML = items.length ? items.map((o) => `
             <li role="option" data-id="${o.value}" aria-selected="${o.selected}"${o.selected ? ' class="is-current"' : ''}>
-                ${o.value ? `<span class="link-pick__slug">${esc(o.dataset.slug)}${o.dataset.off !== undefined ? ' <em>вимкнене</em>' : ''}</span>
+                ${o.value ? `<span class="link-pick__slug">${esc(o.dataset.slug)}${o.dataset.off !== undefined ? ` <em>${t('off')}</em>` : ''}</span>
                 ${o.dataset.title ? `<span class="link-pick__title">${esc(o.dataset.title)}</span>` : ''}
                 <span class="link-pick__target">${esc(o.dataset.target)}</span>` : `<span class="link-pick__empty">${esc(o.textContent.trim())}</span>`}
-            </li>`).join('') : '<li class="link-pick__none">Нічого не знайдено</li>';
+            </li>`).join('') : `<li class="link-pick__none">${t('Nothing found')}</li>`;
         const current = items.findIndex((o) => o.selected);
         state.active = q || current < 0 ? 0 : current;
         mark(state);
@@ -57,18 +58,18 @@
         box.className = 'link-pick';
         box.innerHTML = `<button type="button" class="link-pick__button" aria-haspopup="listbox" aria-expanded="false">${label(select)}</button>
             <div class="link-pick__pop" hidden>
-                <label class="link-pick__search">${LOUPE}<input type="search" placeholder="Коротке посилання або адреса…" autocomplete="off"></label>
+                <label class="link-pick__search">${LOUPE}<input type="search" placeholder="${t('Short link or address…')}" autocomplete="off"></label>
                 <ul class="link-pick__list" role="listbox"></ul>
-                <button type="button" class="link-pick__add" data-add>${PLUS}Нове посилання</button>
+                <button type="button" class="link-pick__add" data-add>${PLUS}${t('New link')}</button>
                 <div class="link-pick__new" hidden data-new>
-                    <p class="link-pick__new-title">Нове посилання для аналітики</p>
-                    <label>Куди веде<input type="url" data-f="target_url" placeholder="https://…" autocomplete="off"></label>
-                    <label>Код <small>— необов’язково, інакше створиться сам</small><input data-f="slug" placeholder="напр. links-shop" autocomplete="off" maxlength="32"></label>
-                    <label>Назва <small>— як її бачити в аналітиці</small><input data-f="title" placeholder="напр. Посилання · Магазин" autocomplete="off" maxlength="200"></label>
+                    <p class="link-pick__new-title">${t('New link for the analytics')}</p>
+                    <label>${t('Where it leads')}<input type="url" data-f="target_url" placeholder="https://…" autocomplete="off"></label>
+                    <label>${t('Code')} <small>${t('optional, made for you if empty')}</small><input data-f="slug" placeholder="${t('e.g. links-shop')}" autocomplete="off" maxlength="32"></label>
+                    <label>${t('Title')} <small>${t('how it appears in the analytics')}</small><input data-f="title" placeholder="${t('e.g. Link · Shop')}" autocomplete="off" maxlength="200"></label>
                     <p class="link-pick__error" role="alert" hidden data-error></p>
                     <div class="link-pick__new-actions">
-                        <button type="button" class="btn btn--ghost btn--sm" data-cancel>Скасувати</button>
-                        <button type="button" class="btn btn--primary btn--sm" data-create>${PLUS}Створити</button>
+                        <button type="button" class="btn btn--ghost btn--sm" data-cancel>${t('Cancel')}</button>
+                        <button type="button" class="btn btn--primary btn--sm" data-create>${PLUS}${t('Create')}</button>
                     </div>
                 </div>
             </div>`;
@@ -134,8 +135,8 @@
         // a link to the same address already exists: pick it, or make another one anyway (e.g. another source)
         function offerDuplicate(message, same, create) {
             errorBox.innerHTML = `<span>${esc(message)}</span><span class="link-pick__dup-actions">
-                <button type="button" class="btn btn--primary btn--sm" data-use>Обрати ${esc(same.slug)}</button>
-                <button type="button" class="btn btn--ghost btn--sm" data-anyway>Все одно створити</button></span>`;
+                <button type="button" class="btn btn--primary btn--sm" data-use>${esc(t('Pick %(slug)s', {slug: same.slug}))}</button>
+                <button type="button" class="btn btn--ghost btn--sm" data-anyway>${t('Create anyway')}</button></span>`;
             errorBox.hidden = false;
             errorBox.querySelector('[data-use]').addEventListener('click', () => {
                 if (!select.querySelector(`option[value="${same.id}"]`)) addOption(same);
@@ -154,7 +155,7 @@
         const create = async (allowDuplicate = false, button = q('[data-create]')) => {
             button.disabled = true;
             button.classList.add('is-loading');
-            if (!errorBox.contains(button)) errorBox.hidden = true;     // «Все одно створити» spins where it is
+            if (!errorBox.contains(button)) errorBox.hidden = true;     // «Create anyway» spins where it is
             try {
                 const response = await fetch(select.dataset.createUrl, {
                     method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'},
@@ -163,8 +164,8 @@
                 });
                 const link = await response.json().catch(() => ({}));
                 if (response.status === 409 && link.duplicate) return offerDuplicate(link.error, link.duplicate, create);
-                if (response.status === 403 && !link.error) throw new Error('Недостатньо прав, щоб створювати посилання.');
-                if (!response.ok) throw new Error(link.error || 'Не вдалося створити посилання.');
+                if (response.status === 403 && !link.error) throw new Error(t('You do not have the rights to create links.'));
+                if (!response.ok) throw new Error(link.error || t('Could not create the link.'));
                 addOption(link);              // every picker on the page gets the new link; this one picks it
                 choose(state, String(link.id));
             } catch (err) {

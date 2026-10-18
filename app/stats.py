@@ -1,4 +1,4 @@
-"""Aggregations for the admin dashboard. Days are calendar days in Kyiv time."""
+"""Aggregations for the admin dashboard. Days are calendar days in the admin's own time zone (the browser's)."""
 import re
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .admin_tables import Column, Page, TableSpec, TableView, fetch_page
 from .analytics import visitor_key
+from .i18n import Message
 from .models import FavoriteLink, OutboundClick, PageView, ShortLink
 
 DEFAULT_TZ = ZoneInfo('UTC')
@@ -24,7 +25,7 @@ def tz() -> ZoneInfo:
 
 # Browsers still report some renamed zones by their old names; the database may know only the new ones.
 _RENAMED = {
-    'Europe/Kiev': 'Europe/Kyiv', 'Europe/Uzhgorod': 'Europe/Kyiv', 'Europe/Zaporozhye': 'Europe/Kyiv',
+    'Europe/Kiev': 'Europe/Kyiv', 'Europe/Uzhgorod': 'Europe/Kyiv', 'Europe/Zaporozhye': 'Europe/Kyiv',   # the admin may sit in Kyiv
     'Asia/Calcutta': 'Asia/Kolkata', 'Asia/Saigon': 'Asia/Ho_Chi_Minh', 'Asia/Katmandu': 'Asia/Kathmandu',
     'Asia/Rangoon': 'Asia/Yangon', 'Asia/Ulan_Bator': 'Asia/Ulaanbaatar', 'America/Godthab': 'America/Nuuk',
     'Atlantic/Faeroe': 'Atlantic/Faroe', 'Pacific/Enderbury': 'Pacific/Kanton', 'Pacific/Truk': 'Pacific/Chuuk',
@@ -45,7 +46,7 @@ async def known_zones(session: AsyncSession) -> frozenset[str] | None:
 
 def use_timezone(name: str | None, known: frozenset[str] | None = None) -> ZoneInfo:
     """Use the browser's IANA zone (e.g. 'Europe/Kyiv') for this request: renamed zones are mapped to
-    their current names, and anything the server or the database doesn't know falls back to Kyiv."""
+    their current names, and anything the server or the database doesn't know falls back to UTC."""
     zone = DEFAULT_TZ
     if name and len(name) <= 64 and re.fullmatch(r'[A-Za-z0-9_+\-]+(/[A-Za-z0-9_+\-]+){0,2}', name):
         name = _RENAMED.get(name, name)
@@ -60,7 +61,7 @@ def use_timezone(name: str | None, known: frozenset[str] | None = None) -> ZoneI
 
 
 def tz_label() -> str:
-    """'Europe/Kyiv, UTC+03:00' — shown next to the period."""
+    """'America/New_York, UTC-04:00' — shown next to the period."""
     offset = datetime.now(tz()).strftime('%z')
     return f'{tz().key}, UTC{offset[:3]}:{offset[3:]}'
 
@@ -266,7 +267,7 @@ class LinkRow:
 
 
 # 'site' = a link on the website, 'short' = an admin short link (/l/<slug>, e.g. shared on Instagram)
-SOURCE_LABELS = {'site': 'Сайт', 'short': 'Коротке посилання'}
+SOURCE_LABELS = {'site': 'Site', 'short': 'Short link'}
 _source = case((OutboundClick.placement.like('short:%'), 'short'), else_='site')   # by placement: a deleted short link stays 'short'
 
 # The period is bound per query (:since / :until), so the union below is built once.
@@ -320,20 +321,20 @@ ROWS = union_all(_site_rows, _short_rows).subquery('link_rows')
 # default order: short links first ('short' < 'site'), then by clicks — the owner's own links on top
 LINKS_TABLE = TableSpec('links', default='source', tiebreak=('-clicks', '-last', 'link', 'placement'),
                         row_key=('target_url', 'placement'), columns=(
-    Column('link', 'Посилання', expr=ROWS.c.target_url, searchable=True, field='target_url'),
-    Column('source', 'Джерело', expr=ROWS.c.source, filterable=True, field='source'),
-    Column('placement', 'Розміщення', expr=ROWS.c.placement, filterable=True, searchable=True,
+    Column('link', 'Link', expr=ROWS.c.target_url, searchable=True, field='target_url'),
+    Column('source', 'Source', expr=ROWS.c.source, filterable=True, field='source'),
+    Column('placement', 'Placement', expr=ROWS.c.placement, filterable=True, searchable=True,
            field='placement'),   # 'short:q83we' — so a short link's code finds it
-    Column('clicks', 'Переходи', expr=ROWS.c.clicks, numeric=True, field='clicks'),
-    Column('visitors', 'Унікальні', expr=ROWS.c.visitors, numeric=True, field='visitors'),
-    Column('last', 'Останній', expr=ROWS.c.last_click, desc_first=True, field='last_click'),
-    # search-only: the name the owner gave a short link ("сторіз про сніданки")
-    Column('title', 'Назва', expr=ROWS.c.title, searchable=True, sortable=False),
-    Column('fav', 'Обране', expr=ROWS.c.favorite, filterable=True, sortable=False, field='favorite'),   # ?links_fav=1
-    Column('status', 'Статус', expr=ROWS.c.status, filterable=True, sortable=False, field='status',
+    Column('clicks', 'Clicks', expr=ROWS.c.clicks, numeric=True, field='clicks'),
+    Column('visitors', 'Unique', expr=ROWS.c.visitors, numeric=True, field='visitors'),
+    Column('last', 'Last', expr=ROWS.c.last_click, desc_first=True, field='last_click'),
+    # search-only: the name the owner gave a short link ("story about breakfast")
+    Column('title', 'Name', expr=ROWS.c.title, searchable=True, sortable=False),
+    Column('fav', 'Favorites', expr=ROWS.c.favorite, filterable=True, sortable=False, field='favorite'),   # ?links_fav=1
+    Column('status', 'Status', expr=ROWS.c.status, filterable=True, sortable=False, field='status',
            default=('active',)),     # ?links_status=off — without it only working links are listed
 ))
-STATUS_LABELS = {'active': 'Активні', 'off': 'Вимкнені', 'deleted': 'Видалені'}
+STATUS_LABELS = {'active': 'Active', 'off': 'Off', 'deleted': 'Deleted'}
 
 
 async def link_statuses(session: AsyncSession, rng: 'DateRange') -> list[tuple[str, int]]:
@@ -382,7 +383,7 @@ async def timeline(session: AsyncSession, rng: DateRange, view: TableView) -> li
 
 # ---------------------------------------------------------------- devices
 
-DEVICES = (('mobile', 'smartphone', 'Телефон'), ('desktop', 'monitor', 'Комп’ютер'), ('tablet', 'tablet', 'Планшет'))
+DEVICES = (('mobile', 'smartphone', 'Phone'), ('desktop', 'monitor', 'Computer'), ('tablet', 'tablet', 'Tablet'))
 
 
 @dataclass(frozen=True)
@@ -445,21 +446,20 @@ async def link_placements(session: AsyncSession, rng: DateRange) -> list[tuple[s
     return [(r[0], r[1]) for r in rows]
 
 
-# Human-readable names for link placements (anything unknown is shown as-is).
+# Human-readable names for link placements (anything unknown is shown as-is): the area is the part before the colon.
 _AREAS = {
-    'header': 'Шапка', 'menu': 'Мобільне меню', 'footer': 'Футер', 'contacts': 'Головна · контакти',
-    'plan': 'Тариф', 'mini-course': 'Сторінка продукту · міні-курс', 'learn-outro': 'Міні-курс · «Що далі»',
-    'lesson-video': 'Урок · відео на YouTube', 'test-result': 'Результат тесту', 'faq': 'FAQ',
-    'short': 'Коротке посилання',
+    'header': 'Header', 'menu': 'Mobile menu', 'footer': 'Footer', 'contacts': 'Home page · contacts', 'privacy': 'Privacy policy', 'terms': 'Terms',
+    'links': 'Links page', 'test-result': 'Test result', 'faq': 'FAQ', 'short': 'Short link',
 }
 
 
 def placement_label(placement: str) -> str:
+    """'test-result:gut' -> «Test result · gut»; a Message, so the admin's language translates the area."""
     area, _, detail = placement.partition(':')
     if area == 'short' and detail.endswith(':deleted'):
-        detail = f'{detail.removesuffix(":deleted")} (видалено)'
+        detail = Message('%(slug)s (deleted)', slug=detail.removesuffix(':deleted'))
     name = _AREAS.get(area)
-    return f'{name} · {detail}' if name and detail else (name or placement)
+    return Message('%(area)s · %(detail)s', area=Message(name), detail=detail) if name and detail else Message(name or placement)
 
 
 def local_datetime(value: datetime) -> str:

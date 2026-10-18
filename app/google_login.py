@@ -71,9 +71,9 @@ def _read_flow(cookie: str) -> tuple[str, str, str]:
         payload = base64.urlsafe_b64decode(raw + '=' * (-len(raw) % 4)).decode()
         state, nonce, verifier, expires = json.loads(payload)
     except (ValueError, TypeError):
-        raise GoogleError('Сесія входу втрачена. Спробуйте ще раз.') from None
+        raise GoogleError('Your sign-in session was lost. Please try again.') from None
     if not hmac.compare_digest(_sign(payload), signature) or int(expires) < time.time():
-        raise GoogleError('Сесія входу втрачена. Спробуйте ще раз.')
+        raise GoogleError('Your sign-in session was lost. Please try again.')
     return state, nonce, verifier
 
 
@@ -84,7 +84,7 @@ def _post_form(url: str, data: dict) -> dict:
         with urllib.request.urlopen(request, timeout=10) as response:      # noqa: S310 — a fixed https URL
             return json.loads(response.read())
     except (urllib.error.URLError, TimeoutError, ValueError):
-        raise GoogleError('Google зараз недоступний. Спробуйте ще раз.') from None
+        raise GoogleError('Google is not available right now. Please try again.') from None
 
 
 def claims_of(id_token: str) -> dict:
@@ -94,7 +94,7 @@ def claims_of(id_token: str) -> dict:
         body = id_token.split('.')[1]
         return json.loads(base64.urlsafe_b64decode(body + '=' * (-len(body) % 4)))
     except (IndexError, ValueError):
-        raise GoogleError('Google повернув незрозумілу відповідь.') from None
+        raise GoogleError('Google sent a reply that could not be read.') from None
 
 
 def check_claims(claims: dict, nonce: str | None = None) -> tuple[str, str]:
@@ -106,10 +106,10 @@ def check_claims(claims: dict, nonce: str | None = None) -> tuple[str, str]:
         expired = True
     if (claims.get('iss') not in ISSUERS or claims.get('aud') != settings.google_client_id or expired
             or (nonce is not None and not hmac.compare_digest(str(claims.get('nonce', '')), nonce))):
-        raise GoogleError('Відповідь Google не пройшла перевірку.')
+        raise GoogleError('The reply from Google failed the checks.')
     email = str(claims.get('email', '')).strip().lower()
     if not email or str(claims.get('email_verified')).lower() != 'true':
-        raise GoogleError('Пошта цього Google-акаунта не підтверджена.')
+        raise GoogleError('The e-mail of this Google account is not verified.')
     return email, ' '.join(str(claims.get('name') or '').split())[:100]
 
 
@@ -117,12 +117,12 @@ async def finish(request: Request, code: str, state: str) -> tuple[str, str]:
     """Handle the callback: the e-mail Google vouches for and the name."""
     saved_state, nonce, verifier = _read_flow(request.cookies.get(FLOW_COOKIE, ''))
     if not state or not hmac.compare_digest(saved_state, state):
-        raise GoogleError('Сесія входу втрачена. Спробуйте ще раз.')
+        raise GoogleError('Your sign-in session was lost. Please try again.')
     answer = await asyncio.to_thread(_post_form, TOKEN_URL, {
         'code': code, 'client_id': settings.google_client_id, 'client_secret': settings.google_client_secret,
         'redirect_uri': redirect_uri(request), 'grant_type': 'authorization_code', 'code_verifier': verifier})
     if 'id_token' not in answer:
-        raise GoogleError('Google не підтвердив вхід.')
+        raise GoogleError('Google did not confirm the sign-in.')
     return check_claims(claims_of(answer['id_token']), nonce)
 
 
@@ -137,14 +137,14 @@ def _get_json(url: str) -> dict:
         with urllib.request.urlopen(url, timeout=10) as response:      # noqa: S310 — a fixed https URL
             return json.loads(response.read())
     except (urllib.error.URLError, TimeoutError, ValueError):
-        raise GoogleError('Google не підтвердив вхід.') from None
+        raise GoogleError('Google did not confirm the sign-in.') from None
 
 
 async def verify_credential(credential: str) -> tuple[str, str]:
     """The e-mail and name behind a One Tap ID token. The token came through the browser, so Google itself is asked to check
     its signature (tokeninfo); the answer is then checked the same way as at the callback."""
     if not credential or len(credential) > 4096:
-        raise GoogleError('Google не підтвердив вхід.')
+        raise GoogleError('Google did not confirm the sign-in.')
     claims = await asyncio.to_thread(_get_json, f'{TOKENINFO_URL}?{urllib.parse.urlencode({"id_token": credential})}')
     return check_claims(claims)
 

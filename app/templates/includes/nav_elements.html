@@ -1,5 +1,6 @@
-<a href="{{ url('index') }}#guide">The guide</a>
-<a href="{{ url('guide_list') }}">Guides</a>
+{% if 'gut-massage-guide' in listed() %}<a href="{{ url('product_detail', slug='gut-massage-guide') }}">The guide</a>{% endif %}
+{% if 'massage-course' in listed() %}<a href="{{ url('product_detail', slug='massage-course') }}">The course</a>{% endif %}
+<a href="{{ url('guide_list') }}">Free guides</a>
 <a href="{{ url('self_test', slug='bristol') }}">Bristol test</a>
 <a href="{{ url('index') }}#faq">FAQ</a>
-<a href="{{ url('links') }}">Links</a>
+{% if request.cookies.get('dori_admin') %}<a href="{{ url('account') }}" rel="nofollow">My account</a>{% else %}<a href="{{ url('login') }}" rel="nofollow">Sign in</a>{% endif %}

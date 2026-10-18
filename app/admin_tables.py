@@ -1,14 +1,14 @@
 """Admin tables — the one way to build a table in the admin.
 
 Rules: every admin table is sortable by every column, and sorting, searching and filtering
-happen on the server. tests/test_admin.py fails for any admin <th> that isn't a sort link,
+happen on the server. tests/test_admin_tables.py fails for any admin <th> that isn't a sort link,
 so a new table has to go through this module:
 
     SPEC = TableSpec('links', default='-clicks', columns=(
-        Column('link', 'Посилання', expr=Click.target_url, searchable=True),   # ?links_q=…
-        Column('placement', 'Розміщення', expr=Click.placement, filterable=True),  # ?links_placement=…
-        Column('clicks', 'Переходи', expr=clicks_label, numeric=True),     # SQL: ORDER BY expr
-        Column('day', 'День', attr='day'),                                 # in-memory: sort by attr
+        Column('link', 'Link', expr=Click.target_url, searchable=True),   # ?links_q=…
+        Column('placement', 'Placement', expr=Click.placement, filterable=True),  # ?links_placement=…
+        Column('clicks', 'Clicks', expr=clicks_label, numeric=True),     # SQL: ORDER BY expr
+        Column('day', 'Day', attr='day'),                                 # in-memory: sort by attr
     ))
     view = table_view(request, SPEC)          # reads ?links_sort=-clicks etc. (whitelisted)
     stmt = view.order(view.where(stmt))       # SQL tables; rows = view.sort(rows) for Python lists
@@ -37,7 +37,7 @@ SEARCHES_MAX = 20             # search inputs one table accepts at once
 TRIGRAM_THRESHOLD = 0.35  # pg_trgm word_similarity: 1 = exact word; 0.35 still finds 'yuotube' → youtube
 # URL noise shared by every link: dropped from search words so it can't make unrelated links "similar"
 _URL_NOISE = re.compile(r'^(https?:)?/*(www\.)?|/+$', re.IGNORECASE)
-# a pasted short link (dorinellla.com/l/q83we, /l/q83we) is searched by its code
+# a pasted short link (example.com/l/q83we, /l/q83we) is searched by its code
 _SHORT_PREFIX = re.compile(r'^(?:.*?/)?l/(?=[a-z0-9])', re.IGNORECASE)
 CHOICES_MAX = 50
 PAGE_SIZE = 30
@@ -190,7 +190,7 @@ class TableView:
         return self.key == key and self.desc == desc
 
     def toggle_href(self, key: str, value: str) -> str:
-        """Same view with `value` switched on/off in the `key` filter (e.g. the "★ Обране" chip)."""
+        """Same view with `value` switched on/off in the `key` filter (e.g. the "★ Favorites" chip)."""
         param = self.spec.filter_param(key)
         on = value in self.selected(key)
         params = [(k, v) for k, v in self.query if not (k == param and v == value)]

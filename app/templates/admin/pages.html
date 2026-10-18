@@ -1,6 +1,6 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}Сторінки{% endblock %}
+{% block title %}{{ _('Pages') }}{% endblock %}
 
 {% block body %}
     {% include 'admin/_bar.html' %}
@@ -8,41 +8,40 @@
     <main class="admin-wrap admin-main" data-tz="{{ tz_name }}" data-tz-asked="{{ tz_asked }}">
         <header class="page-head">
             <div>
-                <h1 class="admin-title">Сторінки</h1>
-                <p class="page-head__lead">Що читають на сайті: спершу розділи, далі — сторінки розділу.</p>
+                <h1 class="admin-title">{{ _('Pages') }}</h1>
+                <p class="page-head__lead">{{ _('What people read on the site: sections first, then the pages of a section.') }}</p>
             </div>
         </header>
 
         {% include 'admin/_filter.html' %}
 
         <div class="admin-results" data-admin-results>
-            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ rng.days }} дн. · {{ tz_label }}</span></p>
+            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ _('%(n)s days', n=rng.days) }} · {{ tz_label }}</span></p>
 
             <section class="admin-card pages-report" aria-labelledby="pages-title">
-                <nav class="pages-report__crumbs" aria-label="Рівень звіту">
+                <nav class="pages-report__crumbs" aria-label="{{ _('Report level') }}">
                     {% if section %}
-                        <a href="{{ all_href }}" data-admin-sort>{{ icon('chevron-left') }}Усі розділи</a>
+                        <a href="{{ all_href }}" data-admin-sort>{{ icon('chevron-left') }}{{ _('All sections') }}</a>
                         <span aria-hidden="true">/</span>
                     {% endif %}
                     <h2 class="admin-card__title" id="pages-title">
-                        {% if section %}{{ icon(sections[section][1]) }}{{ sections[section][0] }}{% else %}Розділи сайту{% endif %}
+                        {% if section %}{{ icon(sections[section][1]) }}{{ sections[section][0]|t }}{% else %}{{ _('Sections of the site') }}{% endif %}
                     </h2>
                 </nav>
 
                 <p class="pages-report__totals">
-                    <strong>{{ '{:,}'.format(views).replace(',', ' ') }}</strong> переглядів ·
-                    <strong>{{ '{:,}'.format(visitors).replace(',', ' ') }}</strong> відвідувачів
-                    {% if section %}у розділі{% else %}на сайті{% endif %}
+                    {{ _('%(views)s views · %(visitors)s visitors', views='{:,}'.format(views), visitors='{:,}'.format(visitors)) }}
+                    {{ _('in this section') if section else _('on the site') }}
                 </p>
 
                 {% if rows and views %}
                     <table class="pages-table">
                         <thead>
                             <tr>
-                                <th scope="col">{{ 'Сторінка' if section else 'Розділ' }}</th>
-                                <th scope="col" class="num">Перегляди</th>
-                                <th scope="col" class="num">Відвідувачі</th>
-                                <th scope="col" class="pages-table__share">Частка переглядів</th>
+                                <th scope="col">{{ _('Page') if section else _('Section') }}</th>
+                                <th scope="col" class="num">{{ _('Views') }}</th>
+                                <th scope="col" class="num">{{ _('Visitors') }}</th>
+                                <th scope="col" class="pages-table__share">{{ _('Share of views') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -51,20 +50,20 @@
                                     <th scope="row">
                                         {% if not section and row.views %}
                                             <a class="pages-table__drill" href="{{ section_href(row.key) }}" data-admin-sort>
-                                                {{ icon(sections[row.key][1]) }}<span>{{ row.label }}</span>{{ icon('chevron-right', 'pages-table__go') }}
+                                                {{ icon(sections[row.key][1]) }}<span>{{ row.label|t }}</span>{{ icon('chevron-right', 'pages-table__go') }}
                                             </a>
                                         {% elif not section %}
-                                            <span class="pages-table__drill">{{ icon(sections[row.key][1]) }}<span>{{ row.label }}</span></span>
+                                            <span class="pages-table__drill">{{ icon(sections[row.key][1]) }}<span>{{ row.label|t }}</span></span>
                                         {% else %}
                                             <a class="pages-table__page" href="{{ row.key }}" target="_blank" rel="noopener">
-                                                <span>{{ row.label }}</span>
+                                                <span>{{ row.label|t }}</span>
                                                 {% if row.hint != row.label %}<small>{{ row.hint }}</small>{% endif %}
                                             </a>
                                         {% endif %}
                                     </th>
-                                    <td class="num" data-label="Перегляди">{{ '{:,}'.format(row.views).replace(',', ' ') }}</td>
-                                    <td class="num" data-label="Відвідувачі">{{ '{:,}'.format(row.visitors).replace(',', ' ') }}</td>
-                                    <td class="pages-table__share" data-label="Частка">
+                                    <td class="num" data-label="{{ _('Views') }}">{{ '{:,}'.format(row.views) }}</td>
+                                    <td class="num" data-label="{{ _('Visitors') }}">{{ '{:,}'.format(row.visitors) }}</td>
+                                    <td class="pages-table__share" data-label="{{ _('Share') }}">
                                         <span class="share-bar" aria-hidden="true"><span style="width: {{ (row.share * 100)|round(1) }}%"></span></span>
                                         <span class="share-value">{{ (row.share * 100)|round(1) }}%</span>
                                     </td>
@@ -73,7 +72,7 @@
                         </tbody>
                     </table>
                 {% else %}
-                    <p class="pages-report__empty">За цей період переглядів {{ 'у розділі ' if section }}немає.</p>
+                    <p class="pages-report__empty">{{ _('No views in this section in this period.') if section else _('No views in this period.') }}</p>
                 {% endif %}
             </section>
         </div>

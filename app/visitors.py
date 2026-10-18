@@ -40,7 +40,7 @@ MAX_AGE = 60 * 60 * 24 * 400        # browsers cap a cookie's life at about 400 
 RENEW_AFTER_DAYS = 7
 _LEGACY = re.compile(r'^[A-Za-z0-9_-]{16,64}$')   # secrets.token_urlsafe — never has a dot
 # Not for these: files, health checks, the admin, JSON clients (an API caller's own cookie is still read).
-_UNTRACKED = ('/static/', '/media/', '/health', '/robots.txt', '/favicon', '/admin', '/login', '/account', '/auth/', '/api/', '/sitemap')
+_UNTRACKED = ('/static/', '/media/', '/health', '/robots.txt', '/favicon', '/admin', '/login', '/account', '/auth/', '/api/', '/sitemap', '/checkout', '/stripe/')
 
 
 def uuid7() -> uuid.UUID:

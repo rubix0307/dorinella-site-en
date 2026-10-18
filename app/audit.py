@@ -40,6 +40,8 @@ TRACKED: dict[str, tuple[str, ...]] = {
     'bio_buttons': ('photo',),
     'bio_sublinks': ('photo',),
     'bio_page': ('photo',),
+    'orders': (),
+    'entitlements': (),
 }
 
 # table -> why it is not tracked (every table of the models is in one of the two lists)
@@ -50,6 +52,7 @@ NOT_TRACKED: dict[str, str] = {
     'backup_runs': 'usage record', 'favorite_links': 'a star on a report row, no risk',
     'course_answers': 'health data: has its own log, never copied here', 'course_answer_log': 'is the history of course answers',
     'audit_log': 'the log itself',
+    'payment_events': 'append-only log of Stripe deliveries, with a few safe fields only',
 }
 
 

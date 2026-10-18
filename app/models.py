@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint, Uuid, false, func, true
+from sqlalchemy import JSON, BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint, Uuid, false, func, text, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -189,9 +189,9 @@ class BioPage(Base):
     __tablename__ = 'bio_page'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(60), server_default='Dori')
+    name: Mapped[str] = mapped_column(String(60), server_default='Lola Krissss')
     tagline: Mapped[str] = mapped_column(String(160), server_default='')
-    photo: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)   # none: the site's own portrait
+    photo: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)   # none: the site's own illustration
     photo_type: Mapped[str] = mapped_column(String(16), server_default='')
     photo_hash: Mapped[str] = mapped_column(String(16), server_default='')
     ads_title: Mapped[str] = mapped_column(String(80), server_default='')
@@ -259,9 +259,8 @@ class TestAttempt(Base):
     test_slug: Mapped[str] = mapped_column(String(64), index=True)
     test_version: Mapped[str] = mapped_column(String(16))               # → test_versions
     answers: Mapped[list] = mapped_column(JSON)          # the chosen option of every question, 0-based
-    score: Mapped[int | None] = mapped_column(Integer)   # single-score tests
+    score: Mapped[int] = mapped_column(Integer)
     band_key: Mapped[str | None] = mapped_column(String(32), index=True)
-    scales: Mapped[dict | None] = mapped_column(JSON)    # multi-scale tests (DEBQ): {key: score}
     source: Mapped[str] = mapped_column(String(8))       # form (no JS) / js / api
     device: Mapped[str] = mapped_column(String(16))
 
@@ -325,6 +324,72 @@ class BackupRun(Base):
     object_key: Mapped[str | None] = mapped_column(String(200))
     bytes: Mapped[int | None] = mapped_column(BigInteger)
     error: Mapped[str | None] = mapped_column(String(300))
+
+
+# ---------------------------------------------------------------- payments (app/payments.py)
+
+class Order(Base):
+    """A purchase through Stripe Checkout. Amounts are whole cents. `number` is what Stripe gets as client_reference_id.
+    `test_mode`: made with a test key: no money moved, never counted as revenue."""
+
+    __tablename__ = 'orders'
+    __table_args__ = (
+        CheckConstraint('amount > 0', name='ck_orders_amount'),
+        CheckConstraint('refunded_amount >= 0 AND refunded_amount <= amount', name='ck_orders_refunded'),
+        Index('ix_orders_user_created', 'user_id', 'created_at'),
+        Index('uq_orders_stripe_session', 'stripe_session_id', unique=True, postgresql_where=text('stripe_session_id IS NOT NULL'),
+              sqlite_where=text('stripe_session_id IS NOT NULL')),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    number: Mapped[str] = mapped_column(String(32), unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('admin_users.id', ondelete='RESTRICT'), index=True)
+    product_slug: Mapped[str] = mapped_column(String(64))
+    amount: Mapped[int] = mapped_column(BigInteger)
+    currency: Mapped[str] = mapped_column(String(3), server_default='usd')
+    status: Mapped[str] = mapped_column(String(24), server_default='created')     # created / paid / expired / failed / partially_refunded / refunded
+    test_mode: Mapped[bool] = mapped_column(Boolean)
+    stripe_session_id: Mapped[str | None] = mapped_column(String(100))
+    stripe_payment_intent: Mapped[str | None] = mapped_column(String(100), index=True)
+    refunded_amount: Mapped[int] = mapped_column(BigInteger, server_default='0')
+    terms_version: Mapped[str] = mapped_column(String(16))               # the legal texts the buyer ticked at checkout (app/legal.py TERMS_VERSION)
+    terms_accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    needs_review: Mapped[bool] = mapped_column(Boolean, server_default=false())    # money came in an odd way (late, twice, another amount): an admin looks
+    note: Mapped[str] = mapped_column(Text, server_default='')                    # the admin's note (why refunded, what the buyer wrote)
+
+
+class PaymentEvent(Base):
+    """Every Stripe webhook delivery, append-only. `event_key` is Stripe's event id, so a repeated delivery changes nothing."""
+
+    __tablename__ = 'payment_events'
+
+    id: Mapped[int] = mapped_column(BigId, primary_key=True)
+    order_id: Mapped[int | None] = mapped_column(ForeignKey('orders.id', ondelete='RESTRICT'), index=True)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    event_key: Mapped[str] = mapped_column(String(100), unique=True)
+    kind: Mapped[str] = mapped_column(String(60))                          # Stripe's event type
+    payload: Mapped[dict] = mapped_column(JSON().with_variant(JSONB(), 'postgresql'), default=dict)    # a few safe fields, never the whole event
+    result: Mapped[str] = mapped_column(String(16))                        # applied / ignored / rejected
+    error: Mapped[str | None] = mapped_column(Text)
+
+
+class Entitlement(Base):
+    """Who may open a bought product. A refund only sets `revoked_at`: the history stays."""
+
+    __tablename__ = 'entitlements'
+    __table_args__ = (Index('uq_entitlement_open', 'user_id', 'product_slug', unique=True, postgresql_where=text('revoked_at IS NULL'),
+                            sqlite_where=text('revoked_at IS NULL')),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('admin_users.id', ondelete='RESTRICT'), index=True)
+    product_slug: Mapped[str] = mapped_column(String(64))
+    order_id: Mapped[int] = mapped_column(ForeignKey('orders.id', ondelete='RESTRICT'), unique=True)
+    granted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    test_mode: Mapped[bool] = mapped_column(Boolean, server_default=false())       # from a test order: counts for admins and testers only
 
 
 from . import audit  # noqa: E402,F401 — registers the hook that hands the actor to the database (app/audit.py)

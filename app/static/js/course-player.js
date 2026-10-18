@@ -1,4 +1,4 @@
-// The «Масаж живота» player: ONE belly photo, the route of the hand drawn over it and animated in the browser from coordinates
+// The «Gut Massage» player: ONE belly photo, the route of the hand drawn over it and animated in the browser from coordinates
 // (course_data/massage.json, served to the admins only) — there is no video file. Eight techniques, a chooser, the written steps
 // rendered by the server from the same captions (clicking a step seeks the animation to it), loop-a-step, half speed, keyboard.
 // It animates only while on screen and not paused; "reduce motion" shows one still frame and never autoplays.
@@ -284,7 +284,7 @@
 
             scrub.value = t;
             drawSegments();
-            scrub.setAttribute('aria-valuetext', `${fmt(t)} з ${fmt(T.total)}`);
+            scrub.setAttribute('aria-valuetext', `${fmt(t)} of ${fmt(T.total)}`);
             $('time').textContent = `${fmt(t)} / ${fmt(T.total)}`;
         }
 
@@ -297,7 +297,7 @@
                 li.classList.toggle('is-current', on);
                 if (on) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
             });
-            if (at >= 0 && announced) live.textContent = `Крок ${at + 1} з ${order.length}`;
+            if (at >= 0 && announced) live.textContent = `Step ${at + 1} of ${order.length}`;
         }
 
         // ---------- loop one step ----------
@@ -338,9 +338,9 @@
             t = reduce ? T.total * 0.45 : 0; endHold = 0; capIdx = -2; announced = false;
             setLoop(false);
             const number = keys.indexOf(key) + 1;
-            $('tag').textContent = `МЕТОД №${number} · ${T.short.toUpperCase()}`;
+            $('tag').textContent = `TECHNIQUE #${number} · ${T.short.toUpperCase()}`;
             $('title').textContent = T.title;
-            root.querySelector('[data-mp="svg"]').setAttribute('aria-label', `Анімація: ${T.title}`);
+            root.querySelector('[data-mp="svg"]').setAttribute('aria-label', `Animation: ${T.title}`);
             scrub.max = T.total;
             buildSegments(segs.length > 0);
             glowPool.forEach((l) => l.setAttribute('visibility', 'hidden'));

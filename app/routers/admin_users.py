@@ -18,22 +18,23 @@ from .admin import NO_INDEX, _page, _to_login
 router = APIRouter(prefix='/admin/users', default_response_class=HTMLResponse, include_in_schema=False)
 
 STATUS = case((AdminUser.is_active.is_(False), 'off'), (AdminUser.last_login_at.is_(None), 'never'), else_='active')
-STATUS_LABELS = {'active': 'Активний', 'never': 'Ще не входив', 'off': 'Вимкнений'}
+STATUS_LABELS = {'active': 'Active', 'never': 'Never signed in', 'off': 'Switched off'}
 USERS_TABLE = TableSpec('users', default='-created', tiebreak=('email',), row_key=('id',), columns=(
-    Column('email', 'Пошта', expr=AdminUser.email, searchable=True, field='email'),
-    Column('role', 'Роль', expr=AdminUser.role, filterable=True, field='role'),
-    Column('status', 'Статус', expr=STATUS, filterable=True, field='status'),
-    Column('created', 'Створено', expr=AdminUser.created_at, desc_first=True, field='created_at'),
-    Column('last', 'Останній вхід', expr=AdminUser.last_login_at, desc_first=True, field='last_login_at'),
+    Column('email', 'E-mail', expr=AdminUser.email, searchable=True, field='email'),
+    Column('role', 'Role', expr=AdminUser.role, filterable=True, field='role'),
+    Column('status', 'Status', expr=STATUS, filterable=True, field='status'),
+    Column('created', 'Created', expr=AdminUser.created_at, desc_first=True, field='created_at'),
+    Column('last', 'Last sign-in', expr=AdminUser.last_login_at, desc_first=True, field='last_login_at'),
 ))
-NOTICES = {'created': 'Користувача створено.', 'saved': 'Зміни збережено.', 'deleted': 'Користувача видалено.',
-           'enabled': 'Користувача увімкнено.', 'disabled': 'Користувача вимкнено: він більше не може увійти.',
-           'access': 'Доступ змінено.'}
-ERRORS = {'self': 'Свій обліковий запис змінюють у профілі.',
-          'last': 'Це останній активний адміністратор: його не можна вимкнути, понизити чи видалити.',
-          'root': 'Root змінити не можна.', 'forbidden': 'Недостатньо прав для цієї дії.',
-          'orders': 'За цим акаунтом були оплати: записи про них зберігаються за обліком, тому видалити акаунт не можна. Вимкніть його.',
-          'nogroup': 'Групу не знайдено.', 'grant': 'Не можна видати групу, що дає права, яких немає у вас.'}
+# English keys: the templates translate them (`|t`)
+NOTICES = {'created': 'User created.', 'saved': 'Changes saved.', 'deleted': 'User deleted.',
+           'enabled': 'User switched on.', 'disabled': 'User switched off: they can no longer sign in.',
+           'access': 'Access changed.'}
+ERRORS = {'self': 'You change your own account in your profile.',
+          'last': 'This is the last active admin: it cannot be switched off, demoted or deleted.',
+          'root': 'A root account cannot be changed.', 'forbidden': users.FORBIDDEN,
+          'orders': 'This account has orders: they are kept for the books, so the account cannot be deleted. Switch it off instead.',
+          'nogroup': 'Group not found.', 'grant': 'You cannot hand out a group that gives rights you do not have.'}
 
 
 def _back(request: Request, notice: str = '', error: str = '') -> RedirectResponse:
@@ -79,14 +80,14 @@ async def users_list(request: Request, notice: str = '', error: str = '', sessio
 
 async def _missing(request: Request, session: AsyncSession, user: AdminUser):
     total, off, by_status, by_role = await _counts(session)
-    return _page(request, 'admin/users.html', status_code=404, notice='', error='Користувача не знайдено.',
+    return _page(request, 'admin/users.html', status_code=404, notice='', error='User not found.',
                  **_list_context(table_view(request, USERS_TABLE), user, None, total, off, by_status, by_role))
 
 
-def _form(request: Request, user: AdminUser, target: AdminUser | None, values: dict, error: str = '', field: str = '',
+def _form(request: Request, user: AdminUser, target: AdminUser | None, values: dict, error: users.UserError | None = None, field: str = '',
           status_code: int = 200, extra: dict | None = None):
     return _page(request, 'admin/user_form.html', status_code=status_code, user=user, target=target, values=values,
-                 error=error, error_field=field, role_labels=ROLE_LABELS,
+                 error=error.message if error else '', error_field=field, role_labels=ROLE_LABELS,
                  can_edit=target is None or users.may_edit(user, target),
                  can_access=target is None or users.may_set_access(user, target), **(extra or {}))
 
@@ -127,7 +128,7 @@ async def user_create(request: Request, email: str = Form('', max_length=300), a
     except users.UserError as error:
         await session.rollback()
         await session.refresh(user)
-        return _form(request, user, None, values, str(error), error.field or ('groups' if error.code == 'grant' else ''),
+        return _form(request, user, None, values, error, error.field or ('groups' if error.code == 'grant' else ''),
                      status_code=422, extra=await _groups_context(session, user, set(group)))
     return _back(request, 'created')
 
@@ -159,7 +160,7 @@ async def _edit_failed(request, session, user, target, values, error, group_ids)
     extra = await _edit_context(session, user, target)
     if error.code == 'grant':
         extra['member_ids'] = set(group_ids)
-    return _form(request, user, target, values, str(error), error.field or ('groups' if error.code == 'grant' else ''),
+    return _form(request, user, target, values, error, error.field or ('groups' if error.code == 'grant' else ''),
                  status_code=422, extra=extra)
 
 

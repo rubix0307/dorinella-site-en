@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .. import audit, db, google_login, permissions
+from .. import audit, db, google_login, payments, permissions
 from ..analytics import request_visitor
 from ..auth import current_admin, find_or_create, login_response, same_origin, sign_in
+from ..catalog import listed
 from ..core.monitoring import metric
 from ..core.templating import render
 from ..visitors import link_to_user
@@ -71,7 +72,11 @@ async def account(request: Request, session: AsyncSession = Depends(db.get_sessi
 
 
 async def account_page(request: Request, session: AsyncSession, user):
-    response = render(request, 'pages/account.html', user=user, is_admin=user.role in (permissions.ROOT, permissions.ADMIN))
+    staff = user.role in (permissions.ROOT, permissions.ADMIN)
+    # what the person can open: a purchase, or (for the admins, who may open everything) the product to preview
+    owned = {slug: staff or await payments.has_entitlement(session, user, slug) for slug in listed()}
+    response = render(request, 'pages/account.html', user=user, is_admin=staff, products=list(listed().values()), owned=owned,
+                      purchases=await payments.purchases_for(session, user))
     response.headers.update(NO_STORE)
     return response
 

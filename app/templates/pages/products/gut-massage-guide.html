@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
-{% block schema %}{{ seo.graph(request, seo.product(request, product), seo.crumbs(request, ('Продукти', '/products/'), (product.title, request.url.path)), seo.faq(faq)) }}{% endblock %}
+{% block schema %}{{ seo.graph(request, seo.product(request, product), seo.crumbs(request, ('Guides and courses', '/products/'), (product.title, request.url.path)), seo.faq(faq)) }}{% endblock %}
 
-
-{% block title %}Абдомінальний самомасаж — гайд для легкості | dorinellla{% endblock %}
-{% block description %}Гайд з абдомінального самомасажу: покрокові техніки, підготовка, поради з харчування та адаптації під здуття, закрепи й тривожність. 10 хвилин на день.{% endblock %}
-{% block og_title %}Абдомінальний самомасаж — гайд від Дорі{% endblock %}
-{% block og_description %}Покрокові техніки масажу кишківника для легкості, здоров’я та гармонії з тілом.{% endblock %}
+{% block title %}Gut Massage Guide: abdominal self-massage for bloating | {{ site.BRAND }}{% endblock %}
+{% block description %}A step-by-step guide to gentle abdominal self-massage: techniques, preparation, gut-friendly nutrition tips and routines for bloating, constipation and stress.{% endblock %}
+{% block og_title %}Gut Massage Guide by {{ site.AUTHOR_NAME }}{% endblock %}
+{% block og_description %}Step-by-step abdominal self-massage techniques to ease bloating and look after your gut.{% endblock %}
 {% block og_image %}{{ static(product.og_image) }}{% endblock %}
 {% block og_image_alt %}{{ product.og_image_alt }}{% endblock %}
 {% block body_class %}theme-guts{% endblock %}
@@ -15,19 +14,20 @@
     <section class="hero hero--product" aria-labelledby="hero-title">
         <div class="container hero__inner">
             <div class="hero__text">
-                <p class="eyebrow">Гайд</p>
-                <h1 class="hero__title" id="hero-title">Абдомінальний <em>самомасаж</em></h1>
-                <p class="hero__lead">Гайд для легкості, здоров’я та гармонії з тілом</p>
+                <p class="eyebrow">Guide</p>
+                <h1 class="hero__title" id="hero-title">Gut Massage <em>Guide</em></h1>
+                <p class="hero__lead">{{ product.tagline }}</p>
+                {% if price %}<p class="buy-price" aria-label="Price"><strong>{{ price }}</strong> <span class="muted">one payment</span></p>{% endif %}
                 <div class="hero__actions">
-                    <a class="btn btn--primary" href="#mini-course">{{ icon('gift') }}Спробувати безкоштовно</a>
-                    <a class="btn btn--ghost" href="#inside">Що всередині?</a>
+                    <a class="btn btn--primary" href="#buy">{{ icon('shopping-bag') }}{% if sales_open %}Get the guide{% else %}Coming soon{% endif %}</a>
+                    <a class="btn btn--ghost" href="#inside">What's inside?</a>
                 </div>
             </div>
             <figure class="hero__media hero__media--illustration">
                 <img src="{{ static('img/guts-hero-500.webp') }}"
                      srcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
                      sizes="(min-width: 961px) 520px, 340px"
-                     width="500" height="526" alt="Ілюстрація кишківника, оповитого квітучими гілками"
+                     width="500" height="526" alt="Illustration of the gut wrapped in blossoming branches"
                      fetchpriority="high" decoding="async">
             </figure>
         </div>
@@ -37,32 +37,28 @@
     <section class="section" aria-labelledby="important-title">
         <div class="container container--narrow">
             <div class="highlight-card" data-reveal>
-                <h2 class="highlight-card__title" id="important-title">Чому це важливо?</h2>
-                <p>Площа поверхні кишківника — як тенісний корт! І в ньому живе понад 100 трильйонів бактерій, які впливають на ваш настрій, імунітет і навіть зовнішній вигляд шкіри.</p>
-                <div class="stats">
-                    <div class="stat"><span class="stat__num">70%</span><span class="stat__label">імунітету формується в кишківнику</span></div>
-                    <div class="stat"><span class="stat__num">90%</span><span class="stat__label">серотоніну виробляється тут</span></div>
-                    <div class="stat"><span class="stat__num">100 трлн</span><span class="stat__label">бактерій живе в мікробіомі</span></div>
-                </div>
-                <p>Саме тут формується значна частина імунітету, виробляється більшість серотоніну — і закладається ваш емоційний стан. Дослідіть техніки, що допомагають травленню, зменшують здуття, тривогу й покращують самопочуття.</p>
+                <h2 class="highlight-card__title" id="important-title">Why look after your gut?</h2>
+                <p>{{ product.summary }}</p>
+                <p>Your digestion is closely linked to how you eat, move, sleep and handle stress. Gentle abdominal massage is a simple, calming way to tune in to your belly and support all of that.</p>
             </div>
         </div>
     </section>
 
     {# ---------- Inside ---------- #}
+    {# TODO(owner): check this list against the finished guide. #}
     <section class="section" id="inside" aria-labelledby="inside-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Зміст</p>
-                <h2 class="section-title" id="inside-title">Що всередині гайду?</h2>
+                <p class="eyebrow">Contents</p>
+                <h2 class="section-title" id="inside-title">What's inside the guide?</h2>
             </div>
             <ol class="feature-grid" role="list">
-                <li class="feature" data-reveal>Покрокові техніки масажу <span class="muted">(I Love You, Спіраль, Хвиля, Змія, Квадрат)</span></li>
-                <li class="feature" data-reveal>Підготовка до масажу: як, коли і з чим краще починати</li>
-                <li class="feature" data-reveal>Натуропатичні поради з харчування для здоров’я кишківника</li>
-                <li class="feature" data-reveal>Адаптації під різні стани: масаж при здутті, закрепах, тривожності</li>
-                <li class="feature" data-reveal>Відповіді на поширені питання <span class="muted">(менструація, СПК, схуднення тощо)</span></li>
-                <li class="feature" data-reveal>Детальне меню рецептів та напоїв для здоров’я кишківника</li>
+                <li class="feature" data-reveal>Step-by-step massage techniques <span class="muted">Clear instructions you can follow at your own pace</span></li>
+                <li class="feature" data-reveal>How to prepare <span class="muted">When, where and how to begin comfortably</span></li>
+                <li class="feature" data-reveal>Nutrition tips for a happy gut <span class="muted">Simple habits that support your digestion</span></li>
+                <li class="feature" data-reveal>Routines for different days <span class="muted">Adaptations for bloating, constipation and stress</span></li>
+                <li class="feature" data-reveal>Answers to common questions <span class="muted">From timing to what to expect</span></li>
+                <li class="feature" data-reveal>A clear safety section <span class="muted">Who should skip it, and when to see a doctor first</span></li>
             </ol>
         </div>
     </section>
@@ -71,48 +67,49 @@
     <section class="section section--tinted" aria-labelledby="who-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Аудиторія</p>
-                <h2 class="section-title" id="who-title">Для кого цей гайд?</h2>
+                <p class="eyebrow">Audience</p>
+                <h2 class="section-title" id="who-title">Who is this guide for?</h2>
             </div>
             <ul class="icon-cards icon-cards--5" role="list">
                 <li class="icon-card" data-reveal>
                     <span class="icon-badge">{{ icon('wind') }}</span>
-                    <p>Для тих, хто часто відчуває здуття, важкість або закрепи</p>
+                    <p>People who often feel bloated, heavy or irregular</p>
                 </li>
                 <li class="icon-card" data-reveal>
                     <span class="icon-badge">{{ icon('sunrise') }}</span>
-                    <p>Для тих, хто хоче запустити травну систему зранку й відчувати легкість</p>
+                    <p>Anyone who wants a gentle morning routine for their digestion</p>
                 </li>
                 <li class="icon-card" data-reveal>
                     <span class="icon-badge">{{ icon('flower-2') }}</span>
-                    <p>Для людей зі стресовим способом життя, які шукають природні методи зниження напруги</p>
+                    <p>Busy, stressed people looking for a natural way to unwind</p>
                 </li>
                 <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('shield-plus') }}</span>
-                    <p>Для тих, хто піклується про здоров’я мікрофлори кишківника та імунітет</p>
+                    <span class="icon-badge">{{ icon('leaf') }}</span>
+                    <p>Anyone curious about gut health who wants a practical place to start</p>
                 </li>
                 <li class="icon-card" data-reveal>
                     <span class="icon-badge">{{ icon('heart-handshake') }}</span>
-                    <p>Для кожного, хто хоче знайти простий і безпечний спосіб підтримати себе щодня</p>
+                    <p>Beginners: no experience or special skills needed</p>
                 </li>
             </ul>
         </div>
     </section>
 
-    {# ---------- Advantages ---------- #}
+    {# ---------- Benefits ---------- #}
     <section class="section" aria-labelledby="adv-title">
         <div class="container">
             <div class="split">
                 <div class="section-head" data-reveal>
-                    <p class="eyebrow">Користь</p>
-                    <h2 class="section-title" id="adv-title">Переваги масажу кишківника</h2>
+                    <p class="eyebrow">Why it helps</p>
+                    <h2 class="section-title" id="adv-title">What gentle abdominal massage can do</h2>
+                    <p class="section-lead">Results differ from person to person, and massage is not a treatment for any condition.</p>
                 </div>
                 <ol class="numbered" role="list">
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">01</span>Стимуляція перистальтики — легкість у животі, регулярність</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">02</span>Поліпшення кровообігу й живлення органів</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">03</span>Зменшення здуття, напруги та болю</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">04</span>Підтримка емоційного стану через взаємозв’язок кишківника й мозку</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">05</span>Природний спосіб підтримки гарного самопочуття без таблеток</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">01</span>Encourage your digestion to keep moving, for a lighter feeling in your belly</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">02</span>Ease the tension and tightness that come with bloating</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">03</span>Give you a calm daily pause that helps you relax</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">04</span>Help you notice how your body responds to food and stress</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">05</span>Build a simple self-care habit that is yours to keep</li>
                 </ol>
             </div>
         </div>
@@ -122,50 +119,43 @@
     <section class="section section--tinted" aria-labelledby="how-title">
         <div class="container">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Формат</p>
-                <h2 class="section-title" id="how-title">Як це працює?</h2>
+                <p class="eyebrow">Format</p>
+                <h2 class="section-title" id="how-title">How does it work?</h2>
             </div>
             <ul class="icon-cards icon-cards--3" role="list">
                 <li class="icon-card" data-reveal>
                     <span class="icon-badge">{{ icon('timer') }}</span>
-                    <p><strong>10 хвилин на день</strong> — м’яка щоденна практика; відчуття в кожної різні, тож іди у своєму темпі</p>
+                    <p><strong>A few minutes a day.</strong> A gentle daily practice. Everyone feels it differently, so go at your own pace.</p>
                 </li>
                 <li class="icon-card" data-reveal>
                     <span class="icon-badge">{{ icon('list-checks') }}</span>
-                    <p><strong>Гайд адаптовано під ваші потреби:</strong> можна комбінувати техніки й створювати власний ритуал</p>
+                    <p><strong>Make it yours.</strong> Combine the techniques into a routine that fits your day and how you feel.</p>
                 </li>
                 <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('circle-play') }}</span>
-                    <p><strong>Все пояснено у відео й тексті</strong> — легко почати навіть без досвіду</p>
+                    <span class="icon-badge">{{ icon('book-open-text') }}</span>
+                    <p><strong>Clear and beginner-friendly.</strong> Every step is explained, so you can start without any experience.</p>
                 </li>
             </ul>
         </div>
     </section>
 
-    {# ---------- Free lessons ---------- #}
-    <section class="section" id="mini-course" aria-labelledby="mini-course-title">
-        <div class="container">
-            <div class="cta-card cta-card--split" data-reveal>
-                <div>
-                    <p class="eyebrow eyebrow--light">Міні-курс</p>
-                    <h2 class="section-title" id="mini-course-title">Думаєте, це не для вас? Спробуйте безкоштовно</h2>
-                    <p class="section-lead">Ці відео допоможуть вам одразу почати практику без страху, що щось зробите не так!</p>
-                    <div class="cta-card__actions cta-card__actions--start">
-                        <a class="btn btn--light" href="{{ url('learn_course', slug='gut-health') }}">{{ icon('play') }}Дивитися уроки</a>
-                    </div>
-                </div>
-                <div class="gift-list">
-                    <p class="gift-list__title">{{ icon('gift') }}3 безкоштовні відеоуроки</p>
-                    <ol role="list">
-                        <li>Основи здоров’я кишківника</li>
-                        <li>Як працює масаж кишківника? Безкоштовна практика «I Love You»</li>
-                        <li>Як правильно ходити в туалет? Харчування, пози та типи калу, які впливають на травлення</li>
-                    </ol>
-                </div>
+    {# ---------- Safety ---------- #}
+    <section class="section section--tight" aria-labelledby="safety-title">
+        <div class="container container--narrow">
+            <div class="prose" data-reveal>
+                <h2 class="highlight-card__title" id="safety-title">{{ icon('shield-check') }} Please read first</h2>
+                <p>Abdominal massage is not right for everyone, for example during pregnancy, after recent abdominal surgery or with some digestive conditions. The guide explains who should skip it. Everything here is educational and does not replace advice from your doctor. See a doctor for persistent pain, blood in your stool or any symptom that worries you.</p>
             </div>
         </div>
     </section>
 
+    {# ---------- Buy ---------- #}
+    <section class="section" id="buy" aria-labelledby="buy-title">
+        <div class="container container--narrow">
+            {% include 'includes/buy_box.html' %}
+            <p class="muted buy-card__links">Free to try first: <a href="{{ url('self_test', slug='bristol') }}">the Bristol stool scale test</a> · <a href="{{ url('terms') }}">Terms</a> · <a href="{{ url('privacy') }}">Privacy</a></p>
+        </div>
+    </section>
+
     {% include 'includes/faq.html' %}
-    {% with reviews_title = 'Результати після гайду' %}{% include 'includes/reviews.html' %}{% endwith %}
 {% endblock %}

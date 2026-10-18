@@ -16,7 +16,6 @@ ROOT, ADMIN, USER = 'root', 'admin', 'user'
 ROLES = (ROOT, ADMIN, USER)
 ROLE_LABELS = {ROOT: 'Root', ADMIN: 'Admin', USER: 'User'}
 
-DEFAULT_ROOT_EMAILS = ('miroshnichenkoartem0307@gmail.com', 'miroshnychenkoartem0307@gmail.com')
 SYSTEM_GROUP = 'Full access'
 
 # code -> (section, label): English source strings, translated by app/i18n.py when the admin shows them

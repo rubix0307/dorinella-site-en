@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block schema %}{{ seo.generic(request, self.title()|trim, self.description()|trim) }}{% endblock %}
+
+{% block title %}Refund Policy | {{ site.BRAND }}{% endblock %}
+{% block description %}Not what you hoped for? You can have a full refund of a guide or course within {{ legal.refund_days }} days of buying.{% endblock %}
+
+{% block content %}
+    {#- TODO(owner): confirm the number of days (REFUND_DAYS in .env, 14 by default). 14 days also covers the EU/UK right to cancel a distance purchase. #}
+    <section class="section legal" aria-labelledby="legal-title">
+        <div class="container container--narrow">
+            <p class="eyebrow">Last updated {{ legal.updated }}</p>
+            <h1 class="section-title" id="legal-title">Refund Policy</h1>
+            <div class="prose">
+                <p>Our guides and courses are digital products: you get access as soon as your payment is confirmed. We still want you to buy with confidence, so:</p>
+                <p><strong>You can have a full refund within {{ legal.refund_days }} days of your purchase, for any reason. No forms, no questions.</strong></p>
+
+                <h2>How to ask</h2>
+                <ol>
+                    <li>E-mail <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a> from the address of your account, with your order number (it is in your receipt and in your account). A line such as "please refund order LK-..." is enough.</li>
+                    <li>We confirm and send the refund to the card you paid with, normally within 2 business days.</li>
+                    <li>Your bank usually shows the money after 5 to 10 business days; we cannot speed up the bank. The refund is in US dollars, the same amount you paid.</li>
+                </ol>
+                <p>When the refund is made, your access to the product is closed.</p>
+
+                <h2>After {{ legal.refund_days }} days</h2>
+                <p>After this period we do not usually refund a digital product you have had full access to. We still look at every case: if you were charged twice, if the product does not work as described or you cannot open it and we cannot fix that, write to us and we will make it right.</p>
+
+                <h2>Your legal rights</h2>
+                <p>This policy is on top of, not instead of, your statutory rights. If you live in the EU or the UK, you have the right to cancel a distance purchase within 14 days; for digital content this right can end once access starts and you agreed to that when you paid. Our {{ legal.refund_days }}-day refund applies in either case, so you lose nothing by starting right away. Other consumer rights, such as for goods that are faulty or not as described, are not affected.</p>
+
+                <h2>Please talk to us first</h2>
+                <p>If something is wrong, write to us before asking your bank for a chargeback: it is faster for you, and we will refund you without any fuss. We reserve the right to refuse a refund where there is clear abuse, such as repeatedly buying and refunding the same product, or sharing the content with others.</p>
+
+                <h2>Contact</h2>
+                <p>{{ legal.seller.name }}, {{ legal.seller.address }}. E-mail: <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>. See also the <a href="{{ url('terms') }}">Terms of Service</a> and the <a href="{{ url('privacy') }}">Privacy Policy</a>.</p>
+            </div>
+        </div>
+    </section>
+{% endblock %}

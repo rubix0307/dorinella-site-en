@@ -1,13 +1,13 @@
-"""«Масаж живота» — the web version of the PDF course «Abdominal self-massage».
+"""«Gut Massage» — the web version of the abdominal self-massage course.
 
-Admin-only for now: nothing public links here (not MINI_COURSES, PRODUCTS, GUIDES, the nav, the footer, the API),
+Admin-only for now: nothing public links here (not the catalog, the nav, the footer, the API),
 see app/routers/course.py for the gate and `access_mode()` for the switch to «paid» / «public» later.
 
 The content is data, like app/learn.py: a Course has Pages in Groups, a Page has Blocks, a Block's `kind` picks
 templates/includes/course/<kind>.html. The 8 techniques of the animated player live in course_data/massage.json;
 the step lists on the page are rendered from the very same captions the player shows (one source, no drift).
 
-Wording follows the PDF, but where it overclaimed medically or contradicted itself it is softened.
+Wording is deliberately cautious: it never promises a medical result and points to a doctor wherever a condition could matter.
 """
 import json
 import logging
@@ -15,16 +15,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from . import site
 from .core.config import settings
 
 log = logging.getLogger(__name__)
 
 SLUG = 'abdominal-massage'
+PRODUCT = 'massage-course'      # the catalog product that sells it (the entitlement to check)
 BASE = f'/course/{SLUG}/'
 DATA_URL = f'{BASE}data/massage.json'
 DATA_FILE = Path(__file__).parent / 'course_data' / 'massage.json'
 PHOTO = 'img/course/belly-896.webp'   # the belly photo of the player (static, shipped with the code)
-SAFETY_VERSION = '2026-10-15'     # bump when the safety copy changes: everyone is asked to confirm it again
+SAFETY_VERSION = '2026-10-18'     # bump when the safety copy changes: everyone is asked to confirm it again
 
 
 # ---------------------------------------------------------------- access
@@ -67,29 +69,29 @@ class Page:
     blocks: tuple[Block, ...]
 
 
-GROUPS = ('Старт', 'Безпека', 'Підготовка', 'Техніки', 'Харчування і відповіді')
+GROUPS = ('Start', 'Safety', 'Preparation', 'Techniques', 'Food and answers')
 
 
 # ---------------------------------------------------------------- the techniques (player data)
 
 def _tech_extra() -> dict[str, dict]:
     return {
-        'm1': {'lead': 'Рухи у формі літер I, L, U — за ходом кишківника.',
-               'gives': ['Стимулює перистальтику', 'Допомагає позбутися здуття та дискомфорту']},
-        'm2': {'lead': 'Покращує кровообіг та полегшує травлення після їжі.',
-               'gives': ['Розігріває м’язи живота', 'Підходить як початок будь-якого масажу']},
-        'm3': {'lead': 'Підходить, якщо відчуваєте закреп або легкі спазми (без гострого болю).',
-               'gives': ['Стимулює рух їжі по кишківнику', 'Зменшує спазми']},
-        'm4': {'lead': 'Поєднання дихання та легкого масажу для розслаблення.',
-               'gives': ['Розслабляє м’язи живота', 'Допомагає заспокоїти нервову систему']},
-        'm5': {'lead': 'Імітує природний рух кишківника.',
-               'gives': ['Стимулює перистальтику', 'Покращує роботу кишківника']},
-        'm6': {'lead': 'Активізує кровообіг у всій області живота й допомагає відчути ділянки, що потребують більше уваги.',
-               'gives': ['Охоплює весь живіт', 'Допомагає відчути напружені місця']},
-        'm7': {'lead': 'Імітує природний рух кишківника; підходить, коли є відчуття застою чи тяжкості.',
-               'gives': ['Стимулює перистальтику', 'Полегшує відчуття тяжкості']},
-        'm8': {'lead': 'Стимулює різні ділянки кишківника й допомагає відчути баланс і симетрію.',
-               'gives': ['Рівномірно опрацьовує весь живіт', 'Дає чіткий порядок рухів']},
+        'm1': {'lead': 'Strokes in the shapes of the letters I, L and U, following the path of the colon.',
+               'gives': ['May support the natural movement of the gut', 'May ease a bloated, uncomfortable feeling']},
+        'm2': {'lead': 'Boosts circulation and may ease digestion after a meal.',
+               'gives': ['Warms up the belly muscles', 'A good start for any massage']},
+        'm3': {'lead': 'A good fit for constipation or mild cramps (never sharp pain).',
+               'gives': ['May help food move along', 'May ease cramping']},
+        'm4': {'lead': 'Breathing and light massage combined for relaxation.',
+               'gives': ['Relaxes the belly muscles', 'Helps you calm down']},
+        'm5': {'lead': 'Mimics the natural movement of the intestines.',
+               'gives': ['May support the natural movement of the gut', 'A smooth, rhythmic stroke']},
+        'm6': {'lead': 'Boosts circulation across the whole belly and helps you notice areas that need more attention.',
+               'gives': ['Covers the whole belly', 'Helps you notice tense spots']},
+        'm7': {'lead': 'Mimics the natural movement of the intestines; a good fit when you feel sluggish or heavy.',
+               'gives': ['May support the natural movement of the gut', 'May ease a heavy feeling']},
+        'm8': {'lead': 'Works different areas of the belly and helps you feel balance and symmetry.',
+               'gives': ['Works the whole belly evenly', 'Gives you a clear order of moves']},
     }
 
 
@@ -118,168 +120,170 @@ TECH_BY_KEY = {t['key']: t for t in TECHNIQUES}
 
 # ---------------------------------------------------------------- pages
 
-OILS_NOTE = ('Ефірні олії — необов’язково. Завжди розводьте їх у базовій олії (1–2 краплі на столову ложку) '
-             'і спершу перевірте на маленькій ділянці шкіри. Не використовуйте під час вагітності, при алергії, астмі, епілепсії, високому тиску, '
-             'та для дітей без поради лікаря.')
+OILS_NOTE = ('Essential oils are optional. Always dilute them in a carrier oil (1–2 drops per tablespoon, about 15 ml) '
+             'and patch-test on a small area of skin first. Skip them during pregnancy, with allergies, asthma, epilepsy or high blood pressure, '
+             'and for children unless your doctor says otherwise.')
 
 PAGES: tuple[Page, ...] = (
-    Page('pro-kurs', 'Про курс і ваш «другий мозок»', 'Про курс', 0,
-         'Що вас чекає і чому кишківник впливає на самопочуття.',
+    Page('about', 'About the course and your “second brain”', 'About', 0,
+         'What to expect and why your gut matters for how you feel.',
          (
              B('text', paras=(
-                 'Ваш кишківник — це центр вашого здоров’я. Цей курс допоможе зрозуміти своє тіло та підтримати його '
-                 'роботу природними методами: покрокові техніки масажу, корисні поради та практичні інструменти.',
+                 'Your gut does far more than digest food. This course helps you get to know your body and support it with gentle, natural habits: '
+                 'step-by-step massage techniques, practical tips and simple tools.',
              )),
-             B('facts', title='Це не лише орган для травлення', intro='У кишківнику живуть трильйони бактерій. Вони пов’язані з:',
+             B('facts', title='More than a digestive organ', intro='Trillions of bacteria live in your gut. It is linked to:',
                rows=(
-                   ('Перистальтика', 'Рух їжі по травному тракту.'),
-                   ('Імунна система', 'Значна частина імунних клітин пов’язана саме з кишківником.'),
-                   ('Серотонін', 'Значна частина «гормону щастя» утворюється в кишківнику.'),
+                   ('Motility', 'The movement of food through the digestive tract.'),
+                   ('The immune system', 'A large share of immune cells is connected to the gut.'),
+                   ('Serotonin', 'A large share of the “feel-good” chemical serotonin is made in the gut.'),
                )),
-             B('callout', tone='info', title='А ви помічали?',
-               text='Після важкої їжі з’являється не лише здуття, а й дратівливість чи втома. Кишківник і мозок постійно '
-                    '«розмовляють» через нервову систему — тому проблеми з кишківником (закрепи, здуття, нерегулярність) '
-                    'можуть відображатися на настрої, енергії й навіть шкірі.'),
-             B('facts', title='Що дає масаж живота', cols=3, rows=(
-                 ('Кровообіг', 'Покращує кровопостачання живота, і органи отримують більше кисню та поживних речовин.'),
-                 ('Перистальтика', 'Легкі натискання й погладжування допомагають кишківнику скорочуватись і полегшують проходження їжі.'),
-                 ('Менше напруження', 'Живіт — місце, де накопичується стрес. М’який масаж допомагає розслабити м’язи й нервові закінчення.'),
+             B('callout', tone='info', title='Ever noticed?',
+               text='After a heavy meal you may feel more than bloating: irritable, tired. Your gut and brain are in constant conversation '
+                    'through the nervous system, so digestive trouble (constipation, bloating, irregularity) can show up in your mood, energy and even your skin.'),
+             B('facts', title='What belly massage may do', cols=3, rows=(
+                 ('Circulation', 'Gentle massage may boost blood flow to the belly, so the tissues get more oxygen and nutrients.'),
+                 ('Motility', 'Light pressure and stroking may help the gut contract and food move along.'),
+                 ('Less tension', 'The belly is where many of us hold stress. A soft massage helps muscles and nerves relax.'),
              )),
-             B('callout', tone='tip', title='Як користуватися курсом',
-               text='Почніть із сторінки «Безпека», потім прочитайте про підготовку і переходьте до технік. '
-                    'Результат може відчутися вже після першого разу (наприклад, менше здуття чи напруги), '
-                    'а для довготривалого ефекту потрібна регулярна практика протягом кількох тижнів.'),
+             B('callout', tone='tip', title='How to use the course',
+               text='Start with the “Safety” page, then read about preparation and move on to the techniques. '
+                    'You may feel a difference after the first session (a bit less bloating or tension, for example), '
+                    'but a lasting effect usually takes regular practice over several weeks. Results vary from person to person.'),
          )),
 
-    Page('protypokazannia', 'Безпека: чи можна вам масажувати живіт', 'Безпека', 1,
-         'Перевірте протипоказання перед початком — це займе дві хвилини.',
+    Page('safety', 'Safety: can you massage your belly?', 'Safety', 1,
+         'Check the contraindications before you start. It takes two minutes.',
          (
              B('text', paras=(
-                 'Масаж кишківника — корисна й ефективна техніка, але є ситуації, коли варто бути обережними або взагалі '
-                 'утриматися. Нижче — список протипоказань із поясненнями. Це інформація, а не медична консультація.',
+                 'Belly massage can be a pleasant, gentle habit, but there are situations where you should be careful or skip it altogether. '
+                 'Below is a list of contraindications with explanations. It is general information, not medical advice.',
              )),
-             B('safety', version=SAFETY_VERSION, date='15.10.2026',
-               absolute_title='Масаж заборонений',
-               absolute_lead='Якщо про вас є хоч один пункт — не масажуйте живіт і зверніться до лікаря.',
+             B('safety', version=SAFETY_VERSION, date='October 18, 2026',
+               absolute_title='Do not massage',
+               absolute_lead='If any one of these applies to you, do not massage your belly and talk to your doctor.',
                absolute=(
-                   ('a1', 'Гострі болі в животі', 'Наприклад, підозра на апендицит, панкреатит, перфорацію чи кишкову непрохідність. '
-                                                 'Масаж може посилити запалення. Негайно зверніться до лікаря для діагностики.'),
-                   ('a2', 'Злоякісні пухлини в області живота', 'Масаж стимулює кровообіг, що небезпечно при онкологічних захворюваннях.'),
-                   ('a3', 'Вагітність (або є ймовірність вагітності)', 'Не масажуйте живіт у першому триместрі; пізніше — лише з дозволу лікаря. Якщо вагітність можлива — спершу з’ясуйте це.'),
-                   ('a4', 'Свіжі операції на животі', 'Наприклад, видалення апендикса чи кесарів розтин: масаж заборонений до повного загоєння '
-                                                      'і дозволу лікаря.'),
-                   ('a5', 'Гострі інфекційні хвороби', 'Вірусні інфекції чи харчові отруєння з діареєю, блювотою або гарячкою.'),
+                   ('a1', 'Sudden or severe abdominal pain', 'For example, suspected appendicitis, pancreatitis, a perforation or a bowel obstruction. '
+                                                             'Massage can make inflammation worse. See a doctor right away for a diagnosis.'),
+                   ('a2', 'Tumors or cancer in the abdomen', 'Massage increases circulation, which is not advised with these conditions. Ask your care team first.'),
+                   ('a3', 'Pregnancy (or a chance you could be pregnant)', 'Do not massage the belly during pregnancy unless your doctor or midwife has said it is fine. '
+                                                                         'If pregnancy is possible, find out first.'),
+                   ('a4', 'Recent abdominal surgery', 'For example, an appendectomy or a C-section: no massage until you have fully healed '
+                                                      'and your surgeon has cleared you.'),
+                   ('a5', 'An acute infection', 'A stomach bug or food poisoning with diarrhea, vomiting or fever.'),
                ),
-               relative_title='Потрібна обережність і розмова з лікарем',
-               relative_lead='Якщо про вас є пункт нижче — спершу обговоріть масаж з лікарем і прислухайтеся до себе.',
+               relative_title='Be careful and talk to your doctor',
+               relative_lead='If any of these applies to you, talk to your doctor about massage first and listen to your body.',
                relative=(
-                   ('r1', 'Місячні', 'Масаж може посилити кровотечу. Нижню частину живота краще не масажувати; якщо є дискомфорт — утримайтеся.'),
-                   ('r2', 'Хронічні захворювання кишківника', 'Хвороба Крона, виразковий коліт: у період загострення будь-які маніпуляції з животом '
-                                                              'можуть бути болісними й шкідливими. У ремісії — лише після консультації з лікарем.'),
-                   ('r3', 'Жовчнокам’яна хвороба', 'Масаж може зрушити камені, а це ризик жовчної коліки. Обов’язково обговоріть з лікарем.'),
-                   ('r4', 'Синдром подразненого кишківника (СПК)', 'Обговоріть з лікарем. Зазвичай підходять лише м’які техніки без сильного натискання.'),
+                   ('r1', 'Your period', 'Massage may make bleeding heavier. It is better to leave the lower belly alone; if you feel any discomfort, skip it.'),
+                   ('r2', 'A chronic bowel condition', 'Crohn’s disease or ulcerative colitis: during a flare-up, any handling of the belly '
+                                                       'can be painful and harmful. In remission, only after talking to your doctor.'),
+                   ('r3', 'Gallstones', 'Massage might shift stones, which risks a gallbladder attack. Be sure to talk to your doctor.'),
+                   ('r4', 'Irritable bowel syndrome (IBS)', 'Talk to your doctor. Usually only soft techniques without firm pressure are suitable.'),
+                   ('r5', 'A hernia or a blood-thinning medication', 'Pressing on the belly may not be safe. Ask your doctor before you try anything.'),
                )),
-             B('callout', tone='info', title='Орієнтуйтеся на власні відчуття',
-               rows=('Масаж має бути м’яким і не викликати болю.',
-                      'Починайте з коротких сеансів і спостерігайте за самопочуттям.',
-                      'У разі сумнівів завжди консультуйтеся з лікарем.')),
+             B('callout', tone='info', title='Go by how you feel',
+               rows=('Massage should be gentle and never painful.',
+                     'Start with short sessions and notice how you feel.',
+                     'When in doubt, always ask your doctor.')),
          )),
 
-    Page('tilo', 'Тіло: кишківник і дихання', 'Тіло', 2,
-         'Де що розташоване і як дихати, щоб живіт розслабився.',
+    Page('body', 'Your body: the gut and your breath', 'Body', 2,
+         'What is where, and how to breathe so your belly relaxes.',
          (
              B('anatomy'),
-             B('facts', title='Особливі точки для масажу', cols=3, rows=(
-                 ('3 · Сліпа кишка', 'Правий нижній кут живота — початок товстого кишківника.'),
-                 ('4 · Поперечна кишка', 'Вище пупка — місце, де накопичуються гази.'),
-                 ('5 · Сигмовидна кишка', 'Лівий нижній кут — останній етап формування стільця.'),
+             B('facts', title='Key spots for massage', cols=3, rows=(
+                 ('2 · Cecum', 'The lower right corner of your belly, where the large intestine begins.'),
+                 ('4 · Transverse colon', 'Above the navel, where gas can collect.'),
+                 ('6 · Sigmoid colon', 'The lower left corner, the last stretch before stool is formed.'),
              )),
-             B('callout', tone='tip', title='Цікаво',
-               rows=('Площа поверхні кишківника порівнянна з тенісним кортом.',
-                      'У ньому живуть трильйони бактерій, які впливають на травлення, імунітет і навіть настрій.')),
-             B('facts', title='Дихання і кишківник',
-               intro='Дихання впливає на кишківник через блукаючий нерв — основний «канал зв’язку» між кишківником і мозком. '
-                     'Спокійне дихання та м’який масаж допомагають розслабитись. Це допоміжна практика, а не лікування.',
+             B('callout', tone='tip', title='Did you know?',
+               rows=('The surface area of the gut is often compared to that of a tennis court.',
+                     'Trillions of bacteria live in it and are linked to digestion, immunity and even mood.')),
+             B('facts', title='Breathing and your gut',
+               intro='Breathing reaches the gut through the vagus nerve, the main “line of communication” between gut and brain. '
+                     'Calm breathing and gentle massage can help you relax. It is a supportive practice, not a treatment.',
                cols=3, rows=(
-                   ('Розслаблює м’язи живота', 'Глибоке дихання знижує напругу в м’язах черевної порожнини.'),
-                   ('Знижує стрес', 'Спокійне дихання активує нервову систему, що відповідає за відпочинок і відновлення.'),
-                   ('Допомагає перистальтиці', 'Глибокі вдихи й видихи м’яко стимулюють роботу кишківника, зменшують здуття та дискомфорт.'),
+                   ('Relaxes the belly muscles', 'Deep breathing lowers tension in the muscles of the abdomen.'),
+                   ('Eases stress', 'Slow breathing activates the part of the nervous system that handles rest and recovery.'),
+                   ('Supports motility', 'Deep breaths in and out gently stir the gut and may ease bloating and discomfort.'),
                )),
-             B('steps', title='Діафрагмальне дихання', intro='Одна з найпростіших технік, щоб зняти напругу в животі. Підходить для щоденного використання.',
+             B('steps', title='Diaphragmatic breathing', intro='One of the simplest ways to release tension in your belly. You can do it every day.',
                rows=(
-                   ('Зручно лягте', 'На спину, коліна зігнуті. Одну руку покладіть на груди, другу — на живіт.'),
-                   ('Вдих', 'Повільно вдихніть носом так, щоб піднімався живіт, а не груди.'),
-                   ('Видих', 'Повільно видихніть, відчуваючи, як живіт опускається.'),
+                   ('Get comfortable', 'Lie on your back with your knees bent. Place one hand on your chest and the other on your belly.'),
+                   ('Inhale', 'Breathe in slowly through your nose so your belly rises, not your chest.'),
+                   ('Exhale', 'Breathe out slowly and feel your belly sink.'),
                ),
-               link=('tekhniky', 'm4', 'Те саме разом із масажем — техніка №4')),
+               link=('techniques', 'm4', 'The same thing together with massage: technique #4')),
          )),
 
-    Page('pidhotovka', 'Підготовка до масажу', 'Підготовка', 2,
-         'Коли, на чому і з чим масажувати.',
+    Page('preparation', 'Getting ready to massage', 'Preparation', 2,
+         'When, on what and with what to massage.',
          (
-             B('text', paras=('Підготовка допомагає розслабити м’язи, покращити кровообіг і зробити масаж ефективнішим.',)),
-             B('facts', title='Коли найкраще робити масаж', cols=2, rows=(
-                 ('Вранці натщесерце', 'Допомагає «запустити» травну систему.'),
-                 ('Увечері перед сном', 'Сприяє розслабленню та роботі кишківника під час нічного відпочинку.'),
+             B('text', paras=('A little preparation helps your muscles relax, improves circulation and makes the massage more comfortable.',)),
+             B('facts', title='The best time', cols=2, rows=(
+                 ('In the morning, before eating', 'Helps to “wake up” your digestion.'),
+                 ('In the evening, before bed', 'Helps you unwind and supports your gut during rest.'),
              )),
-             B('callout', tone='warn', title='Не одразу після їжі',
-               text='Масаж одразу після їжі не рекомендується: це може викликати дискомфорт, здуття або уповільнити травлення. '
-                    'Найкраще — через 1,5–2 години після їжі, коли шлунок не переповнений.'),
-             B('steps', title='Як підготувати тіло', rows=(
-                 ('Теплий компрес (необов’язково)', 'Змочіть м’який рушник у теплій воді, викрутіть і покладіть на живіт на 5–10 хвилин. '
-                                                    'Це розігріє м’язи, покращить кровообіг і зменшить напругу.'),
-                 ('Склянка теплої води', 'Корисно випити її за 20–30 хвилин до масажу.'),
+             B('callout', tone='warn', title='Not right after a meal',
+               text='Massaging right after eating is not recommended: it can cause discomfort, bloating or slow digestion. '
+                    'It is best to wait 1.5–2 hours after a meal, when your stomach is not full.'),
+             B('steps', title='Preparing your body', rows=(
+                 ('A warm compress (optional)', 'Soak a soft towel in warm water, wring it out and rest it on your belly for 5–10 minutes. '
+                                                'It warms the muscles, boosts circulation and eases tension.'),
+                 ('A glass of warm water', 'It is nice to drink one 20–30 minutes before the massage.'),
              )),
-             B('facts', title='Олії для масажу (необов’язково)', cols=2, rows=(
-                 ('Базова олія', 'Мигдальна або кокосова — для зволоження шкіри.'),
-                 ('З ефірними оліями', 'Розмарин, м’ята або лаванда — для релаксації й стимуляції травлення.'),
+             B('facts', title='Massage oils (optional)', cols=2, rows=(
+                 ('A carrier oil', 'Almond or coconut oil, to moisturize the skin and help your hands glide.'),
+                 ('With essential oils', 'Rosemary, peppermint or lavender, for relaxation and a pleasant scent.'),
              )),
-             B('callout', tone='warn', title='Про ефірні олії', text=OILS_NOTE),
-             B('steps', title='Правильна поза', rows=(
-                 ('Лягти', 'На спину на рівну поверхню.'),
-                 ('Ноги', 'Зігніть у колінах і трохи підніміть — наприклад, покладіть ноги на подушку.'),
-                 ('Руки й живіт', 'Руки розслаблені, живіт м’який.'),
+             B('callout', tone='warn', title='About essential oils', text=OILS_NOTE),
+             B('steps', title='The right position', rows=(
+                 ('Lie down', 'On your back on a flat surface.'),
+                 ('Legs', 'Bend your knees and lift them slightly, for example by resting your legs on a pillow.'),
+                 ('Hands and belly', 'Keep your hands relaxed and your belly soft.'),
              )),
          )),
 
-    Page('tekhniky', '8 технік масажу', 'Техніки', 3,
-         'Дивіться, повторюйте за кроками, обирайте свою техніку.',
+    Page('techniques', '8 massage techniques', 'Techniques', 3,
+         'Watch, follow the steps, and pick your technique.',
          (B('hub'),)),
 
-    Page('poiednannia', 'Як поєднувати техніки', 'Поєднання', 3,
-         'Готова послідовність — і як прислухатися до себе.',
+    Page('combining', 'Combining techniques', 'Combining', 3,
+         'A ready-made sequence, and how to listen to yourself.',
          (
-             B('text', paras=('Усі техніки можна комбінувати, підлаштовуючи під свій стан і потреби.',)),
-             B('sequence', title='Приклад послідовності', rows=(
-                 ('m2', 'Почніть із кругових рухів', 'Для розігріву.'),
-                 ('m1', 'Перейдіть до «I Love You»', 'Рухи за ходом кишківника.'),
-                 ('m3', 'Завершіть легким натисканням на точки', 'М’яко, без болю.'),
-             ), note='Кожна анімація показує один цикл руху. Повторюйте стільки разів, скільки вказано в техніці, а якщо кількості немає — скільки комфортно, і зупиняйтеся, якщо з’являється біль.'),
-             B('facts', title='Прислухайтеся до тіла', cols=3, rows=(
-                 ('З кожним днем', 'Коли ви практикуєте масаж, тіло починає «розмовляти» з вами.'),
-                 ('Інтуїтивно', 'Ви відчуєте, які рухи потрібні зараз і де є напруга чи застій.'),
-                 ('Інструмент самопізнання', 'Це не просто техніка, а спосіб бути уважнішою до себе. Довіряйте своїм відчуттям.'),
+             B('text', paras=('You can mix and match any of the techniques to suit how you feel and what you need.',)),
+             B('sequence', title='An example sequence', rows=(
+                 ('m2', 'Start with circular motions', 'To warm up.'),
+                 ('m1', 'Move on to “I Love You”', 'Strokes that follow the path of the colon.'),
+                 ('m3', 'Finish with light pressure on the points', 'Gently, with no pain.'),
+             ), note='Each animation shows one cycle of the movement. Repeat it as many times as the technique says, '
+                  'or as many times as feels comfortable if no number is given, and stop if you feel pain.'),
+             B('facts', title='Listen to your body', cols=3, rows=(
+                 ('Day by day', 'The more you practice, the more your body starts to “talk” to you.'),
+                 ('Intuitively', 'You will sense which moves you need right now and where there is tension or sluggishness.'),
+                 ('A way to know yourself', 'It is more than a technique: it is a way to be more attentive to yourself. Trust what you feel.'),
              )),
          )),
 
-    Page('pid-metu', 'Масаж під вашу мету', 'Під мету', 3,
-         'Здуття, закрепи, розслаблення, тривожність: що обрати.',
+    Page('goals', 'Massage for your goal', 'Your goal', 3,
+         'Bloating, constipation, relaxation, anxiety: what to choose.',
          (B('goals'),)),
 
-    Page('yizha', 'Їжа для кишківника', 'Їжа', 4,
-         'Клітковина, пре- та пробіотики в одному списку.',
+    Page('food', 'Food for your gut', 'Food', 4,
+         'Fiber, prebiotics and probiotics in one place.',
          (B('foodlists'),)),
 
-    Page('voda-i-napoi', 'Вода і напої', 'Вода і напої', 4,
-         'Скільки пити і шість простих напоїв із таймером.',
+    Page('water', 'Water and drinks', 'Water and drinks', 4,
+         'How much to drink, and six simple drinks with a timer.',
          (B('water'), B('drinks'))),
 
-    Page('zapytannia', 'Часті запитання', 'Запитання', 4,
-         'Відповіді про частоту, біль, місячні та результат.',
+    Page('faq', 'Frequently asked questions', 'FAQ', 4,
+         'Answers about how often, pain, periods and results.',
          (B('faq'),)),
 
-    Page('avtorka', 'Про авторку', 'Авторка', 4,
-         'Хто створив курс.',
+    Page('author', 'About the author', 'Author', 4,
+         'Who created the course.',
          (B('author'),)),
 )
 
@@ -299,174 +303,175 @@ def neighbours(page: Page) -> tuple[Page | None, Page | None]:
 # ---------------------------------------------------------------- shared data of the interactive blocks
 
 ANATOMY = (
-    (1, 'Тонкий кишківник', 'Три відділи: дванадцятипала, порожня та клубова кишки. Розщеплює їжу й усмоктує поживні речовини в кров. '
-                            'Лежить у центрі живота, у «рамці» з товстого кишківника.', 49, 37, 'r'),
-    (2, 'Сліпа кишка', 'Початок товстого кишківника — у правій нижній частині живота. Сюди з тонкого кишківника потрапляє їжа '
-                       '(через клубово-сліпокишковий клапан). Тут же відходить апендикс.', 30, 51, 'l'),
-    (3, 'Висхідна ободова кишка', 'Іде вгору правим боком живота до правого (печінкового) вигину під ребрами.', 28, 35, 'l'),
-    (4, 'Поперечна ободова кишка', 'Іде впоперек живота від правого вигину до лівого. Лівий (селезінковий) вигин розташований вище за правий, '
-                                  'а сама кишка може провисати нижче пупка.', 47, 26, 'l'),
-    (5, 'Низхідна ободова кишка', 'Спускається лівим боком живота. Тут стілець стає щільнішим і накопичується перед виходом.', 74, 26, 'r'),
-    (6, 'Сигмовидна кишка', 'S-подібна петля в лівій нижній частині живота — передостанній відділ перед прямою кишкою.', 66, 64, 'r'),
-    (7, 'Пряма кишка', 'Кінцевий відділ товстого кишківника, завершується анальним каналом.', 53, 70, 'l'),
+    (1, 'Small intestine', 'Three sections: the duodenum, the jejunum and the ileum. It breaks down food and absorbs nutrients into the blood. '
+                           'It sits in the center of the belly, framed by the large intestine.', 49, 37, 'r'),
+    (2, 'Cecum', 'The start of the large intestine, in the lower right of the belly. Food arrives here from the small intestine '
+                 '(through the ileocecal valve). The appendix branches off here.', 30, 51, 'l'),
+    (3, 'Ascending colon', 'Runs up the right side of the belly to the right bend (the hepatic flexure) under the ribs.', 28, 35, 'l'),
+    (4, 'Transverse colon', 'Runs across the belly from the right bend to the left. The left bend (the splenic flexure) sits higher than the right, '
+                            'and the colon itself can sag below the navel.', 47, 26, 'l'),
+    (5, 'Descending colon', 'Runs down the left side of the belly. Stool becomes firmer here and waits before it leaves the body.', 74, 26, 'r'),
+    (6, 'Sigmoid colon', 'An S-shaped loop in the lower left of the belly, the second-to-last section before the rectum.', 66, 64, 'r'),
+    (7, 'Rectum', 'The final section of the large intestine, ending at the anal canal.', 53, 70, 'l'),
 )
 
 GOALS = (
-    {'id': 'bloating', 'title': 'Здуття', 'lead': 'Коли живіт роздутий і важкий.',
-     'prep': ('Теплий компрес на живіт перед масажем — розслабляє м’язи й полегшує вихід газів.',
-              'За бажанням: 1–2 краплі ефірної олії м’яти чи фенхелю на ложку базової олії (мигдальної або кокосової).'),
-     'order': 'Легкі кругові рухи за годинниковою стрілкою, починаючи з правої нижньої частини живота → «Спіраль» → м’які натискання на ділянки, де найбільший дискомфорт.',
-     'chips': (('m2', 'Кругові рухи'), ('m6', 'Спіраль'), ('m3', 'Натискання на точки')),
-     'tips': ('Після масажу — теплий чай із фенхелю, м’яти або імбиру.',
-              'Уникайте важкої їжі перед масажем, особливо продуктів, що викликають здуття (наприклад, капуста, бобові).')},
-    {'id': 'constipation', 'title': 'Закрепи', 'lead': 'Коли кишківник працює мляво.',
-     'prep': ('Склянка теплої води з лимоном за 20–30 хвилин до масажу.',
-              'За бажанням: базова олія з кількома краплями апельсинової чи розмаринової ефірної олії.'),
-     'order': '«I Love You» → легкі натискання на ділянку трохи нижче пупка (зона тонкого кишківника) → завершіть «Хвилею», щоб допомогти їжі рухатись у правильному напрямку.',
-     'chips': (('m1', 'I Love You'), ('m3', 'Натискання на точки'), ('m5', 'Хвиля')),
-     'tips': ('Після масажу зробіть кілька нахилів тулуба вперед або колових рухів тазом.',
-              'Додайте в раціон більше клітковини: овочі, фрукти, насіння чіа. Закрепи часто пов’язані з нестачею клітковини, води чи зі стресом.')},
-    {'id': 'relax', 'title': 'Розслаблення', 'lead': 'Напруження або хронічна втома.',
-     'prep': ('Увімкніть спокійну музику чи звуки природи.',
-              'За бажанням: базова олія з лавандою або ромашкою.'),
-     'order': 'Легкі кругові рухи по всьому животу за годинниковою стрілкою → «Квадрат» для рівномірного розслаблення → наприкінці руки на живіт і кілька глибоких вдихів носом, видих ротом.',
-     'chips': (('m2', 'Кругові рухи'), ('m8', 'Квадрат'), ('m4', 'Масаж з диханням')),
-     'tips': ('Після масажу — теплий чай із ромашки або меліси.',
-              'Практикуйте масаж увечері перед сном.')},
-    {'id': 'anxiety', 'title': 'Тривожність', 'lead': 'Коли стрес «стискає» живіт.',
-     'prep': ('Теплий компрес; за бажанням — кілька крапель ефірної олії нероли чи іланг-ілангу.',
-              'Перед масажем 1–2 хвилини діафрагмального дихання, щоб розслабити нервову систему.'),
-     'order': 'Повільні кругові рухи по всьому животу за годинниковою стрілкою → легкі натискання в області трохи вище пупка для зниження напруги → завершіть «Хвилею» зверху вниз.',
-     'chips': (('m4', 'Масаж з диханням'), ('m2', 'Кругові рухи'), ('m5', 'Хвиля')),
-     'tips': ('Після масажу — тепла ванна з морською сіллю та лавандою.',
-              'У раціон додайте продукти, що підтримують нервову систему: горіхи, авокадо, темний шоколад.')},
+    {'id': 'bloating', 'title': 'Bloating', 'lead': 'When your belly feels puffy and heavy.',
+     'prep': ('A warm compress on your belly before the massage helps the muscles relax and may help gas pass.',
+              'If you like: 1–2 drops of peppermint or fennel essential oil per tablespoon of carrier oil (almond or coconut).'),
+     'order': 'Light circles clockwise, starting at the lower right of the belly → “Spiral” → gentle pressure on the areas where you feel the most discomfort.',
+     'chips': (('m2', 'Circles'), ('m6', 'Spiral'), ('m3', 'Pressure points')),
+     'tips': ('Afterwards, sip a warm cup of fennel, peppermint or ginger tea.',
+              'Avoid a heavy meal before the massage, especially foods that tend to cause gas for you (for example cabbage or beans).')},
+    {'id': 'constipation', 'title': 'Constipation', 'lead': 'When your gut feels sluggish.',
+     'prep': ('A glass of warm water with lemon 20–30 minutes before the massage.',
+              'If you like: a carrier oil with a few drops of orange or rosemary essential oil.'),
+     'order': '“I Love You” → light pressure on the area just below the navel (the small intestine zone) → finish with the “Wave” to encourage food to move in the right direction.',
+     'chips': (('m1', 'I Love You'), ('m3', 'Pressure points'), ('m5', 'Wave')),
+     'tips': ('Afterwards, try a few forward bends or gentle hip circles.',
+              'Eat more fiber (vegetables, fruit, chia seeds) and drink enough water. Constipation is often linked to too little fiber, too little water or stress. '
+              'If it lasts, talk to your doctor.')},
+    {'id': 'relax', 'title': 'Relaxation', 'lead': 'Tension or ongoing tiredness.',
+     'prep': ('Put on calm music or nature sounds.',
+              'If you like: a carrier oil with lavender or chamomile.'),
+     'order': 'Light circles over the whole belly, clockwise → the “Square” for an even, relaxing pass → finish with your hands resting on your belly '
+              'and a few deep breaths in through the nose and out through the mouth.',
+     'chips': (('m2', 'Circles'), ('m8', 'Square'), ('m4', 'Breathing')),
+     'tips': ('Afterwards, enjoy a cup of chamomile or lemon balm tea.',
+              'Try the massage in the evening, before bed.')},
+    {'id': 'anxiety', 'title': 'Anxiety', 'lead': 'When stress “clenches” your belly.',
+     'prep': ('A warm compress; if you like, a few drops of neroli or ylang-ylang essential oil.',
+              'Before you start, take 1–2 minutes of diaphragmatic breathing to settle your nervous system.'),
+     'order': 'Slow circles over the whole belly, clockwise → light pressure just above the navel to ease tension → finish with the “Wave,” from top to bottom.',
+     'chips': (('m4', 'Breathing'), ('m2', 'Circles'), ('m5', 'Wave')),
+     'tips': ('Afterwards, a warm bath with lavender can be a nice way to unwind.',
+              'Persistent anxiety deserves proper support. Massage is a calming habit, not a treatment, so talk to a professional if it affects your daily life.')},
 )
 
 FOOD_LISTS = (
-    {'id': 'fibre', 'title': 'Джерела клітковини',
-     'lead': 'Клітковина — основа здорової мікрофлори: вона «їжа» для корисних бактерій і сприяє перистальтиці.',
+    {'id': 'fibre', 'title': 'Sources of fiber',
+     'lead': 'Fiber is food for your friendly gut bacteria and helps keep things moving. Add it gradually and drink plenty of water with it.',
      'groups': (
-         ('Овочі', ('Броколі', 'Цвітна капуста', 'Морква', 'Кабачки', 'Шпинат', 'Гарбуз')),
-         ('Фрукти', ('Яблука зі шкіркою', 'Груші', 'Ягоди (чорниця, малина)', 'Чорнослив')),
-         ('Цільнозернові', ('Вівсянка', 'Коричневий рис', 'Гречка', 'Жито')),
-         ('Насіння', ('Лляне (1–2 ч. л., розмочити у воді)', 'Чіа (замочені у воді або напоях)')),
-         ('Бобові', ('Нут', 'Квасоля', 'Сочевиця')),
+         ('Vegetables', ('Broccoli', 'Cauliflower', 'Carrots', 'Zucchini', 'Spinach', 'Pumpkin or butternut squash')),
+         ('Fruit', ('Apples with the skin on', 'Pears', 'Berries (blueberries, raspberries)', 'Prunes')),
+         ('Whole grains', ('Oatmeal', 'Brown rice', 'Buckwheat', 'Whole-grain rye or whole-wheat bread')),
+         ('Seeds', ('Flaxseed (1–2 tsp, ground or soaked in water)', 'Chia seeds (soaked in water or a drink)')),
+         ('Legumes', ('Chickpeas', 'Beans', 'Lentils')),
      ),
-     'tips': ('Розпочинайте день із вівсяної каші з насінням і ягодами.',
-              'Додавайте порцію овочів до кожного прийому їжі (наприклад, броколі на пару чи запечений гарбуз).',
-              'Бобові варіть із додаванням спецій для зменшення здуття, наприклад, кмину.')},
-    {'id': 'pro', 'title': 'Пробіотики',
-     'lead': 'Живі корисні бактерії, які підтримують баланс мікрофлори. Джерела — ферментовані продукти.',
+     'tips': ('Start your day with oatmeal topped with seeds and berries.',
+              'Add a serving of vegetables to every meal (steamed broccoli or roasted squash, for example).',
+              'Cook beans with a spice such as cumin, and rinse canned beans well. Some people find this makes them easier to digest.')},
+    {'id': 'pro', 'title': 'Probiotics',
+     'lead': 'Live friendly bacteria that support a healthy balance in the gut. They are found in fermented foods.',
      'groups': (
-         ('Ферментовані продукти', ('Кефір, йогурт із живими бактеріями (без цукру)', 'Квашена капуста (без оцту)',
-                                    'Кімчі (гострий корейський салат із ферментованих овочів)', 'Місо (японська паста із соєвих бобів)',
-                                    'Комбуча (чайний гриб) — у невеликій кількості')),
+         ('Fermented foods', ('Kefir or yogurt with live cultures (unsweetened)', 'Sauerkraut (refrigerated, unpasteurized)',
+                              'Kimchi (a spicy Korean dish of fermented vegetables)', 'Miso (a Japanese paste made from fermented soybeans)',
+                              'Kombucha (fermented tea), in small amounts')),
      ),
-     'tips': ('Включайте кефір у вечірній раціон для легкого травлення перед сном.',
-              'Використовуйте квашену капусту як гарнір до основної страви.')},
-    {'id': 'pre', 'title': 'Пребіотики',
-     'lead': 'Речовини, які «годують» корисні бактерії й сприяють їх росту.',
+     'tips': ('Try a little kefir in the evening, if it sits well with you.',
+              'Serve a spoonful of sauerkraut as a side with your main dish.')},
+    {'id': 'pre', 'title': 'Prebiotics',
+     'lead': 'Plant fibers that “feed” your friendly bacteria and help them grow.',
      'groups': (
-         ('Овочі', ('Цибуля', 'Часник', 'Спаржа', 'Артишоки', 'Топінамбур')),
-         ('Фрукти', ('Банани (злегка недозрілі)', 'Яблука')),
-         ('Цільнозернові', ('Ячмінь', 'Овес')),
-         ('Інші', ('Лляне насіння', 'Корінь цикорію')),
+         ('Vegetables', ('Onions', 'Garlic', 'Asparagus', 'Artichokes', 'Jerusalem artichokes (sunchokes)')),
+         ('Fruit', ('Bananas (slightly underripe)', 'Apples')),
+         ('Whole grains', ('Barley', 'Oats')),
+         ('Other', ('Flaxseed', 'Chicory root')),
      ),
-     'tips': ('Використовуйте цибулю й часник у стравах — це натуральні пребіотики.',
-              'Додавайте топінамбур у салати чи запікайте як гарнір.')},
+     'tips': ('Cook with onions and garlic. They are natural prebiotics.',
+              'Add Jerusalem artichokes to salads or roast them as a side.',
+              'Prebiotic foods can cause gas at first, so introduce them slowly. If you have IBS or a sensitive gut, ask your doctor or a dietitian.')},
 )
 
 WATER = {
-    'lead': 'Адекватна гідратація критично важлива для нормальної роботи кишківника: без достатньої кількості води клітковина може викликати закрепи.',
-    'best': 'Найкращий вибір — теплий трав’яний чай із фенхелю або м’яти для розслаблення.',
-    'tips': ('Випивайте 1,5–2 літри води на день, залежно від рівня активності.',
-             'Починайте день зі склянки теплої води з лимоном для «запуску» кишківника.',
-             'Пийте теплу воду маленькими ковтками протягом дня.'),
+    'lead': 'Staying hydrated matters for a well-working gut: without enough water, fiber can make constipation worse.',
+    'best': 'A good choice is a warm herbal tea, such as fennel or peppermint, to help you unwind.',
+    'tips': ('Aim for roughly 6–8 cups (1.5–2 liters) of fluids a day, more if you are active or it is hot. If your doctor limits your fluids, follow their advice.',
+             'Start the day with a glass of warm water, with lemon if you like, to wake up your digestion.',
+             'Sip warm water in small amounts through the day.'),
 }
 
 DRINKS = (
-    {'id': 'lemon', 'title': 'Лимонна вода', 'en': 'Lemon Water', 'minutes': 0,
-     'for': ('Для тих, хто має мляве травлення або закрепи.', 'Для ранкового «запуску» травної системи.'),
-     'how': ('Видавіть сік половини лимона в склянку теплої (не гарячої!) води.', 'Випийте натщесерце за 20–30 хвилин до сніданку.'),
-     'helps': ('Стимулює виділення жовчі, яка допомагає травленню жирів. За жовчнокам’яної хвороби — лише після консультації лікаря.', 'Покращує перистальтику кишківника.'),
-     'care': ''},
-    {'id': 'ginger', 'title': 'Імбирний чай', 'en': 'Ginger Tea', 'minutes': 10,
-     'for': ('Для тих, хто страждає на здуття, нудоту або має слабке травлення після важкої їжі.',),
-     'how': ('Наріжте 1–2 см свіжого кореня імбиру й залийте окропом.', 'Дайте настоятися 5–10 хвилин.', 'За бажанням додайте ложечку меду або трохи лимонного соку.'),
-     'helps': ('Стимулює вироблення травних ферментів.', 'Зменшує здуття та дискомфорт у животі.'),
-     'care': ''},
-    {'id': 'fennel', 'title': 'Фенхелевий чай', 'en': 'Fennel Tea', 'minutes': 10,
-     'for': ('Для тих, хто має здуття, гази або хоче заспокоїти кишківник.',),
-     'how': ('Залийте 1 ч. л. насіння фенхелю окропом (200 мл).', 'Настоюйте 10 хвилин, процідіть.'),
-     'helps': ('Полегшує газоутворення та знімає спазми.', 'Стимулює травлення й покращує апетит.'),
-     'care': ''},
-    {'id': 'golden', 'title': 'Золоте молоко з куркумою', 'en': 'Golden milk', 'minutes': 0,
-     'for': ('Традиційний вечірній напій для тих, хто хоче підтримати травлення.',),
-     'how': ('У склянку теплого молока (можна рослинного) додайте ½ ч. л. порошку куркуми, щіпку чорного перцю й трохи меду.', 'Добре перемішайте та випийте перед сном.'),
-     'helps': ('Традиційно його п’ють заради підтримки жовчного міхура та травлення.',),
-     'care': 'Куркума може не підходити при жовчнокам’яній хворобі, прийомі розріджувальних ліків чи вагітності — за сумнівів порадьтеся з лікарем. Це напій, а не засіб лікування.'},
-    {'id': 'mint', 'title': 'М’ятний чай', 'en': 'Mint Tea', 'minutes': 10,
-     'for': ('Для тих, хто має стресовий стан, спазми в кишківнику або синдром подразненого кишківника (СПК).',),
-     'how': ('Заваріть 1 ч. л. сушеної м’яти та 1 ч. л. меліси на склянку окропу.', 'Настоюйте 10 хвилин.'),
-     'helps': ('Заспокоює нервову систему та розслабляє м’язи кишківника.', 'Зменшує здуття та знімає спазми.'),
-     'care': ''},
-    {'id': 'flax', 'title': 'Лляне насіння', 'en': 'Flax Seeds', 'minutes': 0,
-     'for': ('Для тих, хто страждає на закрепи або хоче захистити слизову оболонку кишківника.',),
-     'how': ('1 ст. л. льняного насіння залийте 200 мл окропу, накрийте кришкою й залиште настоятися на ніч.', 'Вранці випийте «слизисту» частину.'),
-     'helps': ('Покращує перистальтику та полегшує випорожнення.', 'Має обволікаючу дію, захищаючи слизову кишківника.'),
-     'care': ''},
+    {'id': 'lemon', 'title': 'Lemon water', 'minutes': 0,
+     'for': ('A gentle start if your digestion feels slow.', 'A simple morning ritual to wake up your system.'),
+     'how': ('Squeeze half a lemon into a glass of warm (not hot) water.', 'Drink it on an empty stomach, 20–30 minutes before breakfast.'),
+     'helps': ('Warm liquid in the morning may help get your gut going.', 'Many people find it a refreshing, easy habit.'),
+     'care': 'If you have gallstones, acid reflux or sensitive teeth, ask your doctor first and rinse your mouth with plain water afterwards.'},
+    {'id': 'ginger', 'title': 'Ginger tea', 'minutes': 10,
+     'for': ('If you often feel bloated or queasy, or digest heavy meals slowly.',),
+     'how': ('Slice about 1 inch (2–3 cm) of fresh ginger root and pour boiling water over it.', 'Let it steep for 5–10 minutes.', 'Add a teaspoon of honey or a squeeze of lemon if you like.'),
+     'helps': ('Ginger is traditionally used to settle the stomach.', 'May ease bloating and a heavy feeling.'),
+     'care': 'Ginger may not suit you if you take blood thinners or have gallstones. Ask your doctor if you are unsure.'},
+    {'id': 'fennel', 'title': 'Fennel tea', 'minutes': 10,
+     'for': ('If you have bloating or gas, or simply want to calm your gut.',),
+     'how': ('Pour 1 cup (about 240 ml) of boiling water over 1 tsp of fennel seeds.', 'Steep for 10 minutes and strain.'),
+     'helps': ('Traditionally used to ease gas and cramping.', 'A warm, soothing cup after a meal.'),
+     'care': 'Skip it if you are allergic to plants in the carrot family, and ask your doctor first during pregnancy.'},
+    {'id': 'golden', 'title': 'Golden milk (turmeric)', 'minutes': 0,
+     'for': ('A traditional evening drink for anyone who wants a cozy, calming ritual.',),
+     'how': ('Warm a glass of milk (dairy or plant-based) and stir in ½ tsp turmeric powder, a pinch of black pepper and a little honey.', 'Mix well and drink before bed.'),
+     'helps': ('Traditionally enjoyed to support digestion.',),
+     'care': 'Turmeric may not suit you with gallstones, blood-thinning medication or during pregnancy. Ask your doctor if you are unsure. It is a drink, not a treatment.'},
+    {'id': 'mint', 'title': 'Peppermint tea', 'minutes': 10,
+     'for': ('If you feel stressed or have occasional cramps.',),
+     'how': ('Steep 1 tsp of dried peppermint and 1 tsp of lemon balm in a cup of boiling water.', 'Let it steep for 10 minutes.'),
+     'helps': ('A calming cup that many people find relaxing.', 'May ease bloating and cramping.'),
+     'care': 'Peppermint can aggravate acid reflux or heartburn. If that happens to you, choose a different tea.'},
+    {'id': 'flax', 'title': 'Flaxseed water', 'minutes': 0,
+     'for': ('If you are prone to constipation or want something soothing for your gut.',),
+     'how': ('Pour 1 cup (about 240 ml) of boiling water over 1 tbsp of flaxseed, cover, and leave it overnight.', 'In the morning, drink the gel-like liquid.'),
+     'helps': ('Flaxseed is rich in fiber and may support regularity.', 'Its gel-like texture is gentle and coating.'),
+     'care': 'Drink plenty of water with flaxseed and take it at least 1–2 hours apart from any medication. Not for people with a bowel obstruction or trouble swallowing.'},
 )
 
 FAQ = (
-    ('Безпека', (
-        ('Чи можна робити масаж під час менструації?',
-         ('Під час менструації рекомендується уникати інтенсивного масажу, особливо на нижній частині живота, щоб не посилювати кровотечу. '
-          'Однак легкий масаж верхньої частини живота чи діафрагмальне дихання можуть зняти спазми та полегшити загальний стан.',)),
-        ('Чи допомагає масаж при синдромі подразненого кишківника (СПК)?',
-         ('Легкий масаж може допомогти зняти спазми, зменшити здуття та полегшити відчуття в животі. Використовуйте техніку «Спіраль» або «I Love You» '
-          'для м’якого впливу на кишківник, але уникайте сильного натискання. Спершу обговоріть це з лікарем.',)),
-        ('Чи можна робити масаж при хронічних захворюваннях кишківника?',
-         ('При хронічних захворюваннях, таких як хвороба Крона або виразковий коліт, масаж можна виконувати лише в періоди ремісії та з дозволу лікаря. '
-          'Використовуйте легкі техніки для зняття напруги, але уникайте інтенсивного впливу.',)),
-        ('Що робити, якщо під час масажу відчувається дискомфорт або біль?',
-         ('Якщо виникає гострий біль, негайно припиніть масаж і проконсультуйтеся з лікарем. Легкий дискомфорт допустимий, '
-          'але техніку слід адаптувати, зменшивши інтенсивність рухів.',)),
+    ('Safety', (
+        ('Can I do the massage during my period?',
+         ('It is best to avoid intense massage during your period, especially on the lower belly, so that you do not make bleeding heavier. '
+          'A light massage of the upper belly or some diaphragmatic breathing may ease cramps and help you feel better overall.',)),
+        ('Does massage help with irritable bowel syndrome (IBS)?',
+         ('A light massage may help some people feel less cramping and bloating. Try the “Spiral” or “I Love You” '
+          'for a soft touch, and avoid firm pressure. Talk to your doctor first.',)),
+        ('Can I do it if I have a chronic bowel condition?',
+         ('With a condition such as Crohn’s disease or ulcerative colitis, massage is only an option during remission and with your doctor’s approval. '
+          'Stick to light techniques that ease tension, and avoid anything intense.',)),
+        ('What if I feel discomfort or pain during the massage?',
+         ('If you feel sharp pain, stop right away and talk to your doctor. Mild discomfort can happen, '
+          'but you should adapt the technique by easing off the pressure.',)),
     )),
-    ('Практика', (
-        ('Як часто можна робити масаж кишківника?',
-         ('Масаж можна робити 1–2 рази на день: зранку натщесерце для запуску травної системи та ввечері перед сном для релаксації та покращення перистальтики. '
-          'Якщо є дискомфорт або відчуваєте, що ваш організм потребує більше часу, зменшіть частоту до кількох разів на тиждень.',)),
-        ('Чи потрібна підготовка перед масажем?',
-         ('Так, підготовка допомагає зробити масаж ефективнішим: випийте склянку теплої води за 20–30 хвилин до масажу, використайте теплий компрес '
-          'для розслаблення м’язів живота та оберіть зручну позу (лежачи на спині із зігнутими колінами).',)),
-        ('Чи можна робити масаж одразу після їжі?',
-         ('Ні, масаж одразу після їжі не рекомендується: це може викликати дискомфорт, здуття або уповільнити травлення. '
-          'Найкраще виконувати масаж через 1,5–2 години після прийому їжі, коли їжа частково перетравлена, і шлунок не переповнений.',)),
-        ('Чи обов’язково використовувати олії для масажу?',
-         ('Олії не є обов’язковими, але вони покращують ковзання та додають релаксаційного ефекту. Обирайте базові олії (мигдальна, кокосова) '
-          'з додаванням ефірних (м’ята, лаванда, розмарин) залежно від ваших потреб. ' + OILS_NOTE,)),
-        ('Чи можна поєднувати масаж із вакуумними вправами?',
-         ('Так, вакуумні вправи добре доповнюють масаж, оскільки сприяють розслабленню діафрагми та покращують кровообіг у животі. '
-          'Виконуйте вакуум після масажу або окремо, лише за відсутності протипоказань (вагітність, свіжі операції, грижа) і не на повний шлунок.',)),
+    ('Practice', (
+        ('How often can I do the massage?',
+         ('Many people do it once or twice a day: in the morning on an empty stomach to wake up digestion, and in the evening before bed to unwind. '
+          'If you feel discomfort or your body needs more time, cut back to a few times a week.',)),
+        ('Do I need to prepare?',
+         ('It helps: drink a glass of warm water 20–30 minutes before, rest a warm compress on your belly to relax the muscles, '
+          'and choose a comfortable position (lying on your back with your knees bent).',)),
+        ('Can I massage right after eating?',
+         ('No, massaging right after a meal is not recommended: it can cause discomfort, bloating or slow digestion. '
+          'It is best to wait 1.5–2 hours after eating, when your food is partly digested and your stomach is not full.',)),
+        ('Do I have to use oil?',
+         ('No, oil is optional, but it helps your hands glide and adds a relaxing touch. Choose a carrier oil (almond or coconut), '
+          'with an essential oil (peppermint, lavender, rosemary) added if you like. ' + OILS_NOTE,)),
+        ('Can I combine the massage with stomach vacuum exercises?',
+         ('Some people do. Stomach vacuum exercises can go well with massage because they work the diaphragm and the belly muscles. '
+          'Do them after the massage or separately, never on a full stomach, and skip them with a contraindication (pregnancy, recent surgery, a hernia). If in doubt, ask your doctor.',)),
     )),
-    ('Очікування', (
-        ('Як швидко можна побачити результати?',
-         ('Результати можуть бути відчутними вже після першого масажу, наприклад, полегшення здуття або зменшення напруги. '
-          'Для довгострокового ефекту потрібна регулярна практика протягом кількох тижнів.',)),
-        ('Чи масаж кишківника допомагає при схудненні?',
-         ('Масаж не спалює жир, але покращує травлення, сприяє комфортнішому травленню, що може підтримати загальний режим харчування. '
-          'Поєднуйте масаж із правильним харчуванням і фізичною активністю для найкращих результатів.',)),
+    ('Expectations', (
+        ('How soon will I see results?',
+         ('Some people feel a difference after the first session, such as less bloating or tension. '
+          'For a lasting effect, regular practice over several weeks usually works best. Everyone is different.',)),
+        ('Does gut massage help with weight loss?',
+         ('No. Massage does not burn fat. It may help you feel more comfortable after eating, which can support a healthy routine. '
+          'For the best results, combine it with balanced eating and regular movement.',)),
     )),
 )
 
-STOP_RULES = ('гострий або наростаючий біль', 'нудота чи запаморочення', 'кров у випорожненнях', 'раптове погіршення самопочуття')
+STOP_RULES = ('sharp or worsening pain', 'nausea or dizziness', 'blood in your stool', 'a sudden change for the worse in how you feel')
 
+# TODO(owner): replace this placeholder with the real bio of the author; nothing below is a claim about her background.
 AUTHOR = {
-    'name': 'Дорі',
-    'paras': ('Я — Дорі, нутриціолог і клінічна психологиня: закінчила The College of Naturopathic Medicine в Лондоні та Київський медичний університет, '
-              'а зараз навчаюся в Institute for Integrative Nutrition.',
-              'Я рада, що ви познайомилися з цією методикою, адже вона вже допомогла багатьом людям покращити своє здоров’я та відчути себе краще. '
-              'І я впевнена, що вона стане для вас корисним інструментом на шляху до гармонії з власним тілом.',
-              'Пам’ятайте, що навіть найменший крок до себе — це вже велика перемога. Дякую за вашу довіру, і я щиро вірю у ваш успіх!'),
-    'motto': 'Здоров’я — це не пункт призначення, а спосіб життя.',
+    'name': site.AUTHOR_NAME,
+    'paras': (f'This course was created by {site.AUTHOR_NAME}, {site.AUTHOR_JOB.lower()}. It shares the gentle gut-care habits she teaches.',
+              'We are glad you are here. Small, steady steps are what count, and this course is meant to be a calm, practical companion along the way. Thank you for your trust.'),
+    'motto': 'Small steps, taken gently, add up.',
 }

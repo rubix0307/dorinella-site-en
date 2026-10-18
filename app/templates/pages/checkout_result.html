@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Your order {{ order.number }} | {{ site.BRAND }}{% endblock %}
+{% block description %}The result of your payment.{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block schema %}{% endblock %}
+
+{% block content %}
+    <section class="section" aria-labelledby="res-title">
+        <div class="container container--narrow">
+            <p class="eyebrow">Order {{ order.number }}{% if order.test_mode %} · test order, no money was taken{% endif %}</p>
+            {% if order.status in ('paid', 'partially_refunded') %}
+                <h1 class="section-title" id="res-title">Thank you, your payment went through</h1>
+                <p class="section-lead">{{ product.title if product else 'Your purchase' }}: {{ price }}. Stripe has e-mailed you the receipt.{% if access %} Your access is open.{% endif %}</p>
+                <div class="hero__actions">
+                    {% if access and product and product.open_path %}<a class="btn btn--primary" href="{{ product.open_path }}">Open it{{ icon('arrow-right') }}</a>{% endif %}
+                    <a class="btn btn--ghost" href="{{ url('account') }}">Your account</a>
+                </div>
+                <p class="muted">Changed your mind? You can ask for a full refund within {{ legal.refund_days }} days: see the <a href="{{ url('refund') }}">Refund Policy</a>.</p>
+            {% elif order.status == 'refunded' %}
+                <h1 class="section-title" id="res-title">This order was refunded</h1>
+                <p class="section-lead">{{ price }} went back to your card and the access was closed. Banks can take a few days to show it.</p>
+            {% elif order.status == 'created' %}
+                <h1 class="section-title" id="res-title">Waiting for the payment to be confirmed</h1>
+                <p class="section-lead">Stripe has not confirmed the payment yet. This usually takes less than a minute. If you paid, your access opens by itself; if you left the payment page, you can start again from the product page.</p>
+                <div class="hero__actions"><a class="btn btn--ghost" href="{{ url('checkout_result', number=order.number) }}">{{ icon('rotate-ccw') }}Check again</a></div>
+            {% else %}
+                <h1 class="section-title" id="res-title">The payment did not go through</h1>
+                <p class="section-lead">Nothing was charged. You can try again{% if product %} from <a href="{{ url('product_detail', slug=product.slug) }}">the product page</a>{% endif %}. If money left your account, it opens by itself when Stripe confirms it; otherwise write to <a href="mailto:{{ site.CONTACT_EMAIL }}">{{ site.CONTACT_EMAIL }}</a> with the order number.</p>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

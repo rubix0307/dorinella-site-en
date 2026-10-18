@@ -1,11 +1,11 @@
 {#- Six simple drinks. One shared steeping timer (the cards with a time have a button; the time is plain text without JS). -#}
 <section class="abm-block abm-drinks" data-drinks>
-    <h2 class="abm-h2">Рецепти простих напоїв для підтримки травлення</h2>
+    <h2 class="abm-h2">Six simple drinks to go with your massage</h2>
     <div class="abm-timer" data-timer hidden role="timer" aria-live="off">
         <span class="abm-timer__icon" aria-hidden="true">{{ icon('timer') }}</span>
         <div><strong data-timer-name></strong><span class="abm-timer__time" data-timer-time>0:00</span></div>
-        <button class="abm-iconbtn" type="button" data-timer-mute aria-pressed="false" aria-label="Вимкнути звук" title="Звук сигналу" data-on="{{ icon('volume-2')|forceescape }}" data-off="{{ icon('volume-x')|forceescape }}">{{ icon('volume-2') }}</button>
-        <button class="btn btn--ghost" type="button" data-timer-stop>Зупинити</button>
+        <button class="abm-iconbtn" type="button" data-timer-mute aria-pressed="false" aria-label="Mute" title="Alert sound" data-on="{{ icon('volume-2')|forceescape }}" data-off="{{ icon('volume-x')|forceescape }}">{{ icon('volume-2') }}</button>
+        <button class="btn btn--ghost" type="button" data-timer-stop>Stop</button>
     </div>
     <p class="visually-hidden" aria-live="polite" data-timer-live></p>
     <div class="abm-drinkgrid">
@@ -13,18 +13,17 @@
             <article class="abm-drink" aria-labelledby="drink-{{ dr.id }}">
                 <header class="abm-drink__head">
                     <h3 class="abm-drink__h" id="drink-{{ dr.id }}">{{ dr.title }}</h3>
-                    <p class="abm-drink__en">{{ dr.en }}</p>
                 </header>
-                <div class="abm-drink__for"><span class="abm-drink__label">Кому підходить</span>
+                <div class="abm-drink__for"><span class="abm-drink__label">Who it is for</span>
                     <ul class="abm-tags" role="list">{% for i in dr['for'] %}<li>{{ i }}</li>{% endfor %}</ul></div>
-                <div class="abm-drink__sec"><span class="abm-drink__label">Як приготувати</span>
+                <div class="abm-drink__sec"><span class="abm-drink__label">How to make it</span>
                     <ol class="abm-drink__how">{% for i in dr.how %}<li>{{ i }}</li>{% endfor %}</ol></div>
-                <div class="abm-drink__sec"><span class="abm-drink__label">Як допомагає</span>
+                <div class="abm-drink__sec"><span class="abm-drink__label">How it may help</span>
                     <ul class="abm-drink__helps" role="list">{% for i in dr.helps %}<li>{{ icon('check') }}<span>{{ i }}</span></li>{% endfor %}</ul></div>
                 {% if dr.care %}<p class="abm-drink__care">{{ icon('triangle-alert') }}<span>{{ dr.care }}</span></p>{% endif %}
                 {% if dr.minutes %}
                     <button class="btn btn--ghost abm-drink__timer" type="button" data-start-timer="{{ dr.minutes }}" data-name="{{ dr.title }}" hidden>
-                        {{ icon('timer') }}Таймер настоювання: {{ dr.minutes }} хв</button>
+                        {{ icon('timer') }}Steeping timer: {{ dr.minutes }} min</button>
                 {% endif %}
             </article>
         {% endfor %}

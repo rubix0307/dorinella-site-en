@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% block schema %}{{ seo.graph(request, seo.product(request, product), seo.crumbs(request, ('Продукти', '/products/'), (product.title, request.url.path))) }}{% endblock %}
+{% block schema %}{{ seo.graph(request, seo.product(request, product), seo.crumbs(request, ('Guides and courses', '/products/'), (product.title, request.url.path)), seo.faq(faq)) }}{% endblock %}
 
-{% block title %}Онлайн-курс «Масаж живота»: програма, ціна й умови | dorinellla{% endblock %}
-{% block description %}Онлайн-курс «Масаж живота»: {{ course.PUBLIC_PAGES|length }} кроків, {{ course.TECHNIQUES|length }} технік самомасажу з анімацією, безпека, підготовка, харчування й напої. Ціна {{ price }}, оплата карткою Visa чи Mastercard.{% endblock %}
-{% block og_title %}Онлайн-курс «Масаж живота» від Дорі{% endblock %}
-{% block og_description %}Покрокові техніки самомасажу живота з анімацією, підготовка, харчування й напої для здоров’я кишківника.{% endblock %}
+{% block title %}Abdominal Massage Course: program and format | {{ site.BRAND }}{% endblock %}
+{% block description %}An online abdominal self-massage course: {{ course.PUBLIC_PAGES|length }} steps, {{ course.TECHNIQUES|length }} techniques with animated demonstrations, a safety section, preparation and nutrition tips.{% endblock %}
+{% block og_title %}Abdominal Massage Course by {{ site.AUTHOR_NAME }}{% endblock %}
+{% block og_description %}Step-by-step abdominal self-massage with animated demonstrations, safe preparation and nutrition tips.{% endblock %}
 {% block og_image %}{{ static(product.og_image) }}{% endblock %}
 {% block og_image_alt %}{{ product.og_image_alt }}{% endblock %}
 {% block body_class %}theme-guts{% endblock %}
@@ -13,20 +13,20 @@
     <section class="hero hero--product" aria-labelledby="hero-title">
         <div class="container hero__inner">
             <div class="hero__text">
-                <p class="eyebrow">Онлайн-курс</p>
-                <h1 class="hero__title" id="hero-title">Масаж <em>живота</em></h1>
+                <p class="eyebrow">Online course{% if not product.on_sale %} · Opening soon{% endif %}</p>
+                <h1 class="hero__title" id="hero-title">Abdominal <em>Massage</em> Course</h1>
                 <p class="hero__lead">{{ product.tagline }}</p>
-                <p class="buy-price" aria-label="Ціна курсу"><strong>{{ price }}</strong> <span class="muted">одноразовий платіж, доступ у власному темпі</span></p>
+                {% if price %}<p class="buy-price" aria-label="Price"><strong>{{ price }}</strong> <span class="muted">one payment, learn at your own pace</span></p>{% endif %}
                 <div class="hero__actions">
-                    <a class="btn btn--primary" href="#buy">{{ icon('credit-card') }}Придбати курс</a>
-                    <a class="btn btn--ghost" href="#program">Програма курсу</a>
+                    <a class="btn btn--primary" href="#buy">{{ icon('shopping-bag') }}{% if sales_open %}Get the course{% else %}Coming soon{% endif %}</a>
+                    <a class="btn btn--ghost" href="#program">See the program</a>
                 </div>
             </div>
             <figure class="hero__media hero__media--illustration">
                 <img src="{{ static('img/guts-hero-500.webp') }}"
                      srcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
                      sizes="(min-width: 961px) 520px, 340px"
-                     width="500" height="526" alt="Ілюстрація кишківника, оповитого квітучими гілками"
+                     width="500" height="526" alt="Illustration of the gut wrapped in blossoming branches"
                      fetchpriority="high" decoding="async">
             </figure>
         </div>
@@ -35,13 +35,13 @@
     <section class="section" aria-labelledby="about-title">
         <div class="container container--narrow">
             <div class="highlight-card" data-reveal>
-                <h2 class="highlight-card__title" id="about-title">Що це за курс</h2>
+                <h2 class="highlight-card__title" id="about-title">What is the course?</h2>
                 <p>{{ product.summary }}</p>
                 <ul class="buy-facts" role="list">
-                    <li>{{ icon('list-checks') }}<span><strong>{{ course.PUBLIC_PAGES|length }}</strong> кроків у п’яти розділах</span></li>
-                    <li>{{ icon('play') }}<span><strong>{{ course.TECHNIQUES|length }}</strong> технік самомасажу з анімацією</span></li>
-                    <li>{{ icon('heart-pulse') }}<span>Окремий розділ про безпеку й протипоказання</span></li>
-                    <li>{{ icon('clock') }}<span>Доступ зі свого акаунта: гарантовано 12 місяців, далі поки існує акаунт</span></li>
+                    <li>{{ icon('list-checks') }}<span><strong>{{ course.PUBLIC_PAGES|length }}</strong> steps in {{ course.GROUPS|length }} sections</span></li>
+                    <li>{{ icon('play') }}<span><strong>{{ course.TECHNIQUES|length }}</strong> massage techniques with animated demonstrations</span></li>
+                    <li>{{ icon('shield-check') }}<span>A dedicated safety section on who should skip massage</span></li>
+                    <li>{{ icon('smartphone') }}<span>Works in your browser on a phone, tablet or computer</span></li>
                 </ul>
             </div>
         </div>
@@ -50,60 +50,44 @@
     <section class="section" id="program" aria-labelledby="program-title">
         <div class="container container--narrow">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Зміст</p>
-                <h2 class="section-title" id="program-title">Програма курсу</h2>
+                <p class="eyebrow">Contents</p>
+                <h2 class="section-title" id="program-title">The program</h2>
+                {% if not product.on_sale %}<p class="section-lead">This is what the course will cover. The program may still change before it opens.</p>{% endif %}
             </div>
             {% for group_name in course.GROUPS %}
                 {% set gi = loop.index0 %}
                 <h3 class="buy-group">{{ gi + 1 }}. {{ group_name }}</h3>
                 <ul class="buy-program" role="list">
                     {% for page in course.PUBLIC_PAGES if page.group == gi %}
-                        <li><strong>{{ page.title }}</strong><span class="muted"> — {{ page.promise }}</span></li>
+                        <li><strong>{{ page.title }}</strong><span class="muted"> · {{ page.promise }}</span></li>
                     {% endfor %}
                 </ul>
             {% endfor %}
         </div>
     </section>
 
-    <section class="section" aria-labelledby="format-title">
+    {# TODO(owner): confirm how long access lasts and how it is delivered before the course goes on sale. #}
+    <section class="section section--tinted" aria-labelledby="format-title">
         <div class="container container--narrow">
             <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Формат</p>
-                <h2 class="section-title" id="format-title">Як проходить навчання й що ви отримуєте</h2>
+                <p class="eyebrow">Format</p>
+                <h2 class="section-title" id="format-title">How the course works</h2>
             </div>
             <ul class="buy-facts" role="list">
-                <li>{{ icon('smartphone') }}<span>Курс працює на сайті dorinellla.com у браузері на телефоні, планшеті й комп’ютері, окремі застосунки не потрібні.</span></li>
-                <li>{{ icon('user') }}<span>Доступ відкривається на акаунт Google, з якого ви оформили замовлення, і є особистим.</span></li>
-                <li>{{ icon('credit-card') }}<span>Ціна вказана в гривнях (грн). Оплата карткою Visa або Mastercard на захищеній сторінці платіжної системи Portmone; дані картки ми не бачимо й не зберігаємо. Доступ гарантуємо щонайменше 12 місяців, далі він діє, поки існує ваш акаунт (докладніше в <a href="{{ url('offer') }}#access">оферті</a>).</span></li>
-                <li>{{ icon('zap') }}<span>Курс цифровий: фізичної доставки немає. Доступ відкривається автоматично після підтвердження оплати, зазвичай за кілька хвилин.</span></li>
-                <li>{{ icon('shield-check') }}<span>Матеріали мають освітній характер і не замінюють консультацію лікаря. Перед практиками прочитайте розділ про безпеку.</span></li>
+                <li>{{ icon('smartphone') }}<span>The course runs on {{ site.DOMAIN }} in your browser. There is nothing to install.</span></li>
+                <li>{{ icon('user') }}<span>Access is added to your account (you sign in with Google) and is personal to you.</span></li>
+                <li>{{ icon('zap') }}<span>It is a digital product, so there is nothing to ship: access opens right after your payment is confirmed.</span></li>
+                <li>{{ icon('shield-check') }}<span>The material is educational and does not replace medical advice. Please read the safety section before you practice.</span></li>
             </ul>
         </div>
     </section>
 
     <section class="section" id="buy" aria-labelledby="buy-title">
         <div class="container container--narrow">
-            <div class="buy-card" data-reveal>
-                <h2 class="buy-card__title" id="buy-title">Вартість і оплата</h2>
-                <p class="buy-card__price">{{ price }}</p>
-                <p class="muted">Одноразовий платіж, доступ від 12 місяців</p>
-                {% include 'includes/payment_logos.html' %}
-                {% if pay and pay.bought %}
-                    <p class="buy-card__note">{{ icon('circle-check') }}Ви вже придбали курс.</p>
-                    <a class="btn btn--primary" href="{{ course.BASE }}">{{ icon('play') }}Перейти до курсу</a>
-                {% elif pay and pay.ready %}
-                    <form method="post" action="{{ url('payment_checkout', slug=pay.slug) }}" class="buy-card__form">
-                        <label class="abm-pay__agree"><input type="checkbox" name="agree" value="1" required> <span>Я ознайомився(лась) і погоджуюся з <a href="{{ url('offer') }}" target="_blank" rel="noopener">публічною офертою</a> та умовами <a href="{{ url('payment_terms') }}" target="_blank" rel="noopener">оплати, доставки, обміну й повернення</a>. Я знаю, що маю право відмовитися від договору протягом 14 днів без пояснення причин.</span></label>
-                        <button class="btn btn--primary" type="submit">{{ icon('credit-card') }}<span>Оплатити {{ price }}</span></button>
-                    </form>
-                {% elif sales_open and not signed_in %}
-                    <p>Щоб оплатити, увійдіть через акаунт Google: доступ відкриється на нього. Після входу поверніться на цю сторінку.</p>
-                    <a class="btn btn--primary" href="{{ url('login') }}">{{ icon('arrow-right') }}Увійти, щоб оплатити</a>
-                {% else %}
-                    <p>Продаж курсу відкриється найближчим часом.</p>{% if not signed_in %}<p class="muted"><a href="{{ url('login') }}">Увійти</a></p>{% endif %}
-                {% endif %}
-                <p class="buy-card__links"><a href="{{ url('offer') }}">Публічна оферта</a> · <a href="{{ url('payment_terms') }}">Оплата, доставка, обмін і повернення</a> · <a href="{{ url('contacts') }}">Контакти продавця</a></p>
-            </div>
+            {% with buy_title = 'Get the course' %}{% include 'includes/buy_box.html' %}{% endwith %}
+            <p class="muted buy-card__links"><a href="{{ url('terms') }}">Terms</a> · <a href="{{ url('privacy') }}">Privacy</a></p>
         </div>
     </section>
+
+    {% include 'includes/faq.html' %}
 {% endblock %}

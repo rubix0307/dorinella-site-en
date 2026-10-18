@@ -1,44 +1,58 @@
 {% extends 'base.html' %}
 {% block schema %}{{ seo.generic(request, self.title()|trim, self.description()|trim) }}{% endblock %}
 
-
-{% block title %}Умови користування | dorinellla{% endblock %}
-{% block description %}Правила користування сайтом dorinellla.com, курсами та відгуками.{% endblock %}
+{% block title %}Terms of Service | {{ site.BRAND }}{% endblock %}
+{% block description %}The rules for using {{ site.DOMAIN }}, buying its guides and courses, and what the content can and cannot do for your health.{% endblock %}
 
 {% block content %}
+    {#- TODO(owner): a lawyer should read these Terms. Open points: the seller's legal name and address (app/legal.py), governing law, sales tax / VAT on digital products, how long a bought product stays available. #}
     <section class="section legal" aria-labelledby="legal-title">
         <div class="container container--narrow">
-            <p class="eyebrow">Оновлено {{ offer_date }}</p>
-            <h1 class="section-title" id="legal-title">Умови користування</h1>
+            <p class="eyebrow">Last updated {{ legal.updated }}</p>
+            <h1 class="section-title" id="legal-title">Terms of Service</h1>
             <div class="prose">
-                <p>Користуючись сайтом dorinellla.com, ви погоджуєтеся з цими умовами.</p>
+                <p>These terms are the agreement between you and {{ legal.seller.name }} ("we", "us"), who runs {{ site.BRAND }} at {{ site.DOMAIN }}. By using the site, creating an account or buying a product you agree to them. If you do not agree, please do not use the site.</p>
 
-                <h2>Інформація на сайті</h2>
-                <p>Матеріали сайту мають освітній характер і не замінюють консультацію лікаря. Перед змінами в харчуванні, особливо за наявності захворювань, вагітності чи розладів харчової поведінки, радьтеся зі спеціалістом.</p>
+                <h2 id="medical">Medical disclaimer</h2>
+                <p><strong>Everything on this site is general education about nutrition, digestion and gentle self-massage. It is not medical advice, a diagnosis or a treatment, and it does not replace a doctor.</strong> {{ site.AUTHOR_NAME }} is a {{ site.AUTHOR_JOB|lower }}, not a physician. Tests, scales and tips on the site are for orientation only.</p>
+                <ul>
+                    <li>See a doctor before you start abdominal massage if you are pregnant, have recently had abdominal surgery, or have a hernia, an inflammatory bowel disease, an infection, a tumor, a blood-clotting problem or any condition of the abdomen.</li>
+                    <li>Stop and get medical help if you have severe or lasting pain, blood in your stool, black stool, fever, vomiting, unexplained weight loss or a sudden change in your bowel habits.</li>
+                    <li>Do not stop or change medicines or treatment because of anything you read here.</li>
+                    <li>If it is an emergency, call your local emergency number.</li>
+                </ul>
+                <p>You use the guides, the course and the tests at your own risk and are responsible for deciding whether they are right for you.</p>
 
-                <h2>Акаунт і вік</h2>
-                <p>Вхід відбувається через акаунт Google. Ви відповідаєте за безпеку свого акаунта й не передаєте доступ іншим людям.</p>
-                <p>Сайтом можна користуватися з 16 років: під час першого входу ви підтверджуєте це позначкою. Купівля курсу доступна з 18 років, або з 16 років за дозволом законного представника (позначка на сторінці оплати). Якщо вам менше 16 років, вийдіть із акаунта й напишіть нам: ми його видалимо.</p>
-                <p>Коли ми змінюємо умови суттєво, ми просимо підтвердити їх знову: до цього кабінет, нові оплати й нові матеріали курсу недоступні. Політику конфіденційності ви не «приймаєте», а лише читаєте.</p>
+                <h2>Your account</h2>
+                <p>You sign in with a Google account. Give us a real address, keep your account to yourself and tell us if you think someone else has used it. You must be at least 16 to use the site and at least 18 (or the age of majority where you live) to buy. We can switch off an account that breaks these terms.</p>
 
-                <h2>Листи й опитування</h2>
-                <p>Рекламні листи (новини, статті, пропозиції курсів, знижки) надходять лише тим, хто сам їх обрав окремою позначкою, що не стоїть наперед, і підтвердив підписку листом на свою адресу. Купівля, вхід чи згода з цими умовами не є згодою на розсилку. Добір листів за вашими діями на сайті й лічильник відкриттів та переходів у листах увімкнено лише за окремими позначками, і діють вони тільки разом із підпискою. Від усього цього можна відмовитися будь-коли одним натисканням: у кожному листі або в кабінеті на сторінці <a href="{{ url('account_notifications') }}">«Листи й згоди»</a>. Відмова діє одразу й не впливає на доступ до кабінету, курсу чи оплат.</p>
-                <p>Опитування «Звідки ви дізналися про сайт?» необов’язкове, потрібне лише для статистики джерел і не впливає на розсилки. Не пишіть у ньому особисту чи медичну інформацію; свою відповідь можна змінити або видалити в кабінеті.</p>
+                <h2>What you buy</h2>
+                <p>Guides and courses are digital products: a PDF or web guide, or an online course you open in your account. You get a personal, non-transferable license to use them for yourself. You may not copy, resell, share your account or access, publish, or record and redistribute them. We keep all rights in the content, the videos, the animations, the text and the design.</p>
+                <p>What each product includes is described on its page. You get access right after the payment is confirmed. Access lasts as long as the product page says; if we ever have to stop offering a product you bought, we will tell you in advance and make it right, including a refund where that is fair.</p>
 
-                <h2>Курси</h2>
-                <p>Доступ до курсу особистий. Записи, тексти й матеріали курсу не можна копіювати, записувати з екрана, публікувати або передавати третім особам. У разі порушення ми можемо закрити доступ до курсу. Умови придбання, оплати й повернення коштів — у <a href="{{ url('offer') }}">публічній оферті</a> та на сторінці <a href="{{ url('payment_terms') }}">«Оплата, доставка, обмін та повернення»</a>.</p>
+                <h2>Prices and payment</h2>
+                <p>Prices are shown in US dollars. {# TODO(owner): say whether sales tax / VAT is included, and set it up in Stripe Tax if it applies #}Payments are made by card on a page hosted by Stripe; we never see your card number. Stripe e-mails you a receipt. Your order is final when Stripe confirms the payment. We may refuse or cancel an order if we suspect fraud or abuse, and then refund anything you paid.</p>
 
-                <h2>Відгуки</h2>
-                <p>Ви можете залишити відгук про курс після його проходження. Він має бути вашою справжньою думкою без образ, спаму та посилань. Перед публікацією відгуки перевіряються автоматично та вручну; ми залишаємо за собою право не публікувати або сховати відгук, що порушує ці правила. Ви можете змінити свій відгук або сховати його текст у будь-який час.</p>
+                <h2>Refunds</h2>
+                <p>You can have your money back within {{ legal.refund_days }} days of buying, no questions asked. All the details are in the <a href="{{ url('refund') }}">Refund Policy</a>, which is part of these terms. Your rights under the consumer law of your country are not affected.</p>
 
-                <h2>Відповідальність</h2>
-                <p>Ми докладаємо зусиль, щоб сайт працював безперебійно, але не гарантуємо відсутності збоїв. Не несемо відповідальності за наслідки використання порад без консультації спеціаліста.</p>
+                <h2>Using the site properly</h2>
+                <p>Do not try to break, overload or probe the site, scrape it in bulk, get around the payment or the access rules, or use it for anything unlawful. We may block access if you do.</p>
 
-                <h2>Зміни</h2>
-                <p>Ми можемо змінювати ці умови та політику конфіденційності в будь-який час. Нова версія діє з моменту публікації на сайті; дата останнього оновлення вказана вгорі сторінки. Користуючись сайтом після змін, ви погоджуєтеся з оновленими умовами.</p>
+                <h2>Links to other sites</h2>
+                <p>The site links to other sites, such as Instagram. We do not control them and are not responsible for what they do.</p>
 
-                <h2>Зв’язок</h2>
-                <p>Питання пишіть в Instagram <a href="{{ out('https://www.instagram.com/dorinellla/', 'terms:instagram') }}" target="_blank" rel="noopener">@dorinellla</a>. Як ми поводимося з вашими даними, описано в <a href="{{ url('privacy') }}">політиці конфіденційності</a>.</p>
+                <h2>Our responsibility</h2>
+                <p>We take care over the content, but we give it "as is", with no promise that it will work for you, give a particular result or be free of errors and interruptions. To the extent the law allows, we are not liable for indirect or consequential loss, and our total liability to you for anything connected with the site is limited to what you paid us in the 12 months before the claim. Nothing in these terms limits liability that cannot be limited by law, such as for death or personal injury caused by negligence, for fraud, or your rights as a consumer.</p>
+
+                <h2>Governing law</h2>
+                <p>These terms are governed by the law of {{ legal.seller.governing_law }}. If you are a consumer, you also keep the protection of the mandatory consumer law of the country where you live, and you may bring a claim in your local courts. Please write to us first; most problems can be solved by talking.</p>
+
+                <h2>Changes</h2>
+                <p>We may update these terms. The date at the top shows the latest version. If a change matters, we will tell you before it applies to you; a change does not affect an order you already made. Using the site after a change means you accept it.</p>
+
+                <h2>Contact</h2>
+                <p>{{ legal.seller.name }}, {{ legal.seller.address }}. E-mail: <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>. How we handle your data is in the <a href="{{ url('privacy') }}">Privacy Policy</a>.</p>
             </div>
         </div>
     </section>

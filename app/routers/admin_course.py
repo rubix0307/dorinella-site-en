@@ -1,4 +1,4 @@
-"""Admin «Курс»: analytics of the «Масаж живота» course: period filter, sortable and filterable tables, updated live."""
+"""Admin «Course»: analytics of the «Gut Massage» course: period filter, sortable and filterable tables, updated live."""
 from urllib.parse import unquote, urlencode
 
 from fastapi import APIRouter, Depends, Request

@@ -1,4 +1,4 @@
-"""«Pages»: which parts of the site and which pages are read — sections first, then a section's pages
+"""Pages: which parts of the site and which pages are read — sections first, then a section's pages
 (like Google Analytics' content drill-down). From page_views, for the admin's period."""
 from dataclasses import dataclass
 
@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .analytics import visitor_key
 from .catalog import PRODUCTS
+from .i18n import Message
 from .learn import GUIDES, SELF_TESTS
 from .models import PageView
 from .stats import DateRange
@@ -68,19 +69,31 @@ async def pages(session: AsyncSession, rng: DateRange, section: str) -> tuple[li
     )).all()
     views, visitors = (await session.execute(
         select(func.count(), func.count(visitor_key(PageView).distinct())).where(*where))).one()
-    names = await _page_names(session)
+    names = _page_names()
     out = [Row(path, names.get(path) or path, v, u, share=v / views if views else 0, hint=path)
            for path, v, u in found]
     return out, views, visitors
 
 
-async def _page_names(session: AsyncSession) -> dict[str, str]:
+def _page_names() -> dict[str, str]:
     """Human names for known paths: products, guides, tests."""
-    names = {'/': 'Home page', '/products/': 'Product catalogue', '/guides/': 'Guide library'}
+    names: dict[str, str] = {'/': 'Home page', '/products/': 'Product catalogue', '/guides/': 'Guide library', '/tests/': 'Tests', '/links/': 'Links page'}
     for product in PRODUCTS.values():
         names[f'/products/{product.slug}/'] = product.title
     for guide in GUIDES.values():
-        names[f'/guides/{guide.slug}/'] = f'Guide: {guide.title}'
+        names[f'/guides/{guide.slug}/'] = Message('Guide: %(title)s', title=guide.title)
     for test in SELF_TESTS.values():
-        names[f'/tests/{test.slug}/'] = f'Test: {test.title}'
+        names[f'/tests/{test.slug}/'] = Message('Test: %(title)s', title=test.title)
     return names
+
+
+async def top_pages(session: AsyncSession, rng: DateRange, limit: int = 8) -> list[Row]:
+    """The most viewed pages of the whole site in the period (the dashboard's short list)."""
+    since, until = rng.utc_bounds
+    where = (PageView.created_at >= since, PageView.created_at < until)
+    found = (await session.execute(
+        select(PageView.path, func.count().label('views'), func.count(visitor_key(PageView).distinct()))
+        .where(*where).group_by(PageView.path).order_by(func.count().desc(), PageView.path).limit(limit))).all()
+    views = await session.scalar(select(func.count()).where(*where)) or 0
+    names = _page_names()
+    return [Row(path, names.get(path) or path, v, u, share=v / views if views else 0, hint=path) for path, v, u in found]

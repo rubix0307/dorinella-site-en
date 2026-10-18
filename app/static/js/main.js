@@ -20,7 +20,7 @@
         const setOpen = (open) => {
             background.forEach((el) => { el.inert = open; });
             toggle.setAttribute('aria-expanded', String(open));
-            toggle.setAttribute('aria-label', open ? 'Закрити меню' : 'Відкрити меню');
+            toggle.setAttribute('aria-label', open ? 'Close the menu' : 'Open the menu');
             menu.classList.toggle('is-open', open);
             menu.setAttribute('aria-hidden', String(!open));
             document.body.classList.toggle('is-locked', open);
@@ -163,88 +163,6 @@
             } else {
                 animate(from, closed, [progress, 0], () => { details.open = false; });
             }
-        });
-    });
-
-    /* ---------- Reviews carousel ---------- */
-    document.querySelectorAll('[data-carousel]').forEach((carousel) => {
-        const section = carousel.closest('section');
-        const track = carousel.querySelector('[data-carousel-track]');
-        const slides = Array.from(track.children);
-        const prev = section.querySelector('[data-carousel-prev]');
-        const next = section.querySelector('[data-carousel-next]');
-        const dotsWrap = section.querySelector('[data-carousel-dots]');
-        if (!slides.length) return;
-
-        const step = () => slides[0].getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0);
-        const maxScroll = () => track.scrollWidth - track.clientWidth;
-
-        // scroll positions the track can actually reach: the last few slides share the end position
-        let positions = [];
-        let dots = [];
-        const buildDots = () => {
-            const max = maxScroll();
-            const count = Math.max(1, Math.ceil(max / step() - 0.05) + 1);
-            positions = Array.from({length: count}, (_, i) => Math.min(i * step(), max));
-            if (dots.length === count || !dotsWrap) return;
-            dotsWrap.replaceChildren();
-            dots = positions.map((_, i) => {
-                const dot = document.createElement('button');
-                dot.type = 'button';
-                dot.className = 'carousel__dot';
-                dot.tabIndex = -1;
-                dot.addEventListener('click', () => track.scrollTo({left: positions[i], behavior: 'smooth'}));
-                dotsWrap.appendChild(dot);
-                return dot;
-            });
-        };
-
-        const setDisabled = (btn, value) => {
-            if (btn) btn.setAttribute('aria-disabled', String(value));
-        };
-
-        const update = () => {
-            const x = track.scrollLeft;
-            let active = 0;
-            positions.forEach((pos, i) => {
-                if (Math.abs(pos - x) < Math.abs(positions[active] - x)) active = i;
-            });
-            dots.forEach((d, i) => d.classList.toggle('is-active', i === active));
-            setDisabled(prev, x <= 4);
-            setDisabled(next, x >= maxScroll() - 4);
-        };
-
-        const go = (dir) => track.scrollBy({left: dir * step(), behavior: 'smooth'});
-        prev?.addEventListener('click', () => { if (prev.getAttribute('aria-disabled') !== 'true') go(-1); });
-        next?.addEventListener('click', () => { if (next.getAttribute('aria-disabled') !== 'true') go(1); });
-        track.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
-            if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
-        });
-
-        let ticking = false;
-        track.addEventListener('scroll', () => {
-            if (ticking) return;
-            ticking = true;
-            requestAnimationFrame(() => { update(); ticking = false; });
-        }, {passive: true});
-        window.addEventListener('resize', () => { buildDots(); update(); });
-        buildDots();
-        update();
-    });
-
-    /* ---------- YouTube: thumbnail first, the heavy player only after a click ---------- */
-    document.querySelectorAll('[data-youtube]').forEach((box) => {
-        const link = box.querySelector('a');
-        link?.addEventListener('click', (e) => {
-            e.preventDefault();
-            const frame = document.createElement('iframe');
-            frame.src = `https://www.youtube-nocookie.com/embed/${box.dataset.youtube}?autoplay=1&rel=0&modestbranding=1`;
-            frame.title = link.getAttribute('aria-label') || 'Відео';
-            frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
-            frame.allowFullscreen = true;
-            link.replaceWith(frame);
-            frame.focus();
         });
     });
 

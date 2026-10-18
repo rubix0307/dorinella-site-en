@@ -1,46 +1,63 @@
-{# Result of a self-test. Rendered by the server; main.js fetches the same page and swaps this block in. #}
-<div class="quiz-result" data-result tabindex="-1">
-    {% if result.scales %}
-        <h2 class="quiz-result__title">Ваш результат</h2>
-        <ul class="scales" role="list">
-            {% for s in result.scales %}
-                {% set pct = (s.score - s.min_score) / (s.max_score - s.min_score) * 100 %}
-                {% set ref = (s.reference - s.min_score) / (s.max_score - s.min_score) * 100 %}
-                <li class="scale{% if s.above_reference %} scale--above{% endif %}">
-                    <div class="scale__head">
-                        <h3 class="scale__title">{{ s.title }}</h3>
-                        <p class="scale__score"><strong>{{ s.score }}</strong> / {{ s.max_score }}</p>
-                    </div>
-                    <div class="scale__bar" role="img"
-                         aria-label="{{ s.score }} балів з {{ s.max_score }}; середнє значення {{ s.reference }}">
-                        <span class="scale__fill" style="width: {{ '%.1f'|format(pct) }}%"></span>
-                        <span class="scale__ref" style="left: {{ '%.1f'|format(ref) }}%"></span>
-                    </div>
-                    <p class="scale__legend">Середнє: {{ s.reference }} · діапазон {{ s.min_score }}–{{ s.max_score }}</p>
-                    <p class="scale__text"><strong>{{ s.text }}</strong> {{ s.description }}</p>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="quiz-result__score"><span>{{ result.score }}</span> з {{ result.max_score }} {{ result.score_unit }}</p>
-        <h2 class="quiz-result__title">{{ result.band.title }}</h2>
-        <div class="quiz-result__text prose">
-            {% for paragraph in result.band.text.split('\n\n') %}<p>{{ paragraph }}</p>{% endfor %}
+{# Result of the Bristol test. Rendered by the server; main.js fetches the same page and swaps this block in. #}
+{% set band = result.band %}
+<div class="quiz-result bristol-result" data-result tabindex="-1">
+    <p class="quiz-result__score">Your result</p>
+    <ol class="bristol-scale" role="img" aria-label="Type {{ result.score }} on a scale from 1 (hard) to 7 (watery)">
+        {% for n in range(1, 8) %}
+            <li class="bristol-scale__step bristol-scale__step--{{ 'hard' if n < 3 else ('ok' if n < 6 else 'loose') }}{% if n == result.score %} is-current{% endif %}" aria-hidden="true">{{ n }}</li>
+        {% endfor %}
+    </ol>
+    <p class="bristol-scale__legend" aria-hidden="true"><span>Hard</span><span>Typical</span><span>Loose</span></p>
+
+    {% for note in result.notes if note.warning %}
+        <p class="quiz-result__note quiz-result__note--warning" role="alert">{{ icon('triangle-alert') }}<span>{{ note.text }}</span></p>
+    {% endfor %}
+
+    <h2 class="quiz-result__title">{{ band.title }}</h2>
+    <div class="quiz-result__text prose">
+        {% for paragraph in band.text.split('\n\n') %}<p>{{ paragraph }}</p>{% endfor %}
+    </div>
+
+    {% if band.tips and not result.alert %}
+        <div class="bristol-block">
+            <h3 class="bristol-block__title">{{ icon('lightbulb') }}Gentle things that often help</h3>
+            <ul class="bristol-block__list">
+                {% for tip in band.tips %}<li>{{ tip }}</li>{% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% set remarks = result.notes|rejectattr('warning')|list %}
+    {% if remarks %}
+        <div class="bristol-block">
+            <h3 class="bristol-block__title">{{ icon('clock') }}About how often you go</h3>
+            {% for note in remarks %}<p>{{ note.text }}</p>{% endfor %}
+        </div>
+    {% endif %}
+
+    {% if band.doctor %}
+        <div class="bristol-block bristol-block--doctor">
+            <h3 class="bristol-block__title">{{ icon('stethoscope') }}When to see a doctor</h3>
+            <p>{{ band.doctor }}</p>
         </div>
     {% endif %}
 
     {% if test.note %}<p class="quiz-result__note">{{ icon('triangle-alert') }}<span>{{ test.note }}</span></p>{% endif %}
 
+    {% if not result.massage and not result.alert %}
+        <p class="bristol-hint">Abdominal self-massage is best left for when your stools are back to normal. It is not meant for diarrhea.</p>
+    {% endif %}
+
     <div class="cta-card__actions quiz-result__actions">
+        {% if result.guide_url %}
+            <a class="btn btn--primary" href="{{ result.guide_url }}">{{ icon('book-open-text') }}Read the free gut basics guide</a>
+        {% endif %}
+        {% if result.paid_guide_url %}
+            <a class="btn btn--ghost" href="{{ result.paid_guide_url }}">Gut Massage Guide</a>
+        {% endif %}
         {% if result.course_url %}
-            <a class="btn btn--primary" href="{{ result.course_url }}">Пройти міні-курс{{ icon('arrow-right') }}</a>
-        {% endif %}
-        {% if result.product_url %}
-            <a class="btn btn--ghost" href="{{ result.product_url }}">{{ catalog[test.product_slug].title }}</a>
-        {% endif %}
-        {% if not result.course_url and not result.product_url %}
-            <a class="btn btn--primary" href="{{ out('https://t.me/dori_nutritioner_bot', 'test-result:' ~ test.slug) }}" target="_blank" rel="noopener">{{ icon('send') }}Обговорити результат</a>
+            <a class="btn btn--ghost" href="{{ result.course_url }}">Abdominal massage course</a>
         {% endif %}
     </div>
-    <a class="quiz-result__again" data-quiz-again href="{{ url('learn_guide', slug=test.guide_slug) ~ '#test' if test.guide_slug else url('self_test', slug=test.slug) }}">{{ icon('rotate-ccw') }}Пройти ще раз</a>
+    <a class="quiz-result__again" data-quiz-again href="{{ url('self_test', slug=test.slug) }}">{{ icon('rotate-ccw') }}Take it again</a>
 </div>

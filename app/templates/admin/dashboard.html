@@ -1,7 +1,7 @@
 {% extends 'admin/base.html' %}
 {% from 'admin/_table.html' import sort_th, sort_menu, search_box, filter_popover %}
 
-{% block title %}Аналітика{% endblock %}
+{% block title %}{{ _('Analytics') }}{% endblock %}
 
 {% block body %}
     {% include 'admin/_bar.html' %}
@@ -9,72 +9,156 @@
     <main class="admin-wrap admin-main" data-tz="{{ tz_name }}" data-tz-asked="{{ tz_asked }}">
         <header class="page-head">
             <div>
-                <h1 class="admin-title">Аналітика</h1>
-                <p class="page-head__lead">Відвідування сайту, переходи за посиланнями та ваші короткі посилання.</p>
+                <h1 class="admin-title">{{ _('Analytics') }}</h1>
+                <p class="page-head__lead">{{ _('Site visits, where people come from, tests, funnels, link clicks and your short links.') }}</p>
             </div>
         </header>
 
         {% include 'admin/_filter.html' %}
 
         <div class="admin-results" data-admin-results>
-            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ rng.days }} дн. · <span title="Часовий пояс браузера">{{ tz_label }}</span></span></p>
+            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ _('%(n)s days', n=rng.days) }} · <span title="{{ _('Browser time zone') }}">{{ tz_label }}</span></span></p>
 
             {# each tile picks what the chart below shows (instantly, no reload; remembered in a cookie) #}
-            <div class="admin-tiles" role="group" aria-label="Що показує графік">
+            <div class="admin-tiles" role="group" aria-label="{{ _('What the chart shows') }}">
                 {% for metric, label, value, hint in [
-                    ('views', 'Перегляди сторінок', totals.views, ''),
-                    ('visitors', 'Відвідувачі', totals.visitors,
-                     'унікальні за період' ~ ((' · точно з ' ~ visitor_ids_since.strftime('%d.%m.%Y') ~ ', раніше — за кожен день')
+                    ('views', _('Page views'), totals.views, ''),
+                    ('visitors', _('Visitors'), totals.visitors,
+                     _('unique over the period') ~ ((' · ' ~ _('exact since %(date)s, before that counted per day', date=visitor_ids_since.strftime('%d.%m.%Y')))
                                                if visitor_ids_since and visitor_ids_since > rng.start else '')),
-                    ('clicks', 'Переходи за посиланнями' ~ (' · за фільтром' if links_view.is_filtered else ''), totals.clicks, '')] %}
+                    ('clicks', _('Link clicks') ~ (' · ' ~ _('filtered') if links_view.is_filtered else ''), totals.clicks, '')] %}
                     <button class="admin-tile" type="button" data-chart-pick="{{ metric }}" aria-controls="chart-card"
-                            aria-pressed="{{ 'true' if metric == chart_metric else 'false' }}" title="Показати на графіку">
+                            aria-pressed="{{ 'true' if metric == chart_metric else 'false' }}" title="{{ _('Show on the chart') }}">
                         <span class="admin-tile__icon">{{ icon('chart-line') }}</span>
                         <span class="admin-tile__label">{{ label }}</span>
-                        <span class="admin-tile__value">{{ '{:,}'.format(value).replace(',', ' ') }}</span>
+                        <span class="admin-tile__value">{{ '{:,}'.format(value) }}</span>
                         {% if hint %}<span class="admin-tile__hint">{{ hint }}</span>{% endif %}
                     </button>
                 {% endfor %}
             </div>
 
 
-            {% set per = '15 хвилин' if hourly else '4 години' %}
+            {% set per = _('15 minutes') if hourly else _('4 hours') %}
             <section class="admin-card" aria-labelledby="visits-title" id="chart-card">
                 <div class="admin-card__head">
                     <h2 class="admin-card__title" id="visits-title">
-                        <span data-chart-for="views"{% if chart_metric != 'views' %} hidden{% endif %}>Перегляди по {{ per }}</span>
-                        <span data-chart-for="visitors"{% if chart_metric != 'visitors' %} hidden{% endif %}>Відвідувачі по {{ per }}</span>
-                        <span data-chart-for="clicks"{% if chart_metric != 'clicks' %} hidden{% endif %}>Переходи по {{ per }}</span>
+                        <span data-chart-for="views"{% if chart_metric != 'views' %} hidden{% endif %}>{{ _('Views per %(step)s', step=per) }}</span>
+                        <span data-chart-for="visitors"{% if chart_metric != 'visitors' %} hidden{% endif %}>{{ _('Visitors per %(step)s', step=per) }}</span>
+                        <span data-chart-for="clicks"{% if chart_metric != 'clicks' %} hidden{% endif %}>{{ _('Clicks per %(step)s', step=per) }}</span>
                     </h2>
                     <ul class="chart-legend" role="list" data-chart-for="clicks"{% if chart_metric != 'clicks' %} hidden{% endif %}>
-                        <li><span class="chart-legend__key chart-legend__key--clicks"></span>Переходи</li>
-                        <li><span class="chart-legend__key chart-legend__key--visitors"></span>Унікальні</li>
-                        {% if links_view.is_filtered %}<li class="chart-legend__note">за фільтром</li>{% endif %}
+                        <li><span class="chart-legend__key chart-legend__key--clicks"></span>{{ _('Clicks') }}</li>
+                        <li><span class="chart-legend__key chart-legend__key--visitors"></span>{{ _('Unique') }}</li>
+                        {% if links_view.is_filtered %}<li class="chart-legend__note">{{ _('filtered') }}</li>{% endif %}
                     </ul>
                 </div>
                 {#- one day: it scrolls back into earlier days, loaded from data-day-url (with the page's link filters) -#}
                 <div class="chart{% if hourly %} chart--days{% endif %}" data-chart data-metric="{{ chart_metric }}"
                      {% if hourly %}data-day-url="{{ url('admin_chart_day') }}?{{ request.url.query }}"{% endif %}>
                     <script type="application/json" data-chart-data>{{ chart_data|tojson }}</script>
-                    <noscript><p class="admin-empty">Графік потребує JavaScript.</p></noscript>
+                    <noscript><p class="admin-empty">{{ _('The chart needs JavaScript.') }}</p></noscript>
                 </div>
             </section>
+
+            {# Where people come from, the pages they read, the tests they finish and the funnels. #}
+            <div class="dash-grid">
+                <section class="admin-card" aria-labelledby="sources-title">
+                    <h2 class="admin-card__title" id="sources-title">{{ _('Where visitors come from') }}</h2>
+                    <p class="dash-card__lead">{{ _('The utm_source of the link, else the site that sent the visitor.') }}</p>
+                    {% if sources %}
+                        <ul class="bars" role="list">
+                            {% for row in sources %}
+                                <li class="bars__row">
+                                    <span class="bars__label"><span>{{ row.name|t }}</span><b>{{ _('%(views)s views · %(visitors)s visitors', views='{:,}'.format(row.views), visitors='{:,}'.format(row.visitors)) }}</b></span>
+                                    <span class="share-bar" aria-hidden="true"><span style="width: {{ (row.share * 100)|round(1) }}%"></span></span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="dash-empty">{{ _('No views in this period.') }}</p>
+                    {% endif %}
+                </section>
+
+                <section class="admin-card" aria-labelledby="top-pages-title">
+                    <div class="dash-card__head">
+                        <h2 class="admin-card__title" id="top-pages-title">{{ _('Top pages') }}</h2>
+                        <a class="btn btn--ghost btn--sm" href="{{ url('admin_pages') }}?{{ period_query }}">{{ _('All pages') }}</a>
+                    </div>
+                    {% if top_pages %}
+                        <ul class="bars" role="list">
+                            {% for row in top_pages %}
+                                <li class="bars__row">
+                                    <span class="bars__label"><span class="bars__name"><a href="{{ row.key }}" target="_blank" rel="noopener">{{ row.label|t }}</a>{% if row.hint != row.label %}<small>{{ row.hint }}</small>{% endif %}</span><b>{{ _('%(views)s views · %(visitors)s visitors', views='{:,}'.format(row.views), visitors='{:,}'.format(row.visitors)) }}</b></span>
+                                    <span class="share-bar" aria-hidden="true"><span style="width: {{ (row.share * 100)|round(1) }}%"></span></span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="dash-empty">{{ _('No views in this period.') }}</p>
+                    {% endif %}
+                </section>
+
+                <section class="admin-card" aria-labelledby="tests-title">
+                    <div class="dash-card__head">
+                        <h2 class="admin-card__title" id="tests-title">{{ _('Test results') }}</h2>
+                        {% if user.can('tests.view') %}<a class="btn btn--ghost btn--sm" href="{{ url('admin_tests') }}?{{ period_query }}">{{ _('All tests') }}</a>{% endif %}
+                    </div>
+                    {% for summary in tests if summary.attempts %}
+                        <div class="dash-test">
+                            <div class="dash-test__head">
+                                {% if user.can('tests.view') %}<a href="{{ url('admin_test', slug=summary.test.slug) }}?{{ period_query }}">{{ summary.title|t }}</a>{% else %}<b>{{ summary.title|t }}</b>{% endif %}
+                                <span>{{ _('%(n)s completions · %(people)s people', n=summary.attempts, people=summary.people) }}</span>
+                            </div>
+                            {% if summary.bands %}
+                                <ul class="bars" role="list">
+                                    {% for band in summary.bands %}
+                                        <li class="bars__row">
+                                            <span class="bars__label"><span>{{ band.label|t }}</span><b>{{ band.count }} · {{ (band.share * 100)|round|int }}%</b></span>
+                                            <span class="share-bar" aria-hidden="true"><span style="width: {{ (band.share * 100)|round(1) }}%"></span></span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="dash-empty">{{ _('Nobody finished a test in this period.') }}</p>
+                    {% endfor %}
+                </section>
+
+                <section class="admin-card" aria-labelledby="funnels-title">
+                    <h2 class="admin-card__title" id="funnels-title">{{ _('Funnels') }}</h2>
+                    <p class="dash-card__lead">{{ _('Different people who reached each step in the period. Each step is counted on its own.') }}</p>
+                    {% for funnel in funnels %}
+                        <div class="funnel">
+                            <h3 class="funnel__title">{{ funnel.title|t }}</h3>
+                            <ul class="bars" role="list">
+                                {% for step in funnel.steps %}
+                                    <li class="bars__row">
+                                        <span class="bars__label"><span>{{ step.label|t }}</span><b>{{ '{:,}'.format(step.people) }}{% if not loop.first and funnel.steps[0].people %} · {{ (step.share * 100)|round|int }}%{% endif %}</b></span>
+                                        <span class="share-bar" aria-hidden="true"><span style="width: {{ [step.share * 100, 100]|min|round(1) }}%"></span></span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                </section>
+            </div>
 
             {# Devices: site visitors, and who clicks the links (under the link filters, like the chart and the tile).
                Folds away; open or closed is kept through live refreshes and remembered for the next visit. #}
             <details class="admin-card devices-card" data-admin-keep-open="devices" data-remember="admin_devices"{% if devices_open %} open{% endif %}>
                 <summary class="devices-card__head">
-                    <h2 class="admin-card__title" id="devices-title">Пристрої</h2>
+                    <h2 class="admin-card__title" id="devices-title">{{ _('Devices') }}</h2>
                     <span class="devices-card__peek">
-                        {%- for key, label in [('visits', 'Відвідувачі'), ('clicks', 'Переходи')] if devices[key][0].total -%}
+                        {%- for key, label in [('visits', _('Visitors')), ('clicks', _('Clicks'))] if devices[key][0].total -%}
                             {%- set top = devices[key]|sort(attribute='people', reverse=True)|first -%}
-                            {{ ' · ' if not loop.first }}{{ label }}: {{ top.label|lower }} {{ (top.share * 100)|round|int }}%
+                            {{ ' · ' if not loop.first }}{{ label }}: {{ top.label|t|lower }} {{ (top.share * 100)|round|int }}%
                         {%- endfor -%}
                     </span>
                     {{ icon('chevron-down', 'devices-card__chevron') }}
                 </summary>
                 <div class="devices-card__body">
-                    {% for key, title, unit in [('visits', 'Відвідувачі сайту', 'перегл.'), ('clicks', 'Переходи за посиланнями' ~ (' · за фільтром' if links_view.is_filtered else ''), 'перех.')] %}
+                    {% for key, title, unit in [('visits', _('Site visitors'), _('views')), ('clicks', _('Link clicks') ~ (' · ' ~ _('filtered') if links_view.is_filtered else ''), _('clicks'))] %}
                         {% set rows = devices[key] %}
                         <div class="devices">
                             <h3 class="devices__title">{{ title }}</h3>
@@ -82,15 +166,15 @@
                                 <ul class="devices__list" role="list">
                                     {% for d in rows %}
                                         <li class="device{{ ' is-empty' if not d.people }}">
-                                            <span class="device__name">{{ icon(d.icon) }}{{ d.label }}</span>
+                                            <span class="device__name">{{ icon(d.icon) }}{{ d.label|t }}</span>
                                             <span class="share-bar" aria-hidden="true"><span style="width: {{ (d.share * 100)|round(1) }}%"></span></span>
                                             {%- set n = d.people %}
-                                            <span class="device__value"><strong>{{ (d.share * 100)|round|int }}%</strong> · {{ '{:,}'.format(n).replace(',', ' ') }} {{ 'людина' if n % 10 == 1 and n % 100 != 11 else ('людини' if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else 'людей') }}<span class="device__hits"> · {{ '{:,}'.format(d.hits).replace(',', ' ') }} {{ unit }}</span></span>
+                                            <span class="device__value"><strong>{{ (d.share * 100)|round|int }}%</strong> · {{ _('1 person') if n == 1 else _('%(n)s people', n='{:,}'.format(n)) }}<span class="device__hits"> · {{ '{:,}'.format(d.hits) }} {{ unit }}</span></span>
                                         </li>
                                     {% endfor %}
                                 </ul>
                             {% else %}
-                                <p class="devices__empty">За цей період {{ 'відвідувань' if key == 'visits' else 'переходів' }} немає.</p>
+                                <p class="devices__empty">{{ _('There were no visits in this period.') if key == 'visits' else _('There were no clicks in this period.') }}</p>
                             {% endif %}
                         </div>
                     {% endfor %}
@@ -100,8 +184,8 @@
             {# Link filters: the table right below, plus the clicks chart and the clicks tile (not views / visitors) #}
             <section class="filter-bar" aria-labelledby="filter-title">
                 <div class="filter-bar__head">
-                    <h2 class="filter-bar__title" id="filter-title">Фільтр переходів</h2>
-                    <p class="filter-bar__hint">діє на таблицю посилань, а також на графік і плитку переходів</p>
+                    <h2 class="filter-bar__title" id="filter-title">{{ _('Click filter') }}</h2>
+                    <p class="filter-bar__hint">{{ _('applies to the links table, and to the clicks chart and tile') }}</p>
                 </div>
                 <div class="filter-bar__body">
                     {# one input per link; the table, the chart and the tiles show all of them together #}
@@ -110,25 +194,25 @@
                             <div class="multi-search__row">
                                 <label class="table-search">
                                     {{ icon('search') }}
-                                    <span class="visually-hidden">Посилання {{ loop.index }}</span>
+                                    <span class="visually-hidden">{{ _('Link %(n)s', n=loop.index) }}</span>
                                     <input type="search" name="{{ links_view.spec.search_param }}" value="{{ q }}" form="links-filter"
-                                           placeholder="Посилання: код, адреса або назва" maxlength="100" autocomplete="off"
+                                           placeholder="{{ _('Link: code, address or name') }}" maxlength="100" autocomplete="off"
                                            enterkeyhint="search" data-admin-search>
                                 </label>
-                                <button class="act-btn multi-search__remove" type="button" data-search-remove aria-label="Прибрати це посилання"
+                                <button class="act-btn multi-search__remove" type="button" data-search-remove aria-label="{{ _('Remove this link') }}"
                                         {% if links_view.searches|length < 2 %}hidden{% endif %}>{{ icon('x') }}</button>
                             </div>
                         {% endfor %}
-                        <button class="multi-search__add" type="button" data-search-add>{{ icon('plus') }}Ще посилання</button>
+                        <button class="multi-search__add" type="button" data-search-add>{{ icon('plus') }}{{ _('Another link') }}</button>
                     </div>
                     <div class="filter-bar__chips">
-                        {{ filter_popover(links_view, 'source', 'links-filter', sources, source_labels.get, 'Джерело') }}
-                        {{ filter_popover(links_view, 'placement', 'links-filter', placements, placement_label, 'Розміщення') }}
-                        {{ filter_popover(links_view, 'status', 'links-filter', statuses, status_labels.get, 'Статус') }}
+                        {{ filter_popover(links_view, 'source', 'links-filter', link_sources, source_labels.get, 'Source') }}
+                        {{ filter_popover(links_view, 'placement', 'links-filter', placements, placement_label, 'Placement') }}
+                        {{ filter_popover(links_view, 'status', 'links-filter', statuses, status_labels.get, 'Status') }}
                         <a class="tool-btn{{ ' is-active' if '1' in links_view.selected('fav') }}" href="{{ links_view.toggle_href('fav', '1') }}" data-admin-sort
-                           aria-pressed="{{ 'true' if '1' in links_view.selected('fav') else 'false' }}">{{ icon('star') }}<span class="tool-btn__text">Обране</span></a>
+                           aria-pressed="{{ 'true' if '1' in links_view.selected('fav') else 'false' }}">{{ icon('star') }}<span class="tool-btn__text">{{ _('Favorites') }}</span></a>
                         {% if links_view.is_filtered %}
-                            <a class="tool-btn tool-btn--quiet" href="{{ links_view.reset_href() }}" data-admin-sort>{{ icon('rotate-ccw') }}<span class="tool-btn__text">Скинути</span></a>
+                            <a class="tool-btn tool-btn--quiet" href="{{ links_view.reset_href() }}" data-admin-sort>{{ icon('rotate-ccw') }}<span class="tool-btn__text">{{ _('Reset') }}</span></a>
                         {% endif %}
                     </div>
                 </div>
@@ -137,8 +221,8 @@
             {# ONE table: links on the site (grouped clicks) and short links (always listed, even without clicks) #}
             <section class="admin-card admin-card--table" aria-labelledby="links-title" id="links">
                 <div class="card-head">
-                    <h2 class="admin-card__title" id="links-title">Посилання <span class="count">{{ page.total }}</span></h2>
-                    {% if user.can('links.manage') %}<button class="btn btn--primary btn--sm" type="button" data-link-new>{{ icon('plus') }}Нове</button>{% endif %}
+                    <h2 class="admin-card__title" id="links-title">{{ _('Links') }} <span class="count">{{ page.total }}</span></h2>
+                    {% if user.can('links.manage') %}<button class="btn btn--primary btn--sm" type="button" data-link-new>{{ icon('plus') }}{{ _('New') }}</button>{% endif %}
                 </div>
                 <div class="card-tools card-tools--phone">
                     {{ sort_menu(links_view, ['clicks', 'visitors', 'last', 'link', 'source', 'placement']) }}
@@ -163,7 +247,7 @@
                                     {{ sort_th(links_view, 'clicks') }}
                                     {{ sort_th(links_view, 'visitors') }}
                                     {{ sort_th(links_view, 'last') }}
-                                    <td class="actions-head"><span class="visually-hidden">Дії</span></td>
+                                    <td class="actions-head"><span class="visually-hidden">{{ _('Actions') }}</span></td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,13 +255,13 @@
                                     {% set starred = link.favorite == '1' %}
                                     {% if link.is_short %}
                                         {% set short_url = short_base ~ link.slug %}
-                                        {% set copy_url, copy_title = short_url, 'Копіювати коротке посилання' %}
+                                        {% set copy_url, copy_title = short_url, _('Copy short link') %}
                                         {% set data = {'id': link.link_id, 'slug': link.slug, 'target_url': link.target_url, 'title': link.title,
                                                        'active': link.is_active, 'short_url': short_url,
                                                        'action': url('admin_links_update', link_id=link.link_id),
                                                        'delete': url('admin_links_delete', link_id=link.link_id)} %}
                                     {% elif link.source == 'site' %}
-                                        {% set copy_url, copy_title = absolute_url(request, out(link.target_url, link.placement)), 'Копіювати посилання з відстеженням' %}
+                                        {% set copy_url, copy_title = absolute_url(request, out(link.target_url, link.placement)), _('Copy tracked link') %}
                                     {% endif %}
                                     <tr class="link-row{{ ' is-short' if link.is_short }}{{ ' is-off' if not link.is_active }}{{ ' is-highlight' if link.is_short and link.slug == highlight }}{{ ' is-deleted' if link.is_deleted }}"
                                         data-key="{{ link.target_url }} {{ link.placement }}"{% if link.is_short %} data-link="{{ data|tojson|forceescape }}"{% endif %}>
@@ -185,14 +269,14 @@
                                             {% if link.is_short %}
                                                 <div class="link-id">
                                                     <a class="link-id__slug" href="{{ short_url }}" target="_blank" rel="noopener">/l/{{ link.slug }}</a>
-                                                    {% if not link.is_active %}<span class="badge badge--off">Вимкнено</span>{% endif %}
+                                                    {% if not link.is_active %}<span class="badge badge--off">{{ _('Off') }}</span>{% endif %}
                                                 </div>
                                                 {% if link.title %}<p class="link-id__title">{{ link.title }}</p>{% endif %}
                                                 <a class="link-target" href="{{ link.target_url }}" target="_blank" rel="noopener noreferrer" title="{{ link.target_url }}">{{ icon('corner-down-right') }}<span>{{ link.target_url.split('://', 1)[-1] }}</span></a>
                                             {% elif link.is_deleted %}
                                                 <div class="link-id">
                                                     <s class="link-id__slug">/l/{{ link.deleted_slug }}</s>
-                                                    <span class="badge badge--deleted">Видалено</span>
+                                                    <span class="badge badge--deleted">{{ _('Deleted') }}</span>
                                                 </div>
                                                 <span class="link-target" title="{{ link.target_url }}">{{ icon('corner-down-right') }}<s>{{ link.target_url.split('://', 1)[-1] }}</s></span>
                                             {% else %}
@@ -200,13 +284,13 @@
                                                 {% if link.path %}<span class="admin-link__path">{{ link.path }}</span>{% endif %}
                                             {% endif %}
                                         </td>
-                                        <td class="cell-tag" data-label="Джерело"><span class="badge badge--{{ link.source }}" title="{{ source_labels[link.source] }}">{{ 'Коротке' if link.source == 'short' else 'Сайт' }}</span></td>
-                                        <td class="cell-placement" data-label="Розміщення">
-                                            {% if link.is_short %}<span class="muted">створено {{ short_datetime(link.created_at) }}</span>{% else %}{{ placement_label(link.placement) }}{% endif %}
+                                        <td class="cell-tag" data-col="source" data-label="{{ _('Source') }}"><span class="badge badge--{{ link.source }}" title="{{ source_labels[link.source]|t }}">{{ _('Short') if link.source == 'short' else _('Site') }}</span></td>
+                                        <td class="cell-placement" data-col="placement" data-label="{{ _('Placement') }}">
+                                            {% if link.is_short %}<span class="muted">{{ _('created %(when)s', when=short_datetime(link.created_at)) }}</span>{% else %}{{ placement_label(link.placement)|t }}{% endif %}
                                         </td>
-                                        <td class="num cell-stat" data-label="Переходи"><strong>{{ link.clicks }}</strong></td>
-                                        <td class="num cell-stat" data-label="Унікальні"><strong>{{ link.visitors }}</strong></td>
-                                        <td class="cell-date" data-label="Останній" title="{{ local_datetime(link.last_click) if link.last_click }}">{{ short_datetime(link.last_click) if link.last_click else '—' }}</td>
+                                        <td class="num cell-stat" data-col="clicks" data-label="{{ _('Clicks') }}"><strong>{{ link.clicks }}</strong></td>
+                                        <td class="num cell-stat" data-col="visitors" data-label="{{ _('Unique') }}"><strong>{{ link.visitors }}</strong></td>
+                                        <td class="cell-date" data-col="last" data-label="{{ _('Last') }}" title="{{ local_datetime(link.last_click) if link.last_click }}">{{ short_datetime(link.last_click) if link.last_click else '—' }}</td>
                                         <td class="cell-actions">
                                             {% if user.can('links.manage') %}
                                             <form method="post" action="{{ url('admin_links_favorite', link_id=link.link_id) if link.is_short else url('admin_favorite_toggle') }}" data-star>
@@ -215,7 +299,7 @@
                                                     <input type="hidden" name="placement" value="{{ link.placement }}">
                                                 {% endif %}
                                                 <button class="act-btn star{{ ' is-on' if starred }}" type="submit" aria-pressed="{{ 'true' if starred else 'false' }}"
-                                                        aria-label="Обране" title="{{ 'Прибрати з обраного' if starred else 'Додати в обране' }}">{{ icon('star') }}</button>
+                                                        aria-label="{{ _('Favorite') }}" title="{{ _('Remove from favorites') if starred else _('Add to favorites') }}">{{ icon('star') }}</button>
                                             </form>
                                             {% endif %}
                                             {% if not link.is_deleted %}
@@ -223,16 +307,16 @@
                                             {% endif %}
                                             {% if link.is_short %}
                                                 {% if user.can('links.manage') %}
-                                                <button class="act-btn" type="button" popovertarget="link-menu-{{ link.link_id }}" aria-label="Дії з /l/{{ link.slug }}">{{ micon('ellipsis', open='x') }}</button>
+                                                <button class="act-btn" type="button" popovertarget="link-menu-{{ link.link_id }}" aria-label="{{ _('Actions for /l/%(slug)s', slug=link.slug) }}">{{ micon('ellipsis', open='x') }}</button>
                                                 <div class="row-menu table-popover" id="link-menu-{{ link.link_id }}" popover aria-label="/l/{{ link.slug }}">
                                                     <p class="table-popover__title">/l/{{ link.slug }}</p>
-                                                    <button class="menu-item" type="button" data-share="{{ short_url }}" data-title="{{ link.title }}" hidden>{{ icon('share') }}Поділитися</button>
-                                                    <button class="menu-item" type="button" data-link-edit>{{ icon('pencil') }}Змінити</button>
+                                                    <button class="menu-item" type="button" data-share="{{ short_url }}" data-title="{{ link.title }}" hidden>{{ icon('share') }}{{ _('Share') }}</button>
+                                                    <button class="menu-item" type="button" data-link-edit>{{ icon('pencil') }}{{ _('Edit') }}</button>
                                                     <form method="post" action="{{ url('admin_links_toggle', link_id=link.link_id) }}">
-                                                        <button class="menu-item" type="submit">{{ icon('power') }}{{ 'Вимкнути' if link.is_active else 'Увімкнути' }}</button>
+                                                        <button class="menu-item" type="submit">{{ icon('power') }}{{ _('Switch off') if link.is_active else _('Switch on') }}</button>
                                                     </form>
-                                                    <button class="menu-item menu-item--danger" type="button" data-link-delete>{{ icon('trash-2') }}Видалити…</button>
-                                                    <button class="menu-item menu-item--cancel" type="button" popovertarget="link-menu-{{ link.link_id }}" popovertargetaction="hide">Скасувати</button>
+                                                    <button class="menu-item menu-item--danger" type="button" data-link-delete>{{ icon('trash-2') }}{{ _('Delete…') }}</button>
+                                                    <button class="menu-item menu-item--cancel" type="button" popovertarget="link-menu-{{ link.link_id }}" popovertargetaction="hide">{{ _('Cancel') }}</button>
                                                 </div>
                                                 {% endif %}
                                             {% endif %}
@@ -244,22 +328,22 @@
                     </div>
                     {% if page.next %}
                         <div class="load-more" data-load-more data-total="{{ page.total }}">
-                            <a class="btn btn--ghost" href="{{ links_view.next_href(page.next) }}" data-admin-more>Показати ще</a>
-                            <span class="load-more__count">{{ page.rows|length }} з {{ page.total }}</span>
+                            <a class="btn btn--ghost" href="{{ links_view.next_href(page.next) }}" data-admin-more>{{ _('Show more') }}</a>
+                            <span class="load-more__count">{{ _('%(shown)s of %(total)s', shown=page.rows|length, total=page.total) }}</span>
                         </div>
                     {% endif %}
                 {% elif links_view.is_filtered %}
                     <div class="empty">
-                        <p class="empty__title">Нічого не знайдено</p>
-                        <p>Змініть пошук або фільтри.</p>
-                        <a class="btn btn--ghost btn--sm" href="{{ links_view.reset_href() }}" data-admin-sort>{{ icon('rotate-ccw') }}Скинути пошук і фільтри</a>
+                        <p class="empty__title">{{ _('Nothing found') }}</p>
+                        <p>{{ _('Change the search or the filters.') }}</p>
+                        <a class="btn btn--ghost btn--sm" href="{{ links_view.reset_href() }}" data-admin-sort>{{ icon('rotate-ccw') }}{{ _('Reset search and filters') }}</a>
                     </div>
                 {% else %}
                     <div class="empty">
                         <span class="empty__icon">{{ icon('link') }}</span>
-                        <p class="empty__title">Поки що порожньо</p>
-                        <p>Тут з’являться переходи з сайту та ваші короткі посилання — створіть перше для сторіз чи шапки профілю.</p>
-                        {% if user.can('links.manage') %}<button class="btn btn--primary btn--sm" type="button" data-link-new>{{ icon('plus') }}Нове посилання</button>{% endif %}
+                        <p class="empty__title">{{ _('Nothing here yet') }}</p>
+                        <p>{{ _('Clicks on the links of the site and your short links will appear here. Make the first one for a story or a profile bio.') }}</p>
+                        {% if user.can('links.manage') %}<button class="btn btn--primary btn--sm" type="button" data-link-new>{{ icon('plus') }}{{ _('New link') }}</button>{% endif %}
                     </div>
                 {% endif %}
             </section>
@@ -272,47 +356,47 @@
         <form class="sheet__form" method="post"
               action="{{ url('admin_links_update', link_id=form.id) if editing else url('admin_links_create') }}" data-link-form>
             <header class="sheet__head">
-                <h2 class="sheet__title" id="link-dialog-title" tabindex="-1" data-new="Нове посилання" data-edit="Змінити посилання">{{ 'Змінити посилання' if editing else 'Нове посилання' }}</h2>
-                <button class="act-btn" type="button" data-dialog-close aria-label="Закрити">{{ icon('x') }}</button>
+                <h2 class="sheet__title" id="link-dialog-title" tabindex="-1" data-new="{{ _('New link') }}" data-edit="{{ _('Edit link') }}">{{ _('Edit link') if editing else _('New link') }}</h2>
+                <button class="act-btn" type="button" data-dialog-close aria-label="{{ _('Close') }}">{{ icon('x') }}</button>
             </header>
             <div class="sheet__body">
-                {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+                {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error|t }}</p>{% endif %}
                 {% if form.duplicate %}
                     <label class="switch">
                         <input type="checkbox" name="allow_duplicate" value="1" role="switch">
                         <span class="switch__track" aria-hidden="true"></span>
-                        <span><span class="field__label">Все одно створити ще одне</span><span class="field__hint">Кліки рахуються окремо для кожного посилання — так роблять для різних джерел (сторіз, біо, розсилка).</span></span>
+                        <span><span class="field__label">{{ _('Create another one anyway') }}</span><span class="field__hint">{{ _('Clicks are counted separately for each link: this is how you tell sources apart (story, bio, newsletter).') }}</span></span>
                     </label>
                 {% endif %}
                 <label class="field">
-                    <span class="field__label">Куди веде</span>
+                    <span class="field__label">{{ _('Where it leads') }}</span>
                     <input type="url" name="target_url" value="{{ form.target_url|default('') }}" required maxlength="2048"
                            placeholder="https://" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
                 </label>
                 <label class="field">
-                    <span class="field__label">Код</span>
+                    <span class="field__label">{{ _('Code') }}</span>
                     <span class="field__affix">
                         <span class="field__prefix">{{ short_base.split('://', 1)[-1] }}</span>
                         <input type="text" name="slug" value="{{ form.slug|default('') }}" maxlength="32" pattern="[a-z0-9][a-z0-9\-]*"
-                               autocapitalize="off" spellcheck="false" autocomplete="off" placeholder="авто">
+                               autocapitalize="off" spellcheck="false" autocomplete="off" placeholder="{{ _('auto') }}">
                     </span>
-                    <span class="field__hint" data-new="Латиниця, цифри, дефіс. Порожньо — згенеруємо 5 символів."
-                          data-edit="Якщо змінити код, стара адреса перестане працювати.">{{ 'Якщо змінити код, стара адреса перестане працювати.' if editing else 'Латиниця, цифри, дефіс. Порожньо — згенеруємо 5 символів.' }}</span>
+                    <span class="field__hint" data-new="{{ _('Latin letters, digits, hyphens. Leave empty to get 5 random characters.') }}"
+                          data-edit="{{ _('If you change the code, the old address stops working.') }}">{{ _('If you change the code, the old address stops working.') if editing else _('Latin letters, digits, hyphens. Leave empty to get 5 random characters.') }}</span>
                 </label>
                 <label class="field">
-                    <span class="field__label">Назва <span class="field__optional">— бачите тільки ви</span></span>
+                    <span class="field__label">{{ _('Name') }} <span class="field__optional">{{ _('only you see it') }}</span></span>
                     <input type="text" name="title" value="{{ form.title|default('') }}" maxlength="200" autocomplete="off"
-                           placeholder="Напр.: сторіз про сніданки">
+                           placeholder="{{ _('E.g. story about breakfast') }}">
                 </label>
                 <label class="switch" {% if not editing %}hidden{% endif %} data-edit-only>
                     <input type="checkbox" name="active" role="switch" {% if not editing or form.active %}checked{% endif %}>
                     <span class="switch__track" aria-hidden="true"></span>
-                    <span><span class="field__label">Працює</span><span class="field__hint">Вимкнене посилання відкриває сторінку 404.</span></span>
+                    <span><span class="field__label">{{ _('Working') }}</span><span class="field__hint">{{ _('A switched-off link opens the 404 page.') }}</span></span>
                 </label>
             </div>
             <footer class="sheet__foot">
-                <button class="btn btn--ghost" type="button" data-dialog-close>Скасувати</button>
-                <button class="btn btn--primary" type="submit" data-new="Створити" data-edit="Зберегти">{{ 'Зберегти' if editing else 'Створити' }}</button>
+                <button class="btn btn--ghost" type="button" data-dialog-close>{{ _('Cancel') }}</button>
+                <button class="btn btn--primary" type="submit" data-new="{{ _('Create') }}" data-edit="{{ _('Save') }}">{{ _('Save') if editing else _('Create') }}</button>
             </footer>
         </form>
     </dialog>

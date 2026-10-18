@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="236" height="45" viewBox="0 0 236 45" role="img" aria-label="Visa, Mastercard, Stripe">
+  <g fill="#fff" stroke="#d8d4cc" stroke-width="1">
+    <rect x=".5" y=".5" width="73" height="44" rx="6"/>
+    <rect x="81.5" y=".5" width="73" height="44" rx="6"/>
+    <rect x="162.5" y=".5" width="73" height="44" rx="6"/>
+  </g>
+  <text x="37" y="30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="800" font-style="italic" fill="#1a1f71">VISA</text>
+  <circle cx="108" cy="22.5" r="12" fill="#eb001b"/>
+  <circle cx="128" cy="22.5" r="12" fill="#f79e1b" fill-opacity=".92"/>
+  <path d="M118 12.4a12 12 0 0 1 0 20.2a12 12 0 0 1 0-20.2z" fill="#ff5f00"/>
+  <text x="199" y="29" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#635bff">stripe</text>
+</svg>

@@ -1,6 +1,6 @@
 """The time zone of an admin: an IANA name from ZONES, or BROWSER (the zone the browser reports).
 
-The default is Kyiv. A moment is stored in UTC; what an admin types for a schedule is read in the zone shown next to the field, and that zone is always
+The default is UTC. A moment is stored in UTC; what an admin types for a schedule is read in the zone shown next to the field, and that zone is always
 written out (`label`), so that "14:00" never stands alone. In the BROWSER mode the zone comes from the cookie that admin.js refreshes on every admin page;
 a missing or unknown value falls back to the default.
 """
@@ -12,8 +12,9 @@ BROWSER = 'browser'
 COOKIE = 'admin_tz'          # set by admin.js on every admin page (the IANA zone of the browser)
 
 ZONES: tuple[str, ...] = (
-    'UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Toronto', 'Europe/London', 'Europe/Dublin', 'Europe/Kyiv', 'Europe/Warsaw', 'Europe/Berlin', 'Europe/Prague', 'Europe/Vienna', 'Europe/Rome', 'Europe/Paris', 'Europe/Madrid',
-    'Europe/London', 'Europe/Lisbon', 'Europe/Athens', 'Europe/Bucharest', 'Europe/Sofia', 'Europe/Chisinau', 'Europe/Riga', 'Europe/Vilnius',
+    'UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Toronto', 'Europe/London', 'Europe/Dublin',
+    'Europe/Kyiv', 'Europe/Warsaw', 'Europe/Berlin', 'Europe/Prague', 'Europe/Vienna', 'Europe/Rome', 'Europe/Paris', 'Europe/Madrid',
+    'Europe/Lisbon', 'Europe/Athens', 'Europe/Bucharest', 'Europe/Sofia', 'Europe/Chisinau', 'Europe/Riga', 'Europe/Vilnius',
     'Europe/Tallinn', 'Europe/Helsinki', 'Europe/Istanbul', 'Europe/Moscow', 'Asia/Tbilisi', 'Asia/Dubai', 'Asia/Jerusalem',
     'Australia/Sydney',
 )
@@ -39,7 +40,7 @@ def resolve(setting: str | None, cookie: str | None) -> ZoneInfo:
 
 
 def label(tz: ZoneInfo, moment: datetime | None = None) -> str:
-    """'Europe/Kyiv (UTC+3)': the name and the offset at that moment."""
+    """'America/New_York (UTC−4)': the name and the offset at that moment."""
     moment = (moment or datetime.now(UTC)).astimezone(tz)
     offset = moment.utcoffset()
     minutes = int(offset.total_seconds() // 60) if offset else 0

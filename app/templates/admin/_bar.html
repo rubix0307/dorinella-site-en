@@ -1,123 +1,54 @@
-{#- Every section of the admin once: key -> (url, label, current, permission, glyph). The phone menu lists them flat, in this order. -#}
+{#- Every section of the admin once: (key, route, label, permission, glyph). The sidebar and the phone menu list them in this order; a section whose page does not exist
+    (another module owns it and may not be built yet) is skipped. -#}
 {%- set sections = [
-    ('dashboard', url('admin_dashboard'), 'Аналітика', request.url.path == url('admin_dashboard'), 'analytics.view', 'chart-column'),
-    ('pages', url('admin_pages'), 'Сторінки', request.url.path == url('admin_pages'), 'analytics.view', 'file-text'),
-    ('tests', url('admin_tests'), 'Тести', request.url.path.startswith(url('admin_tests')), 'tests.view', 'list-checks'),
-    ('course', url('admin_course'), 'Курс', request.url.path.startswith(url('admin_course')), 'course.view', 'graduation-cap'),
-    ('reviews', url('admin_reviews'), 'Відгуки', request.url.path.startswith(url('admin_reviews')), 'reviews.moderate', 'star'),
-    ('recipes', url('admin_recipes'), 'Рецепти', request.url.path.startswith(url('admin_recipes')), 'recipes.view', 'chef-hat'),
-    ('links', url('admin_links_page'), 'Посилання', request.url.path.startswith(url('admin_links_page')), 'links_page.manage', 'link'),
-    ('meet', url('admin_meet'), 'Зустрічі', request.url.path.startswith(url('admin_meet')), 'meet.view', 'video'),
-    ('articles', url('admin_articles'), 'Статті', request.url.path.startswith(url('admin_articles')), 'articles.manage', 'newspaper'),
-    ('payments', url('admin_payments'), 'Оплати', request.url.path.startswith(url('admin_payments')), 'payments.view', 'credit-card'),
-    ('support', url('admin_support'), 'Підтримка', request.url.path.startswith(url('admin_support')), ('support.sales', 'support.tech', 'support.blogger'), 'life-buoy'),
-    ('telegram', url('admin_telegram'), 'Telegram', request.url.path.startswith(url('admin_telegram')), 'telegram.view', 'send'),
-    ('users', url('admin_users'), 'Користувачі', request.url.path.startswith(url('admin_users')), 'users.view', 'users'),
-    ('groups', url('admin_groups'), 'Групи', request.url.path.startswith(url('admin_groups')), 'groups.manage', 'shield-plus'),
+    ('dashboard', 'admin_dashboard', 'Analytics', 'analytics.view', 'chart-column'),
+    ('pages', 'admin_pages', 'Pages', 'analytics.view', 'file-text'),
+    ('tests', 'admin_tests', 'Tests', 'tests.view', 'list-checks'),
+    ('course', 'admin_course', 'Course', 'course.view', 'graduation-cap'),
+    ('orders', 'admin_orders', 'Orders', 'orders.view', 'receipt'),
+    ('links', 'admin_links_page', 'Links page', 'links_page.manage', 'link'),
+    ('users', 'admin_users', 'Users', 'users.view', 'users'),
+    ('groups', 'admin_groups', 'Groups', 'groups.manage', 'shield-plus'),
 ] -%}
-{#- How the sidebar is laid out: a section on its own, or a group (key, name, glyph, its sections). A group opens as a menu of its own (a switch, not a link: nothing is loaded);
-    a group with one section the user may see is that section's link, a group with none is not shown. Telegram's pages come from telegram/_sections.html. Adding a group is one line here. -#}
-{%- set layout = [
-    ('link', 'dashboard'),
-    ('link', 'payments'),
-    ('link', 'support'),
-    ('group', 'content', 'Контент', 'layers', ['pages', 'tests', 'course', 'reviews', 'recipes', 'links']),
-    ('group', 'articles', 'Статті', 'newspaper', []),
-    ('link', 'meet'),
-    ('group', 'telegram', 'Telegram', 'send', []),
-    ('group', 'access', 'Доступ', 'shield-check', ['users', 'groups']),
-] -%}
-{% set by_key = {} %}
-{% for key, href, label, current, perm, glyph in sections %}{% set _ = by_key.update({key: (href, label, current, perm, glyph)}) %}{% endfor %}
-{% set has_tg = user.can('telegram.view') %}
-{% set in_telegram = request.url.path.startswith(url('admin_telegram')) and has_tg %}
-{% set has_art = user.can('articles.manage') %}
-{% set in_articles = request.url.path.startswith(url('admin_articles')) and has_art %}
-{# the pages of the articles menu: (address, name, key = the page's `tab`, glyph) #}
-{% set art_sections = [(url('admin_article_stats'), 'Статистика', 'stats', 'chart-column'), (url('admin_articles'), 'Усі статті', 'list', 'newspaper'), (url('admin_article_calendar'), 'Календар', 'calendar', 'calendar-clock'), (url('admin_promos'), 'Реклама курсів', 'promos', 'megaphone')] %}
-{% if has_tg %}{% from 'admin/telegram/_sections.html' import tg_sections with context %}{% endif %}
-{# what the sidebar shows: entries are ('link', section) or ('group', key, name, glyph, sections that are the user's, is it the current one); `start` is the menu a page opens on #}
-{% set entries = [] %}
-{% set groups = [] %}
-{% set ns = namespace(start='all') %}
-{% for row in layout %}
-    {% if row[0] == 'link' %}
-        {% if user.can(by_key[row[1]][3]) %}{% set _ = entries.append(('link', by_key[row[1]])) %}{% endif %}
-    {% else %}
-        {% set kids = [] %}
-        {% for k in row[4] if user.can(by_key[k][3]) %}{% set _ = kids.append(by_key[k]) %}{% endfor %}
-        {% if row[1] == 'telegram' %}
-            {% if has_tg %}
-                {% set group = ('group', row[1], row[2], row[3], kids, in_telegram) %}
-                {% set _ = entries.append(group) %}{% set _ = groups.append(group) %}
-                {% if in_telegram %}{% set ns.start = row[1] %}{% endif %}
-            {% endif %}
-        {% elif row[1] == 'articles' %}
-            {% if has_art %}
-                {% set group = ('group', row[1], row[2], row[3], kids, in_articles) %}
-                {% set _ = entries.append(group) %}{% set _ = groups.append(group) %}
-                {% if in_articles %}{% set ns.start = row[1] %}{% endif %}
-            {% endif %}
-        {% elif kids|length == 1 %}
-            {% set _ = entries.append(('link', kids[0])) %}
-        {% elif kids %}
-            {% set here = kids|selectattr('2')|list|length > 0 %}
-            {% set group = ('group', row[1], row[2], row[3], kids, here) %}
-            {% set _ = entries.append(group) %}{% set _ = groups.append(group) %}
-            {% if here %}{% set ns.start = row[1] %}{% endif %}
-        {% endif %}
-    {% endif %}
-{% endfor %}
-{% if in_telegram %}<div class="tg-wallpaper" aria-hidden="true"></div>{% endif %}
-{# wide screens: the sections in a sidebar on the left; phones: the site's header with the burger menu.
-   With groups the sidebar holds a menu for every group and the menu of all sections on every page; the entry of a group and the button on top of its menu are switches between them (admin-soft.js). #}
-<aside class="admin-side" id="admin-side" aria-label="Адмінка"{% if groups %} data-view="{{ ns.start }}" x-data="adminSide('{{ ns.start }}')" :data-view="view" :class="{ 'is-swapped': swapped }"{% endif %}>
-    <a href="{{ url('admin_dashboard') }}" class="logo admin-side__logo" aria-label="Адмінка dorinellla">dorinellla<span class="admin-header__tag">адмінка</span></a>
+{#- the dashboard's own address is a prefix of every admin address: only an exact match counts for it -#}
+{%- set entries = [] -%}
+{%- for key, route, label, perm, glyph in sections if route_exists(route) and user.can(perm) -%}
+    {%- set href = url(route) -%}
+    {%- set current = request.url.path == href if key == 'dashboard' else request.url.path.startswith(href) -%}
+    {%- set added = entries.append((href, label, current, glyph)) -%}
+{%- endfor -%}
+{#- the language switcher: a POST that sets the cookie and comes back to this very page -#}
+{%- macro language_switch(css) -%}
+    <form class="{{ css }}" method="post" action="{{ url('admin_language') }}" data-hard>
+        <input type="hidden" name="next" value="{{ request.url.path }}{{ '?' ~ request.url.query if request.url.query }}">
+        {%- for code, name in langs.items() %}
+            <button type="submit" name="lang" value="{{ code }}" lang="{{ code }}"{% if code == lang %} aria-current="true"{% endif %} title="{{ name }}">{{ code|upper }}</button>
+        {%- endfor %}
+    </form>
+{%- endmacro -%}
+{# wide screens: the sections in a sidebar on the left; phones: the site's header with the burger menu #}
+<aside class="admin-side" id="admin-side" aria-label="{{ _('Admin') }}">
+    <a href="{{ url('admin_dashboard') }}" class="logo admin-side__logo" aria-label="{{ _('Admin of %(brand)s', brand=site.BRAND) }}">{{ site.BRAND }}<span class="admin-header__tag">{{ _('admin') }}</span></a>
 
-    {% for _, key, name, glyph, kids, here in groups %}
-        <nav class="admin-nav admin-nav--section" id="admin-menu-{{ key }}" data-side-view="{{ key }}"{% if ns.start != key %} hidden :hidden="view !== '{{ key }}'"{% else %} :hidden="view !== '{{ key }}'"{% endif %} aria-label="{{ 'Розділи Telegram' if key == 'telegram' else name }}">
-            <button class="admin-nav__back" type="button" data-side-toggle="all" @click="open('all')">{{ icon('chevron-left') }}<span>Усі розділи адмінки</span></button>
-            <h2 class="admin-nav__title">{{ icon(glyph) }}<span>{{ name }}</span></h2>
-            {% if key == 'telegram' %}
-                {% for href, label, tkey, perm, tglyph in tg_sections if user.can(perm) %}
-                    <a href="{{ href }}"{% if tkey == 'stats' %} data-hard{% endif %}{% if in_telegram and (tab|default('')) == tkey %} aria-current="page"{% endif %}>{{ icon(tglyph) }}<span>{{ label }}</span>{% if tkey == 'moderation' and user.tg_flagged %}<b class="admin-nav__badge">{{ user.tg_flagged }}<span class="sr-only"> нових зауважень модерації</span></b>{% endif %}</a>
-                {% endfor %}
-            {% elif key == 'articles' %}
-                {% for href, label, akey, aglyph in art_sections %}
-                    <a href="{{ href }}"{% if in_articles and (tab|default('')) == akey or (akey == 'list' and in_articles and (tab|default('')) == 'editor') %} aria-current="page"{% endif %}>{{ icon(aglyph) }}<span>{{ label }}</span></a>
-                {% endfor %}
-            {% else %}
-                {% for href, label, current, perm, kglyph in kids %}
-                    <a href="{{ href }}"{% if current %} aria-current="page"{% endif %}>{{ icon(kglyph) }}<span>{{ label }}</span></a>
-                {% endfor %}
-            {% endif %}
-        </nav>
-    {% endfor %}
-    <nav class="admin-nav admin-nav--all" id="admin-menu-all" {% if groups %}data-side-view="all" {% if ns.start != 'all' %}hidden {% endif %}:hidden="view !== 'all'" {% endif %}aria-label="Розділи адмінки">
-        {% for entry in entries %}
-            {% if entry[0] == 'link' %}
-                {% set href, label, current, perm, glyph = entry[1] %}
-                <a href="{{ href }}"{% if current %} aria-current="page"{% endif %}>{{ icon(glyph) }}<span>{{ label }}</span></a>
-            {% else %}
-                {% set _, key, name, glyph, kids, here = entry %}
-                <button class="admin-nav__item" type="button" data-side-toggle="{{ key }}" aria-controls="admin-menu-{{ key }}" aria-expanded="{{ 'true' if ns.start == key else 'false' }}" :aria-expanded="String(view === '{{ key }}')" @click="open('{{ key }}')"{% if here %} aria-current="page"{% endif %}>{{ icon(glyph) }}<span>{{ name }}</span>{% if key == 'telegram' and user.tg_flagged %}<b class="admin-nav__badge">{{ user.tg_flagged }}<span class="sr-only"> нових зауважень модерації</span></b>{% endif %}{{ icon('chevron-right') }}</button>
-            {% endif %}
+    <nav class="admin-nav admin-nav--all" id="admin-menu-all" aria-label="{{ _('Admin sections') }}">
+        {% for href, label, current, glyph in entries %}
+            <a href="{{ href }}"{% if current %} aria-current="page"{% endif %}>{{ icon(glyph) }}<span>{{ label|t }}</span></a>
         {% endfor %}
     </nav>
 
     <div class="admin-side__foot">
-        <nav class="admin-nav" aria-label="Сайт">
-            <a href="{{ url('index') }}">{{ icon('house') }}<span>На сайт</span></a>
-            <a href="{{ url('course_home') }}">{{ icon('file-text') }}<span>Курс: масаж живота</span></a>
+        <nav class="admin-nav" aria-label="{{ _('Site') }}">
+            <a href="{{ url('index') }}">{{ icon('house') }}<span>{{ _('To the site') }}</span></a>
         </nav>
+        {{ language_switch('lang-switch') }}
         {# who is signed in: the card opens the profile, the button beside it signs out #}
         <div class="admin-account">
             <a class="admin-account__me" href="{{ url('admin_profile') }}"{% if request.url.path.startswith(url('admin_profile')) %} aria-current="page"{% endif %}>
                 <span class="admin-account__avatar" aria-hidden="true">{{ user.email[:1]|upper }}</span>
-                <span class="admin-account__who"><b>Профіль</b><small title="{{ user.email }}">{{ user.email }}</small></span>
+                <span class="admin-account__who"><b>{{ _('Profile') }}</b><small title="{{ user.email }}">{{ user.email }}</small></span>
             </a>
             <form method="post" action="{{ url('admin_logout') }}">
-                <button class="admin-account__out" type="submit" title="Вийти" aria-label="Вийти">{{ icon('log-out') }}</button>
+                <button class="admin-account__out" type="submit" title="{{ _('Sign out') }}" aria-label="{{ _('Sign out') }}">{{ icon('log-out') }}</button>
             </form>
         </div>
     </div>
@@ -125,55 +56,28 @@
 
 <header class="site-header admin-header" data-header>
     <div class="admin-wrap site-header__inner">
-        <a href="{{ url('admin_dashboard') }}" class="logo" aria-label="Адмінка dorinellla">dorinellla<span class="admin-header__tag">адмінка</span></a>
+        <a href="{{ url('admin_dashboard') }}" class="logo" aria-label="{{ _('Admin of %(brand)s', brand=site.BRAND) }}">{{ site.BRAND }}<span class="admin-header__tag">{{ _('admin') }}</span></a>
 
         {# phones: the same menu as on the site (main.js opens it) #}
-        <button class="burger" type="button" aria-label="Відкрити меню" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <button class="burger" type="button" aria-label="{{ _('Open the menu') }}" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
             {{ micon('menu') }}
         </button>
     </div>
 </header>
 
 <div class="mobile-menu" id="mobile-menu" data-menu hidden>
-    <nav class="mobile-menu__nav" aria-label="Розділи адмінки">
-        {# the same layout as the sidebar: a section on its own, or a group that opens in place (a native <details>, no script) #}
-        {% for entry in entries %}
-            {% if entry[0] == 'link' %}
-                {% set href, label, current, perm, glyph = entry[1] %}
-                <a href="{{ href }}"{% if current %} aria-current="page"{% endif %}>{{ label }}</a>
-            {% else %}
-                {% set _, key, name, glyph, kids, here = entry %}
-                {% set tgn = namespace(none=false) %}
-                {% if key == 'telegram' %}{% set tgn.none = true %}{% for href, label, tkey, perm, tglyph in tg_sections if user.can(perm) %}{% set tgn.none = false %}{% endfor %}{% endif %}
-                {% if tgn.none %}<a href="{{ url('admin_telegram') }}"{% if in_telegram %} aria-current="page"{% endif %}>{{ name }}</a>{% else %}
-                <details class="mobile-menu__group"{% if here %} open{% endif %}>
-                    <summary>{{ name }}{% if key == 'telegram' and user.tg_flagged %}<b class="admin-nav__badge">{{ user.tg_flagged }}</b>{% endif %}</summary>
-                    <div class="mobile-menu__sub">
-                        {% if key == 'telegram' %}
-                            {% for href, label, tkey, perm, tglyph in tg_sections if user.can(perm) %}
-                                <a href="{{ href }}"{% if in_telegram and (tab|default('')) == tkey %} aria-current="page"{% endif %}>{{ label }}</a>
-                            {% endfor %}
-                        {% elif key == 'articles' %}
-                            {% for href, label, akey, aglyph in art_sections %}
-                                <a href="{{ href }}"{% if in_articles and ((tab|default('')) == akey or (akey == 'list' and (tab|default('')) == 'editor')) %} aria-current="page"{% endif %}>{{ label }}</a>
-                            {% endfor %}
-                        {% else %}
-                            {% for href, label, current, perm, kglyph in kids %}
-                                <a href="{{ href }}"{% if current %} aria-current="page"{% endif %}>{{ label }}</a>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </details>
-                {% endif %}
-            {% endif %}
+    <nav class="mobile-menu__nav" aria-label="{{ _('Admin sections') }}">
+        {% for href, label, current, glyph in entries %}
+            <a href="{{ href }}"{% if current %} aria-current="page"{% endif %}>{{ label|t }}</a>
         {% endfor %}
     </nav>
     <div class="mobile-menu__social">
-        <a class="btn btn--ghost" href="{{ url('index') }}">{{ icon('house') }}На сайт</a>
+        <a class="btn btn--ghost" href="{{ url('index') }}">{{ icon('house') }}{{ _('To the site') }}</a>
         <form method="post" action="{{ url('admin_logout') }}">
-            <button class="btn btn--ghost" type="submit">{{ icon('log-out') }}Вийти</button>
+            <button class="btn btn--ghost" type="submit">{{ icon('log-out') }}{{ _('Sign out') }}</button>
         </form>
-        <a class="btn btn--ghost" href="{{ url('admin_profile') }}">{{ icon('smile') }}Профіль</a>
+        <a class="btn btn--ghost" href="{{ url('admin_profile') }}">{{ icon('smile') }}{{ _('Profile') }}</a>
+        {{ language_switch('lang-switch lang-switch--menu') }}
         <p class="admin-menu__email">{{ user.email }}</p>
     </div>
 </div>

@@ -1,6 +1,6 @@
 {#- Native <details>: works without JS. -#}
 <section class="abm-block abm-faq">
-    <p class="abm-lead">Перелік актуальних питань із відповідями. Правила безпеки не повторюються тут — вони зібрані на сторінці <a href="{{ course.BASE }}protypokazannia/">«Безпека»</a>.</p>
+    <p class="abm-lead">Answers to the questions we hear most. The safety rules are not repeated here: you will find them all on the <a href="{{ course.BASE }}safety/">Safety</a> page.</p>
     {% for group, items in course.FAQ %}
         <h2 class="abm-h2">{{ group }}</h2>
         <div class="abm-qa">
@@ -13,7 +13,7 @@
         </div>
     {% endfor %}
     <aside class="abm-callout abm-callout--stop" role="note"><span class="abm-callout__icon" aria-hidden="true">{{ icon('stethoscope') }}</span>
-        <div><h3>Коли звернутися до лікаря</h3>
-            <p>Припиніть масаж і зверніться до лікаря, якщо є:</p>
+        <div><h3>When to see a doctor</h3>
+            <p>Stop the massage and see a doctor if you notice:</p>
             <ul>{% for r in course.STOP_RULES %}<li>{{ r }}</li>{% endfor %}</ul></div></aside>
 </section>

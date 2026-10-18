@@ -1,6 +1,6 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}Немає доступу{% endblock %}
+{% block title %}{{ _('No access') }}{% endblock %}
 
 {% block body %}
     {% include 'admin/_bar.html' %}
@@ -8,11 +8,11 @@
     <main class="admin-wrap admin-main">
         <header class="page-head">
             <div>
-                <h1 class="admin-title">Немає доступу</h1>
-                <p class="page-head__lead">У вашого облікового запису немає права на цю дію. Якщо вона вам потрібна, попросіть адміністратора з правом керувати доступом.</p>
+                <h1 class="admin-title">{{ _('No access') }}</h1>
+                <p class="page-head__lead">{{ _('Your account is not allowed to do this. If you need it, ask an administrator who can manage access.') }}</p>
             </div>
         </header>
-        <p class="user-form__actions"><a class="btn btn--primary" href="{{ url('admin_dashboard') }}">{{ icon('chevron-left') }}До панелі</a>
-            <a class="btn btn--ghost" href="{{ url('admin_profile') }}">{{ icon('user') }}Мої права</a></p>
+        <p class="user-form__actions"><a class="btn btn--primary" href="{{ url('admin_dashboard') }}">{{ icon('chevron-left') }}{{ _('Back to the dashboard') }}</a>
+            <a class="btn btn--ghost" href="{{ url('admin_profile') }}">{{ icon('user') }}{{ _('My permissions') }}</a></p>
     </main>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}{{ group.name if group else 'Нова група' }}{% endblock %}
+{% block title %}{{ group.name if group else _('New group') }}{% endblock %}
 
 {% block body %}
     {% include 'admin/_bar.html' %}
@@ -8,40 +8,40 @@
     <main class="admin-wrap admin-main">
         <header class="page-head">
             <div>
-                <p class="back-link"><a href="{{ url('admin_groups') }}">{{ icon('chevron-left') }}Усі групи</a></p>
-                <h1 class="admin-title">{{ group.name if group else 'Нова група' }}</h1>
-                {% if group %}<p class="page-head__lead">Адмінів у групі: {{ members }}. Зміна прав діє на них одразу.</p>{% endif %}
+                <p class="back-link"><a href="{{ url('admin_groups') }}">{{ icon('chevron-left') }}{{ _('All groups') }}</a></p>
+                <h1 class="admin-title">{{ group.name if group else _('New group') }}</h1>
+                {% if group %}<p class="page-head__lead">{{ _('Admins in the group: %(n)s. A change of rights applies to them at once.', n=members) }}</p>{% endif %}
             </div>
         </header>
 
-        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error|t }}</p>{% endif %}
 
         <section class="admin-card">
             {% set locked = group and group.is_system %}
             <form class="user-form" method="post" action="{{ url('admin_group_save', group_id=group.id) if group else url('admin_group_create') }}" autocomplete="off">
                 <label class="field">
-                    <span class="field__label">Назва</span>
+                    <span class="field__label">{{ _('Name') }}</span>
                     <input type="text" name="name" value="{{ values.name }}" required maxlength="80"{% if locked %} disabled{% endif %}{% if error_field == 'name' %} aria-invalid="true" autofocus{% endif %}>
                 </label>
                 <label class="field">
-                    <span class="field__label">Опис</span>
+                    <span class="field__label">{{ _('Description') }}</span>
                     <input type="text" name="description" value="{{ values.description }}" maxlength="200"{% if locked %} disabled{% endif %}{% if error_field == 'description' %} aria-invalid="true"{% endif %}>
                 </label>
                 {% if locked %}
-                    <p class="field__hint">Системна група дає всі права, що можна видати, і змінюється сама разом із новими правами. Її не можна змінити чи видалити.</p>
+                    <p class="field__hint">{{ _('The system group gives every right that can be handed out and grows by itself with new rights. It cannot be changed or deleted.') }}</p>
                 {% else %}
                     {% for section, items in sections %}
                         <fieldset class="perm-set">
-                            <legend class="field__label">{{ section }}</legend>
+                            <legend class="field__label">{{ section|t }}</legend>
                             {% for code, label in items %}
-                                <label class="perm-option"><input type="checkbox" name="code" value="{{ code }}"{% if code in values.codes %} checked{% endif %}><span class="perm-option__name">{{ label }}</span></label>
+                                <label class="perm-option"><input type="checkbox" name="code" value="{{ code }}"{% if code in values.codes %} checked{% endif %}><span class="perm-option__name">{{ label|t }}</span></label>
                             {% endfor %}
                         </fieldset>
                     {% endfor %}
-                    <p class="field__hint">Деякі права тягнуть за собою інші: керувати чимось означає й дивитися на це. Вони додадуться самі.</p>
+                    <p class="field__hint">{{ _('Some rights bring others with them: managing something also means viewing it. They are added automatically.') }}</p>
                     <div class="user-form__actions">
-                        <button class="btn btn--primary" type="submit">{{ icon('check') }}Зберегти</button>
-                        <a class="btn btn--ghost" href="{{ url('admin_groups') }}">Скасувати</a>
+                        <button class="btn btn--primary" type="submit">{{ icon('check') }}{{ _('Save') }}</button>
+                        <a class="btn btn--ghost" href="{{ url('admin_groups') }}">{{ _('Cancel') }}</a>
                     </div>
                 {% endif %}
             </form>
@@ -50,9 +50,9 @@
         {% if group and not group.is_system %}
             <section class="admin-card">
                 <form class="user-form" method="post" action="{{ url('admin_group_delete', group_id=group.id) }}"
-                      data-confirm="Видалити групу «{{ group.name }}»?{% if members %} Її втратять адміни ({{ members }}): вони залишаться без цих прав.{% endif %}" data-confirm-danger>
-                    <p class="page-head__lead">Видалення прибирає групу в усіх адмінів.</p>
-                    <div><button class="btn btn--ghost btn--danger" type="submit">{{ icon('trash-2') }}Видалити групу</button></div>
+                      data-confirm="{{ _('Delete the group "%(name)s"?', name=group.name) }}{% if members %} {{ _('Its %(n)s admins will lose it and the rights it gave.', n=members) }}{% endif %}" data-confirm-danger>
+                    <p class="page-head__lead">{{ _('Deleting removes the group from all admins.') }}</p>
+                    <div><button class="btn btn--ghost btn--danger" type="submit">{{ icon('trash-2') }}{{ _('Delete group') }}</button></div>
                 </form>
             </section>
         {% endif %}

@@ -1,31 +1,29 @@
 <!DOCTYPE html>
-<html lang="uk" class="no-js">
+<html lang="{{ lang }}" class="no-js">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="robots" content="noindex, nofollow">
     <meta name="color-scheme" content="light">
-    <title>{% block title %}Адмінка{% endblock %} · dorinellla</title>
+    <title>{% block title %}{{ _('Admin') }}{% endblock %} · {{ site.BRAND }}</title>
     <link rel="icon" href="{{ static('img/favicon.svg') }}" type="image/svg+xml">
     {{ font_preloads() }}
     <link href="{{ static('css/styles.css') }}" rel="stylesheet">
     <link href="{{ static('css/admin.css') }}" rel="stylesheet">
     <script>document.documentElement.classList.replace('no-js', 'js');</script>
     <script src="{{ static('js/main.js') }}" defer></script>
+    <script src="{{ static('js/admin-i18n.js') }}" defer></script>      {# first: the others call t() #}
     <script src="{{ static('js/admin-confirm.js') }}" defer></script>
     <script src="{{ static('js/admin-autofilter.js') }}" defer></script>
     <script src="{{ static('js/admin.js') }}" defer></script>
-    <script src="{{ static('js/admin-soft.js') }}" defer></script>
-    <script src="{{ static('vendor/alpine/alpine-3.14.9.min.js') }}" defer></script>      {# the admin only; after admin-soft.js, which waits for `alpine:init` #}
     {{ import_map() }}
     <link rel="modulepreload" href="{{ static('vendor/morphicons/dom.js') }}">
     <script src="{{ static('js/morph.js') }}" type="module"></script>
     {% block head %}{% endblock %}
 </head>
 <body class="admin theme-main">
-<a class="skip-link" href="#admin-content">Перейти до вмісту</a>
-<p class="sr-only" id="soft-status" role="status" aria-live="polite"></p>
-<div class="soft-bar" x-data :class="{'is-busy': $store.soft.busy}" aria-hidden="true"></div>
+<a class="skip-link" href="#admin-content">{{ _('Skip to content') }}</a>
+<script type="application/json" id="admin-i18n">{{ js_strings(lang)|tojson }}</script>
 {% include 'includes/icons.html' %}
 {% block body %}{% endblock %}
 </body>

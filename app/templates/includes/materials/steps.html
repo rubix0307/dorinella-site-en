@@ -6,8 +6,8 @@
     {{ head(m) }}
     {% if m.cautions %}
         <div class="mat__caution" role="note">
-            <p class="mat__caution-title">{{ icon('triangle-alert') }}Перш ніж почати</p>
-            <p>Не виконуйте масаж, якщо є:</p>
+            <p class="mat__caution-title">{{ icon('triangle-alert') }}Before you start</p>
+            <p>Do not do the massage if you have:</p>
             <ul class="lesson-list" role="list">
                 {% for item in m.cautions %}<li>{{ item }}</li>
                 {% endfor %}
@@ -29,12 +29,12 @@
                         <path class="steps__tip" d="M63 88 L74 86 L70 77 Z"/>
                         <circle class="steps__start" cx="{{ starts[loop.index0][0] }}" cy="{{ starts[loop.index0][1] }}" r="3.5"/>
                     </svg>
-                    <span class="steps__sides"><span>права</span><span>ліва</span></span>
+                    <span class="steps__sides"><span>right</span><span>left</span></span>
                 </div>
                 <div class="steps__text">
                     <h4 class="steps__name">{{ name }}</h4>
                     <p>{{ text }}</p>
-                    <p class="steps__times">{{ icon('rotate-ccw') }}Повторіть 5 разів</p>
+                    <p class="steps__times">{{ icon('rotate-ccw') }}Repeat 5 times</p>
                 </div>
             </li>
         {% endfor %}

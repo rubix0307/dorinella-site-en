@@ -20,7 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.routing import Match
 
-from . import analytics, db, live, site, visitors
+from . import analytics, db, legal, live, payments as payments_module, site, visitors
 from .auth import Forbidden
 from .catalog import PRODUCTS, listed
 from .core import templating
@@ -33,6 +33,7 @@ from .routers import (
     admin_course,
     admin_groups,
     admin_links_page,
+    admin_orders,
     admin_profile,
     admin_tests,
     admin_users,
@@ -40,6 +41,7 @@ from .routers import (
     course,
     outbound,
     pages,
+    payments,
 )
 from .routers.admin import NO_INDEX
 
@@ -49,6 +51,7 @@ init_sentry()   # before the app exists, so the FastAPI integration hooks in (no
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     live.start()
+    payments_module.warn_misconfigured()
     if not settings.site_url:
         logging.getLogger(__name__).warning('SITE_URL is empty: the sitemap, canonical addresses and schema.org links are built from the Host of each request')
     yield
@@ -106,10 +109,13 @@ app.include_router(admin_links_page.router)
 app.include_router(admin_profile.router)
 app.include_router(admin_users.router)
 app.include_router(admin_groups.router)
+app.include_router(admin_orders.router)
+app.include_router(payments.router)
 templating.setup(app)
 templating.templates.env.globals['catalog'] = PRODUCTS  # footer product links
 templating.templates.env.globals['listed'] = listed     # only the products that are shown
 templating.templates.env.globals['site'] = site          # the brand, the author, the language (app/site.py)
+templating.templates.env.globals['legal'] = legal.context()   # the seller, the version date and the refund days of the legal pages (app/legal.py)
 
 
 @app.middleware('http')
@@ -165,11 +171,10 @@ async def http_error(request: Request, exc: StarletteHTTPException):
 
 
 ERRORS = {
-    500: ('Щось пішло не так', 'Це наша помилка, а не ваша. Ми вже бачимо її в журналі. Спробуйте оновити сторінку за хвилину або поверніться на головну.'),
-    410: ('Цю статтю прибрано', 'Вона більше не публікується. Інші матеріали — у розділі статей.'),
-    405: ('Так сюди не можна', 'Ця адреса не приймає такий запит. Поверніться на головну і спробуйте ще раз.'),
+    500: ('Something went wrong', 'That was our mistake, not yours, and we can see it in our logs. Try refreshing the page in a minute, or head back to the home page.'),
+    405: ("That doesn't work here", 'This address does not accept that kind of request. Head back to the home page and try again.'),
 }
-ERROR_DEFAULT = ('Не вдалося відкрити сторінку', 'Щось пішло не так. Поверніться на головну і спробуйте ще раз.')
+ERROR_DEFAULT = ("We couldn't open that page", 'Something went wrong. Head back to the home page and try again.')
 
 
 def _error_page(request: Request, status_code: int) -> Response:

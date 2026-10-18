@@ -2,14 +2,12 @@
 
 A button can only point at an admin short link (/l/<slug>), so every click is in the analytics
 table. The bio-* short links lead to the page itself, one per social network, so the analytics
-also shows where visitors of the page came from. The first version was made by a migration
-(20261004_links_page).
+also shows where visitors of the page came from.
 
 A button can have sub-links (sitelinks): small second-level links under it. They follow
 the same rule — a short link only — and are shown while their button is, and their short link is active.
 
-A button's image is one of: a network's own logo (static/img/brands/<key>.png, from the old
-linktree), any Lucide icon (app/core/lucide.json, scripts/build_lucide_catalog.mjs), or a photo
+A button's image is one of: a network's own logo (static/img/brands/<key>.png), any Lucide icon (app/core/lucide.json, scripts/build_lucide_catalog.mjs), or a photo
 uploaded in the admin (kept in the database, served from /links/photo/<id>-<hash>).
 """
 import hashlib
@@ -23,8 +21,10 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import undefer
 
+from .i18n import Message, translate
 from .models import BioButton, BioPage, BioSublink, ShortLink
 from .shortlinks import PREFIX
+from .site import AUTHOR_JOB, BRAND, DOMAIN, INSTAGRAM_HANDLE
 
 LOGOS = {'telegram': 'Telegram', 'tiktok': 'TikTok', 'instagram': 'Instagram', 'youtube': 'YouTube'}
 PHOTO = 'photo'
@@ -90,7 +90,7 @@ class Button:
 class Header:
     name: str
     tagline: str
-    photo_url: str      # '' = the site's own portrait
+    photo_url: str      # '' = the site's own illustration
 
 
 @dataclass(frozen=True)
@@ -110,7 +110,7 @@ def photo_url(b: BioButton) -> str:
 
 
 def _external(link: ShortLink) -> bool:
-    return not link.target_url.startswith(('https://dorinellla.com/', 'https://www.dorinellla.com/'))
+    return not link.target_url.startswith((f'https://{DOMAIN}/', f'https://www.{DOMAIN}/'))
 
 
 def header_photo_url(row: BioPage) -> str:
@@ -119,7 +119,7 @@ def header_photo_url(row: BioPage) -> str:
 
 async def page(session: AsyncSession | None) -> tuple[list[Button], Ads | None, Header]:
     """What the public page shows: visible buttons whose short link is active, the ads card, the header."""
-    default = Header('Dori', '@dorinellla · бодіпозитивний нутриціолог', '')
+    default = Header(BRAND, f'{INSTAGRAM_HANDLE} · {AUTHOR_JOB}', '')
     if session is None:
         return [], None, default
     rows = (await session.scalars(select(BioButton).order_by(BioButton.position, BioButton.id))).all()
@@ -174,65 +174,66 @@ class ButtonInput:
 
 
 async def save(session: AsyncSession, buttons: list[ButtonInput], ads: dict, header: dict | None = None) -> str | None:
-    """Replace the buttons, the ads card and the header. An error message (nothing written) or None.
+    """Replace the buttons, the ads card and the header. An error message (an i18n.Message, nothing written) or None.
     header: {name, tagline, photo: new bytes or None, reset_photo: back to the site's portrait}."""
     header = header or {}
     if header.get('photo') and (photo_type(header['photo']) is None or len(header['photo']) > MAX_PHOTO):
-        return f'Фото вгорі: картинка (webp, png, jpeg) до {MAX_PHOTO // 1024} КБ.'
+        return Message('The photo at the top must be a webp, png or jpeg image up to %(kb)s KB.', kb=MAX_PHOTO // 1024)
     allowed = set((await session.scalars(select(ShortLink.id))).all())
     old = {b.id: b for b in (await session.scalars(select(BioButton).options(undefer(BioButton.photo)))).all()}
     old_subs = {s.id: s for s in (await session.scalars(select(BioSublink).options(undefer(BioSublink.photo)))).all()}
     sub_photos: list[list[tuple[bytes, str] | None]] = []
     if len(buttons) > MAX_BUTTONS:
-        return f'Не більше {MAX_BUTTONS} кнопок.'
+        return Message('At most %(max)s buttons.', max=MAX_BUTTONS)
     photos: list[tuple[bytes, str] | None] = []
     for n, b in enumerate(buttons, 1):
-        name = f'«{b.title}»' if b.title else str(n)
+        name = f'"{b.title}"' if b.title else str(n)
         if not b.title:
-            return f'Кнопка {n}: потрібна назва.'
+            return Message('Button %(name)s: a title is required.', name=n)
         if b.short_link_id and b.short_link_id not in allowed:
-            return f'Кнопка {name}: оберіть посилання зі списку аналітики.'
+            return Message('Button %(name)s: pick a link from the analytics list.', name=name)
         if not b.short_link_id and not b.sublinks:
-            return f'Кнопка {name} без посилання — це група: додайте їй хоча б одне підпосилання.'
+            return Message('Button %(name)s has no link, so it is a group: add at least one sub-link to it.', name=name)
         photo: tuple[bytes, str] | None = None
         if b.image == PHOTO:
             if b.photo:
                 kind = photo_type(b.photo)
                 if kind is None or len(b.photo) > MAX_PHOTO:
-                    return f'Кнопка {name}: фото має бути картинкою (webp, png, jpeg) до {MAX_PHOTO // 1024} КБ.'
+                    return Message('Button %(name)s: the photo must be a webp, png or jpeg image up to %(kb)s KB.', name=name, kb=MAX_PHOTO // 1024)
                 photo = (b.photo, kind)
             elif b.keep_photo_of is not None and (kept_button := old.get(b.keep_photo_of)) is not None and kept_button.photo:
                 photo = (kept_button.photo, kept_button.photo_type)
             else:
-                return f'Кнопка {name}: завантажте фото.'
+                return Message('Button %(name)s: upload a photo.', name=name)
         elif b.image not in LOGOS and b.image not in lucide():
-            return f'Кнопка {name}: оберіть іконку зі списку.'
+            return Message('Button %(name)s: pick an icon from the list.', name=name)
         kept: list[tuple[bytes, str] | None] = []
         for s in b.sublinks:
             if not s.title:
-                return f'Кнопка {name}: у підпосилання потрібна назва.'
+                return Message('Button %(name)s: a sub-link needs a title.', name=name)
             if s.short_link_id not in allowed:
-                return f'Кнопка {name}, підпосилання «{s.title}»: оберіть посилання зі списку аналітики.'
+                return Message('Button %(name)s, sub-link "%(sub)s": pick a link from the analytics list.', name=name, sub=s.title)
             if s.image == PHOTO:
                 if s.photo:
                     kind = photo_type(s.photo)
                     if kind is None or len(s.photo) > MAX_PHOTO:
-                        return f'Кнопка {name}, підпосилання «{s.title}»: фото має бути картинкою (webp, png, jpeg) до {MAX_PHOTO // 1024} КБ.'
+                        return Message('Button %(name)s, sub-link "%(sub)s": the photo must be a webp, png or jpeg image up to %(kb)s KB.',
+                                       name=name, sub=s.title, kb=MAX_PHOTO // 1024)
                     kept.append((s.photo, kind))
                 elif s.keep_photo_of is not None and (kept_sub := old_subs.get(s.keep_photo_of)) is not None and kept_sub.photo:
                     kept.append((kept_sub.photo, kept_sub.photo_type))
                 else:
-                    return f'Кнопка {name}, підпосилання «{s.title}»: завантажте фото.'
+                    return Message('Button %(name)s, sub-link "%(sub)s": upload a photo.', name=name, sub=s.title)
             elif s.image and s.image not in LOGOS and s.image not in lucide():
-                return f'Кнопка {name}, підпосилання «{s.title}»: оберіть іконку зі списку.'
+                return Message('Button %(name)s, sub-link "%(sub)s": pick an icon from the list.', name=name, sub=s.title)
             else:
                 kept.append(None)
         photos.append(photo)
         sub_photos.append(kept)
     if ads['short_link_id'] is not None and ads['short_link_id'] not in allowed:
-        return 'Реклама: оберіть посилання зі списку аналітики.'
+        return Message('Ads card: pick a link from the analytics list.')
     if ads['short_link_id'] is not None and not ads['button']:
-        return 'Реклама: потрібен текст кнопки.'
+        return Message('Ads card: the button needs a text.')
 
     await session.execute(delete(BioSublink))
     await session.execute(delete(BioButton))
@@ -250,7 +251,7 @@ async def save(session: AsyncSession, buttons: list[ButtonInput], ads: dict, hea
     row.ads_title, row.ads_text, row.ads_button = ads['title'][:80], ads['text'], ads['button'][:60]
     row.ads_short_link_id = ads['short_link_id']
     if 'name' in header:
-        row.name, row.tagline = (header['name'] or 'Dori')[:60], header['tagline'][:160]
+        row.name, row.tagline = (header['name'] or BRAND)[:60], header['tagline'][:160]
     if header.get('photo'):
         row.photo, row.photo_type = header['photo'], photo_type(header['photo']) or ''
         row.photo_hash = hashlib.sha256(header['photo']).hexdigest()[:16]
@@ -263,21 +264,21 @@ async def save(session: AsyncSession, buttons: list[ButtonInput], ads: dict, hea
 # Groups of the icon panel, as on lucide.dev (app/core/lucide_categories.json: icon → group, sorted by
 # Sonnet agents from the names and tags). Order = order in the panel; (label, icon of its tab).
 CATEGORIES = {
-    'emoji': ('Емоції', 'smile'), 'people': ('Люди', 'users'), 'food-beverage': ('Їжа та напої', 'apple'),
-    'nature': ('Природа', 'leaf'), 'animals': ('Тварини', 'cat'), 'medical': ('Медицина', 'heart-pulse'),
-    'sports': ('Спорт', 'dumbbell'), 'home': ('Дім', 'house'), 'shopping': ('Покупки', 'shopping-bag'),
-    'social': ('Соцмережі', 'share-2'), 'communication': ('Спілкування', 'message-circle'), 'mail': ('Пошта', 'mail'),
-    'multimedia': ('Мультимедіа', 'music'), 'photography': ('Фото', 'camera'), 'travel': ('Подорожі', 'plane'),
-    'transportation': ('Транспорт', 'car'), 'weather': ('Погода', 'cloud-sun'), 'seasons': ('Пори року', 'snowflake'),
-    'time': ('Час', 'clock'), 'finance': ('Фінанси', 'wallet'), 'text': ('Текст', 'type'), 'files': ('Файли', 'file'),
-    'layout': ('Макет', 'layout-grid'), 'design': ('Дизайн', 'palette'), 'shapes': ('Фігури', 'shapes'),
-    'arrows': ('Стрілки', 'arrow-right'), 'navigation': ('Навігація', 'compass'), 'buildings': ('Будівлі', 'building'),
-    'charts': ('Графіки', 'chart-column'), 'devices': ('Пристрої', 'smartphone'), 'connectivity': ('Зв’язок', 'wifi'),
-    'notifications': ('Сповіщення', 'bell'), 'security': ('Безпека', 'lock'), 'account': ('Акаунт', 'circle-user'),
-    'accessibility': ('Доступність', 'accessibility'), 'cursors': ('Курсори', 'mouse-pointer'),
-    'development': ('Розробка', 'code'), 'gaming': ('Ігри', 'gamepad-2'), 'math': ('Математика', 'calculator'),
-    'science': ('Наука', 'flask-conical'), 'tools': ('Інструменти', 'wrench'), 'sustainability': ('Екологія', 'recycle'),
-    'brands': ('Бренди', 'badge'), 'other': ('Інше', 'ellipsis'),
+    'emoji': ('Emoji', 'smile'), 'people': ('People', 'users'), 'food-beverage': ('Food and drink', 'apple'),
+    'nature': ('Nature', 'leaf'), 'animals': ('Animals', 'cat'), 'medical': ('Medical', 'heart-pulse'),
+    'sports': ('Sports', 'dumbbell'), 'home': ('Home', 'house'), 'shopping': ('Shopping', 'shopping-bag'),
+    'social': ('Social', 'share-2'), 'communication': ('Communication', 'message-circle'), 'mail': ('Mail', 'mail'),
+    'multimedia': ('Multimedia', 'music'), 'photography': ('Photography', 'camera'), 'travel': ('Travel', 'plane'),
+    'transportation': ('Transport', 'car'), 'weather': ('Weather', 'cloud-sun'), 'seasons': ('Seasons', 'snowflake'),
+    'time': ('Time', 'clock'), 'finance': ('Finance', 'wallet'), 'text': ('Text', 'type'), 'files': ('Files', 'file'),
+    'layout': ('Layout', 'layout-grid'), 'design': ('Design', 'palette'), 'shapes': ('Shapes', 'shapes'),
+    'arrows': ('Arrows', 'arrow-right'), 'navigation': ('Navigation', 'compass'), 'buildings': ('Buildings', 'building'),
+    'charts': ('Charts', 'chart-column'), 'devices': ('Devices', 'smartphone'), 'connectivity': ('Connectivity', 'wifi'),
+    'notifications': ('Notifications', 'bell'), 'security': ('Security', 'lock'), 'account': ('Account', 'circle-user'),
+    'accessibility': ('Accessibility', 'accessibility'), 'cursors': ('Cursors', 'mouse-pointer'),
+    'development': ('Development', 'code'), 'gaming': ('Games', 'gamepad-2'), 'math': ('Math', 'calculator'),
+    'science': ('Science', 'flask-conical'), 'tools': ('Tools', 'wrench'), 'sustainability': ('Sustainability', 'recycle'),
+    'brands': ('Brands', 'badge'), 'other': ('Other', 'ellipsis'),
 }
 
 
@@ -287,14 +288,14 @@ def lucide_categories() -> dict[str, str]:
     return json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
 
 
-def icon_groups() -> list[dict]:
-    """The panel's groups in order: key, label, tab icon (inner SVG), icon names."""
+def icon_groups(lang: str = 'en') -> list[dict]:
+    """The panel's groups in order: key, label (in the admin's language), tab icon (inner SVG), icon names."""
     cats = lucide_categories()
     names: dict[str, list[str]] = {key: [] for key in CATEGORIES}
     for name in lucide():
         group = cats.get(name)
         names[group if group is not None and group in CATEGORIES else 'other'].append(name)
-    return [{'key': key, 'label': label, 'tab': lucide()[tab if tab in lucide() else 'circle'][0], 'icons': names[key]}
+    return [{'key': key, 'label': translate(label, lang), 'tab': lucide()[tab if tab in lucide() else 'circle'][0], 'icons': names[key]}
             for key, (label, tab) in CATEGORIES.items() if names[key]]
 
 
@@ -303,14 +304,8 @@ def catalog_version() -> str:
     """In the icons.json URL: a new catalog or new groups, a new URL (it is cached by the browser for a day)."""
     core = Path(__file__).parent / 'core'
     digest = hashlib.sha256()
-    for name in ('lucide.json', 'lucide_categories.json', 'lucide_uk.json'):
+    for name in ('lucide.json', 'lucide_categories.json'):
         path = core / name
         digest.update(path.read_bytes() if path.exists() else b'')
     return digest.hexdigest()[:10]
 
-
-@cache
-def lucide_uk() -> dict[str, list[str]]:
-    """name → [Ukrainian name (the tooltip), Ukrainian search words]; translated by Sonnet agents."""
-    path = Path(__file__).parent / 'core' / 'lucide_uk.json'
-    return json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}

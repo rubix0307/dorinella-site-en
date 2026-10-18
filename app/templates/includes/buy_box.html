@@ -1,0 +1,32 @@
+{# The buy card of a product page. Needs `product`, `signed_in`, `sales_open`, `price` and `pay` (payments.offer_for: only for who may see the button:
+   `bought`, `ready`, `price`, `test`). Before the sales open the public sees «Coming soon», never a price. #}
+<div class="buy-card" data-reveal>
+    <h2 class="buy-card__title" id="buy-title">{{ buy_title|default('Get ' ~ product.title) }}</h2>
+    {% if pay and pay.bought %}
+        <p class="buy-card__note">{{ icon('circle-check') }}You already own this.</p>
+        <a class="btn btn--primary" href="{{ product.open_path }}">{{ icon('book-open-text') }}Open it</a>
+    {% elif pay and pay.ready %}
+        <p class="buy-card__price">{{ pay.price }}</p>
+        <p class="muted">One payment, no subscription.</p>
+        {% if pay.test %}<p class="buy-card__note">{{ icon('triangle-alert') }}Test mode: no real money is taken. Only you can see this button.</p>{% endif %}
+        <form method="post" action="{{ url('checkout', slug=product.slug) }}" class="buy-card__form">
+            <label class="buy-card__agree"><input type="checkbox" name="agree" value="1" required> <span>I have read and agree to the <a href="{{ url('terms') }}" target="_blank" rel="noopener">Terms of Service</a>, the <a href="{{ url('privacy') }}" target="_blank" rel="noopener">Privacy Policy</a> and the <a href="{{ url('refund') }}" target="_blank" rel="noopener">Refund Policy</a>. I understand that I get access right after paying, and that I can ask for a full refund within {{ legal.refund_days }} days.</span></label>
+            <button class="btn btn--primary" type="submit">{{ icon('credit-card') }}<span>Buy for {{ pay.price }}</span></button>
+            {% include 'includes/payment_logos.html' %}
+        </form>
+    {% elif pay %}
+        <p>Checkout is not set up yet.</p>
+    {% elif sales_open and not signed_in %}
+        <p class="buy-card__price">{{ price }}</p>
+        <p>Sign in with Google first: your purchase is added to your account, so you can open it any time.</p>
+        <a class="btn btn--primary" href="{{ url('login') }}">{{ icon('arrow-right') }}Sign in to buy</a>
+    {% elif sales_open %}
+        <p>Checkout is not available right now. Please try again in a little while.</p>
+    {% else %}
+        <div class="buy-full">
+            <button class="btn btn--primary btn--soon" type="button" aria-disabled="true" aria-describedby="buy-hint">{{ icon('shopping-bag') }}Coming soon</button>
+            <p class="buy-full__hint" id="buy-hint">{{ icon('clock') }}Not on sale yet</p>
+        </div>
+        <p class="muted">Follow <a href="{{ out(site.INSTAGRAM, 'buy-box:instagram') }}" target="_blank" rel="noopener">{{ site.INSTAGRAM_HANDLE }}</a> on Instagram to hear when it opens.</p>
+    {% endif %}
+</div>

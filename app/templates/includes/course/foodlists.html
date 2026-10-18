@@ -1,6 +1,6 @@
 {#- Fibre, probiotics, prebiotics: lists you can tick off (kept on this device, with a count). -#}
 <section class="abm-block abm-food">
-    <p class="abm-lead">Для підтримки здоров’я кишківника важливо поєднувати правильне харчування, розуміння тригерів і практичні звички, які працюють на довгостроковий результат. Відзначайте, що вже є у вашому раціоні.</p>
+    <p class="abm-lead">A happy gut comes from balanced eating, knowing which foods bother you and everyday habits you can keep up. Tick what is already part of your diet.</p>
     {% for l in course.FOOD_LISTS %}
         {% set gi = loop.index0 %}
         <article class="abm-list" data-list="{{ l.id }}" aria-labelledby="list-{{ l.id }}">
@@ -23,7 +23,7 @@
                 {% endfor %}
             </div>
             <aside class="abm-callout abm-callout--tip"><span class="abm-callout__icon" aria-hidden="true">{{ icon('sparkles') }}</span>
-                <div><h3>Практичні поради</h3><ul>{% for t in l.tips %}<li>{{ t }}</li>{% endfor %}</ul></div></aside>
+                <div><h3>Practical tips</h3><ul>{% for t in l.tips %}<li>{{ t }}</li>{% endfor %}</ul></div></aside>
         </article>
     {% endfor %}
 </section>

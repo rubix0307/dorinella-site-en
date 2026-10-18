@@ -7,7 +7,7 @@ from .catalog import ProductType
 class PlanOut(BaseModel):
     id: str
     title: str
-    price_uah: int
+    price_usd: int
     features: list[str]
     gifts: list[str]
     featured: bool
@@ -36,7 +36,6 @@ class TestQuestionOut(BaseModel):
 class SelfTestOut(BaseModel):
     slug: str
     title: str
-    kind: str                     # 'score' (one total + bands) or 'scales' (several dimensions)
     questions: list[TestQuestionOut]
 
 
@@ -48,25 +47,22 @@ class BandOut(BaseModel):
     key: str
     title: str
     text: str
+    tips: list[str]
+    doctor: str
 
 
-class ScaleOut(BaseModel):
-    key: str
-    title: str
-    description: str
-    score: int
-    min_score: int
-    max_score: int
-    reference: int
-    above_reference: bool
+class NoteOut(BaseModel):
     text: str
+    warning: bool
 
 
 class AttemptOut(BaseModel):
-    score: int | None = None
-    max_score: int | None = None
-    score_unit: str | None = None
-    band: BandOut | None = None
-    scales: list[ScaleOut] = []
+    score: int
+    max_score: int
+    band: BandOut
+    notes: list[NoteOut]
+    alert: bool                       # a warning sign was reported: the advice is to see a doctor first
+    massage: bool                     # whether the result mentions abdominal self-massage and the paid material
+    guide_url: str | None = None
+    paid_guide_url: str | None = None
     course_url: str | None = None
-    product_url: str | None = None

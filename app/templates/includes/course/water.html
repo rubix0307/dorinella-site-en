@@ -1,9 +1,9 @@
 {% set w = course.WATER %}
 <section class="abm-block">
-    <h2 class="abm-h2">Вода</h2>
+    <h2 class="abm-h2">Water</h2>
     <p class="abm-lead">{{ w.lead }}</p>
     <aside class="abm-callout abm-callout--tip abm-callout--center"><span class="abm-callout__icon" aria-hidden="true">{{ icon('droplet') }}</span>
         <div><p>{{ w.best }}</p></div></aside>
-    <h3 class="abm-h3">Практичні рекомендації</h3>
+    <h3 class="abm-h3">Practical tips</h3>
     <ul class="abm-bullets">{% for t in w.tips %}<li>{{ t }}</li>{% endfor %}</ul>
 </section>

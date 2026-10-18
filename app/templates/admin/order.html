@@ -1,0 +1,80 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{% if order %}{{ _('Order %(number)s', number=order.number) }}{% else %}{{ _('Order') }}{% endif %}{% endblock %}
+{% block head %}<link href="{{ static('css/admin-sections.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main pay-page">
+        <p><a class="btn btn--ghost btn--sm" href="{{ url('admin_orders') }}">{{ icon('chevron-left') }}{{ _('Back to orders') }}</a></p>
+        {% if notice %}<p class="admin-alert admin-alert--ok" role="status">{{ icon('check') }}{{ notice|t }}</p>{% endif %}
+        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error|t }}</p>{% endif %}
+
+        {% if order %}
+        <section class="admin-card" aria-labelledby="order-one">
+            <div class="card-head"><h1 class="admin-card__title" id="order-one">{{ order.number }}</h1>
+                <span class="badge pay-status pay-status--{{ order.status }}">{{ labels[order.status]|t }}</span></div>
+            <dl class="pay-facts">
+                <div><dt>{{ _('Amount') }}</dt><dd>{{ cents(order.amount) }}{% if order.refunded_amount %} <span class="tgl-hint">{{ _('(refunded %(amount)s)', amount=cents(order.refunded_amount)) }}</span>{% endif %}</dd></div>
+                <div><dt>{{ _('Buyer') }}</dt><dd>{{ buyer.email if buyer else '-' }}</dd></div>
+                <div><dt>{{ _('Product') }}</dt><dd>{{ product_title }}</dd></div>
+                <div><dt>{{ _('Mode') }}</dt><dd>{{ _('Test: no money moved') if order.test_mode else _('Live') }}</dd></div>
+                <div><dt>{{ _('Created') }}</dt><dd>{{ order.created_at|local }}</dd></div>
+                <div><dt>{{ _('Paid') }}</dt><dd>{{ order.paid_at|local if order.paid_at else '-' }}</dd></div>
+                <div><dt>{{ _('Legal texts accepted') }}</dt><dd>{{ order.terms_accepted_at|local }} ({{ order.terms_version }})</dd></div>
+                <div><dt>{{ _('Stripe payment') }}</dt><dd>{{ order.stripe_payment_intent or '-' }}</dd></div>
+            </dl>
+            {% if order.needs_review %}<p class="admin-alert" role="status">{{ icon('triangle-alert') }}{{ _('The money came after the order had expired, a second time for the same product, in another amount, or the card holder opened a dispute. It was received: check whether a refund is needed.') }}</p>{% endif %}
+            {% if order.note %}<pre class="pay-raw">{{ order.note }}</pre>{% endif %}
+        </section>
+
+        {% if can_refund %}
+            <section class="admin-card" aria-labelledby="order-note">
+                <div class="card-head"><h2 class="admin-card__title" id="order-note">{{ _('Add a note') }}</h2></div>
+                <form method="post" action="{{ url('admin_order_note', order_id=order.id) }}" class="pay-refund">
+                    <label class="field-label">{{ _('Note') }}
+                        <textarea class="field" name="note" rows="2" maxlength="800" required></textarea></label>
+                    <button class="btn btn--ghost btn--sm" type="submit">{{ icon('check') }}{{ _('Save note') }}</button>
+                </form>
+            </section>
+
+            {% if order.status in ('paid', 'partially_refunded') %}
+            <section class="admin-card" aria-labelledby="order-refund">
+                <div class="card-head"><h2 class="admin-card__title" id="order-refund">{{ _('Refund') }}</h2></div>
+                {% if problem %}
+                    <p class="page-head__lead">{{ problem|t }}</p>
+                {% else %}
+                    <p class="page-head__lead">{{ _('%(amount)s goes back to the buyer card and the access is closed. A refund cannot be undone.', amount=cents(order.amount - order.refunded_amount)) }}</p>
+                    <form method="post" action="{{ url('admin_order_refund', order_id=order.id) }}" class="pay-refund"
+                          data-confirm="{{ _('Refund %(amount)s to %(email)s and close the access? This cannot be undone.', amount=cents(order.amount - order.refunded_amount), email=buyer.email if buyer else '') }}" data-confirm-danger data-confirm-ok="{{ _('Refund') }}">
+                        <input type="hidden" name="key" value="{{ key }}">
+                        <label class="field-label">{{ _('Reason') }}
+                            <select class="field" name="reason" required>{% for r in reasons %}<option value="{{ r }}">{{ r|t }}</option>{% endfor %}</select></label>
+                        <label class="field-label">{{ _('Note (optional)') }}
+                            <textarea class="field" name="note" rows="2" maxlength="800"></textarea></label>
+                        <button class="btn btn--danger btn--sm" type="submit">{{ icon('rotate-ccw') }}{{ _('Refund') }}</button>
+                    </form>
+                {% endif %}
+            </section>
+            {% endif %}
+        {% endif %}
+
+        <section class="admin-card" aria-labelledby="order-events">
+            <div class="card-head"><h2 class="admin-card__title" id="order-events">{{ _('Messages from Stripe') }}</h2></div>
+            {% if events %}
+                <ul class="tgj" role="list">
+                    {% for e in events %}
+                        <li class="tgj__item">
+                            <p class="tgj__line"><span class="tgj__who">{{ icon('receipt') }}<strong>{{ e.kind }}</strong> - {{ e.result|t }}</span>
+                                <span class="tgl-hint">{{ e.received_at|local }}</span></p>
+                            {% if e.error %}<p class="tgj__what">{{ e.error }}</p>{% endif %}
+                            <details class="tgj__details"><summary>{{ _('Technical data') }}</summary><pre class="pay-raw">{{ e.payload|tojson(indent=2) }}</pre></details>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}<div class="empty"><p class="empty__title">{{ _('No messages yet.') }}</p></div>{% endif %}
+        </section>
+        {% endif %}
+    </main>
+{% endblock %}

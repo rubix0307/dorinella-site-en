@@ -1,6 +1,6 @@
-"""Progress and answers of the «Масаж живота» course, kept per person in the database (course_answers, with every change
+"""Progress and answers of the «Gut Massage» course, kept per person in the database (course_answers, with every change
 in course_answer_log). Pages open one after another: a page opens when every page before it has been passed, and the safety
-page is passed only with the confirmation «Я прочитала(в) протипоказання» for the current text version."""
+page is passed only with the confirmation «I have read the contraindications» for the current text version."""
 import re
 from datetime import UTC, datetime
 
@@ -12,7 +12,7 @@ from . import course, live
 from .models import CourseAnswer, CourseAnswerLog
 
 COURSE = 'abdominal'
-SAFETY_PAGE = 'protypokazannia'
+SAFETY_PAGE = 'safety'
 _ID = re.compile(r'^[a-z0-9_-]{1,40}$')
 
 
@@ -85,7 +85,7 @@ def first_open(state: dict) -> course.Page:
     return course.PUBLIC_PAGES[-1]
 
 
-OPEN_ANYTIME = frozenset({'avtorka'})      # the page about the author does not wait for the rest
+OPEN_ANYTIME = frozenset({'author'})      # the page about the author does not wait for the rest
 
 
 def unlocked(state: dict, slug: str, *, to_view: bool = True) -> bool:

@@ -13,6 +13,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup, escape
+from starlette.routing import NoMatchFound
 
 from .. import i18n
 from ..analytics import outbound_url
@@ -115,10 +116,18 @@ def setup(app: FastAPI) -> None:
     def url(name: str, **params) -> str:
         return str(app.url_path_for(name, **params))
 
+    def route_exists(name: str) -> bool:
+        """For a menu entry whose page may not be there (another module owns it): lets the template skip the link instead of failing."""
+        try:
+            app.url_path_for(name)
+        except NoMatchFound:
+            return False
+        return True
+
     from .. import seo
     i18n.install(templates.env)
     templates.env.globals.update(
-        seo=seo, static=static, url=url, icon=icon, micon=micon, absolute_url=absolute_url, now=datetime.now,
+        seo=seo, static=static, url=url, route_exists=route_exists, icon=icon, micon=micon, absolute_url=absolute_url, now=datetime.now,
         out=outbound_url,  # {{ out('https://…', 'placement') }} — tracked external link
         media=lambda path: f'{settings.media_url}/{path}',  # a file of the media bucket (or /media/ locally)
     )
@@ -126,6 +135,7 @@ def setup(app: FastAPI) -> None:
 
 def render(request: Request, template: str, status_code: int = 200, **context) -> HTMLResponse:
     context.setdefault('lang', i18n.pick(request))       # the language of the admin (the public pages are English only)
+    context.setdefault('langs', i18n.LANGS)
     return templates.TemplateResponse(request, template, context, status_code=status_code)
 
 

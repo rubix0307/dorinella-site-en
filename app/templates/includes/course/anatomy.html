@@ -8,13 +8,13 @@
     (7, 'path', 'M585 740L575 800L590 870', 56, false)] %}
 {#- A photo of the belly with the intestines drawn in, and a clickable overlay: tap a point or a list entry and the organ is lit while the rest of the picture dims. #}
 <section class="abm-block abm-anatomy" data-anatomy>
-    <h2 class="abm-h2">Будова кишківника</h2>
-    <p class="abm-lead">Кишківник складається з тонкого й товстого відділів, і кожен має свою функцію. Товстий кишківник «обрамляє» тонкий: сліпа, висхідна, поперечна, низхідна, сигмовидна й пряма кишки. Розуміння цієї будови допоможе краще орієнтуватися під час масажу.</p>
+    <h2 class="abm-h2">The anatomy of the gut</h2>
+    <p class="abm-lead">The gut has a small intestine and a large intestine, and each has its own job. The large intestine “frames” the small one: the cecum, then the ascending, transverse, descending and sigmoid colon, and the rectum. Knowing this layout helps you find your way around during a massage.</p>
     <div class="abm-anatomy__grid">
         <figure class="abm-anatomy__figure">
             <div class="abm-anatomy__box">
                 <img src="{{ static('img/course/abdomen-900.webp') }}" srcset="{{ static('img/course/abdomen-560.webp') }} 560w, {{ static('img/course/abdomen-900.webp') }} 900w" sizes="(min-width: 900px) 360px, 90vw"
-                     width="1100" height="1140" alt="Живіт спереду: контури тонкого й товстого кишківника, показані крізь одяг" decoding="async">
+                     width="1100" height="1140" alt="The belly from the front, with the outlines of the small and large intestine shown through the clothing" decoding="async">
                 <svg viewBox="0 0 1100 1140" aria-hidden="true" focusable="false">
                     <defs>
                         <filter id="abm-an-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="9"/></filter>
@@ -39,13 +39,13 @@
                         {% else %}<path class="abm-an__hit" data-hit="{{ n }}" d="{{ d }}" stroke-width="{{ w }}"{% if closed %} pointer-events="all"{% else %} fill="none" pointer-events="stroke"{% endif %}/>{% endif %}
                     {% endfor %}
                 </svg>
-                <button class="abm-iconbtn abm-eye" type="button" data-spread aria-pressed="false" aria-label="Показати всі підписи" title="Показати всі підписи"
+                <button class="abm-iconbtn abm-eye" type="button" data-spread aria-pressed="false" aria-label="Show all labels" title="Show all labels"
                         data-on="{{ icon('eye')|forceescape }}" data-off="{{ icon('eye-off')|forceescape }}">{{ icon('eye') }}</button>
                 {% for n, title, text, x, y, side in course.ANATOMY %}
                     <button class="abm-hot" type="button" data-hot="{{ n }}" style="--x: {{ x }}%; --y: {{ y }}%; --sx: {{ 6 if side == 'l' else 94 }}%" aria-label="{{ n }}. {{ title }}">{{ n }}</button>
                 {% endfor %}
             </div>
-            <figcaption>Вигляд спереду. Ваша права сторона — ліворуч на фото. Схематично: розташування петель у кожної людини трохи відрізняється.</figcaption>
+            <figcaption>Front view. Your right side is on the left of the photo. This is a schematic: the exact position of the loops differs a little from person to person.</figcaption>
         </figure>
         <ol class="abm-anatomy__list" role="list">
             {% for n, title, text, x, y, side in course.ANATOMY %}

@@ -1,4 +1,4 @@
-"""Admin «Тести»: what people answer in the self-tests and guide checklists."""
+"""Admin Tests: what people answer in the Bristol stool test."""
 from urllib.parse import unquote, urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Request

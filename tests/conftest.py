@@ -35,7 +35,7 @@ class Accounts:
     def reset(self):
         from sqlalchemy import text
         with self.engine.begin() as conn:
-            for table in ('short_links', 'admin_user_groups', 'group_permissions', 'permission_groups', 'admin_users', 'login_failures'):
+            for table in ('payment_events', 'entitlements', 'orders', 'short_links', 'admin_user_groups', 'group_permissions', 'permission_groups', 'admin_users', 'login_failures'):
                 conn.execute(text(f'DELETE FROM {table}'))
         self.full = self.group('Full access', system=True)
         return self

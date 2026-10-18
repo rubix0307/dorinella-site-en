@@ -2,9 +2,9 @@
 
 {# Human words for a sort direction: numbers, dates and text read differently #}
 {% macro _dir(col, desc) -%}
-    {%- if col.numeric -%}{{ 'більше спочатку' if desc else 'менше спочатку' }}
-    {%- elif col.desc_first -%}{{ 'нові спочатку' if desc else 'старі спочатку' }}
-    {%- else -%}{{ 'Я → А' if desc else 'А → Я' }}{%- endif -%}
+    {%- if col.numeric -%}{{ _('largest first') if desc else _('smallest first') }}
+    {%- elif col.desc_first -%}{{ _('newest first') if desc else _('oldest first') }}
+    {%- else -%}{{ _('Z → A') if desc else _('A → Z') }}{%- endif -%}
 {%- endmacro %}
 
 {# Sortable header cell (wide screens): the whole cell is the control #}
@@ -13,11 +13,11 @@
     {%- set state = view.aria_sort(key) -%}
     <th scope="col" class="sort-th{{ ' num' if col.numeric }}" aria-sort="{{ state }}" data-sort-key="{{ key }}">
         <a class="sort-link" href="{{ view.href(key) }}" data-admin-sort>
-            <span>{{ col.label }}</span>
+            <span>{{ col.label|t }}</span>
             {%- if state == 'descending' %}{{ icon('chevron-down', 'sort-icon is-active') }}
             {%- elif state == 'ascending' %}{{ icon('chevron-up', 'sort-icon is-active') }}
             {%- else %}{{ icon('chevrons-up-down', 'sort-icon') }}{% endif %}
-            <span class="visually-hidden">{{ ', відсортовано за спаданням' if state == 'descending' else (', відсортовано за зростанням' if state == 'ascending' else ', сортувати') }}</span>
+            <span class="visually-hidden">{{ _(', sorted descending') if state == 'descending' else (_(', sorted ascending') if state == 'ascending' else _(', sort')) }}</span>
         </a>
     </th>
 {%- endmacro %}
@@ -27,11 +27,11 @@
     {%- set pid = view.spec.id ~ '-sort' -%}
     {%- set current = view.spec.column(view.key) -%}
     <button class="tool-btn sort-menu-btn" type="button" popovertarget="{{ pid }}" aria-haspopup="dialog" data-admin-popover-btn>
-        {{ micon('arrow-up-down', open='x') }}<span class="tool-btn__text">{{ current.label }} · {{ _dir(current, view.desc) }}</span>
+        {{ micon('arrow-up-down', open='x') }}<span class="tool-btn__text">{{ current.label|t }} · {{ _dir(current, view.desc) }}</span>
     </button>
-    <div class="table-popover" id="{{ pid }}" popover role="dialog" aria-label="Сортування">
-        <p class="table-popover__title">Сортувати за</p>
-        <div class="segmented" role="group" aria-label="Напрямок">
+    <div class="table-popover" id="{{ pid }}" popover role="dialog" aria-label="{{ _('Sorting') }}">
+        <p class="table-popover__title">{{ _('Sort by') }}</p>
+        <div class="segmented" role="group" aria-label="{{ _('Direction') }}">
             {% for desc in ([True, False] if current.first_desc else [False, True]) %}
                 <a class="segmented__item" href="{{ view.href_dir(view.key, desc) }}" data-admin-sort
                    {% if view.desc == desc %}aria-current="true"{% endif %}>{{ _dir(current, desc) }}</a>
@@ -42,7 +42,7 @@
                 {%- set col = view.spec.column(key) -%}
                 <li><a class="menu-item" href="{{ view.href_dir(key, view.desc if key == view.key else col.first_desc) }}" data-admin-sort
                        {% if key == view.key %}aria-current="true"{% endif %}>
-                    <span>{{ col.label }}</span>{% if key == view.key %}{{ icon('check', 'menu-item__check') }}{% endif %}
+                    <span>{{ col.label|t }}</span>{% if key == view.key %}{{ icon('check', 'menu-item__check') }}{% endif %}
                 </a></li>
             {% endfor %}
         </ul>
@@ -66,14 +66,14 @@
     {%- set narrowed = chosen and chosen != view.spec.column(key).default -%}
     <button class="tool-btn{{ ' is-active' if narrowed }}" type="button"
             popovertarget="{{ pid }}" aria-haspopup="dialog" data-admin-popover-btn>
-        {{ micon('list-filter', open='x') }}<span class="tool-btn__text">{{ all_text if not chosen else (label(chosen[0]) if chosen|length == 1 else view.spec.column(key).label ~ ': ' ~ chosen|length) }}</span>
+        {{ micon('list-filter', open='x') }}<span class="tool-btn__text">{{ all_text|t if not chosen else (label(chosen[0])|t if chosen|length == 1 else view.spec.column(key).label|t ~ ': ' ~ chosen|length) }}</span>
     </button>
-    <div class="table-popover" id="{{ pid }}" popover role="dialog" aria-label="Фільтр: {{ view.spec.column(key).label }}">
-        <p class="table-popover__title">{{ view.spec.column(key).label }}</p>
+    <div class="table-popover" id="{{ pid }}" popover role="dialog" aria-label="{{ _('Filter: %(column)s', column=view.spec.column(key).label|t) }}">
+        <p class="table-popover__title">{{ view.spec.column(key).label|t }}</p>
         {% if options %}
             <div class="table-popover__tools">
-                <button type="button" data-check="all">Обрати всі</button>
-                <button type="button" data-check="none">Скинути</button>
+                <button type="button" data-check="all">{{ _('Select all') }}</button>
+                <button type="button" data-check="none">{{ _('Clear') }}</button>
             </div>
             <ul class="table-popover__list" role="list">
                 {% for value, count in options %}
@@ -81,15 +81,15 @@
                         <label class="table-popover__option">
                             <input type="checkbox" name="{{ view.spec.filter_param(key) }}" value="{{ value }}"
                                    form="{{ form_id }}" {% if value in chosen %}checked{% endif %}>
-                            <span>{{ label(value) }}</span>
+                            <span>{{ label(value)|t }}</span>
                             <span class="table-popover__count">{{ count }}</span>
                         </label>
                     </li>
                 {% endfor %}
             </ul>
-            <button class="btn btn--primary btn--block table-popover__apply" type="submit" form="{{ form_id }}">Застосувати</button>
+            <button class="btn btn--primary btn--block table-popover__apply" type="submit" form="{{ form_id }}">{{ _('Apply') }}</button>
         {% else %}
-            <p class="table-popover__empty">За цей період переходів не було.</p>
+            <p class="table-popover__empty">{{ _('There were no clicks in this period.') }}</p>
         {% endif %}
     </div>
 {%- endmacro %}

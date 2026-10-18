@@ -1,6 +1,6 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}Профіль{% endblock %}
+{% block title %}{{ _('Profile') }}{% endblock %}
 
 {% block body %}
     {% include 'admin/_bar.html' %}
@@ -8,41 +8,52 @@
     <main class="admin-wrap admin-main">
         <header class="page-head">
             <div>
-                <h1 class="admin-title">Профіль</h1>
-                <p class="page-head__lead">{{ user.email }} · <span class="badge{{ ' badge--role' if user.role != 'user' }}">{{ role_label }}</span></p>
+                <h1 class="admin-title">{{ _('Profile') }}</h1>
+                <p class="page-head__lead">{{ user.email }} · <span class="badge{{ ' badge--role' if user.role != 'user' }}">{{ role_label|t }}</span></p>
             </div>
         </header>
 
-        {% if notice %}<p class="admin-alert admin-alert--ok" role="status">{{ icon('check') }}{{ notice }}</p>{% endif %}
-        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+        {% if notice %}<p class="admin-alert admin-alert--ok" role="status">{{ icon('check') }}{{ notice|t }}</p>{% endif %}
+        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error|t }}</p>{% endif %}
 
         <section class="admin-card user-section" aria-labelledby="tz-title">
-            <h2 class="admin-card__title" id="tz-title">Часовий пояс</h2>
-            <p class="page-head__lead">У ньому ви задаєте час публікацій; поруч із часом його завжди видно. Зараз: <strong data-tz-now>{{ zone_label }}</strong>.</p>
+            <h2 class="admin-card__title" id="tz-title">{{ _('Time zone') }}</h2>
+            <p class="page-head__lead">{{ _('Times you type are read in it, and it is written next to every time. Now:') }} <strong data-tz-now>{{ zone_label }}</strong>.</p>
             <form method="post" action="{{ url('admin_profile_timezone') }}">
                 <label class="editor-field">
-                    <span>Часовий пояс</span>
+                    <span>{{ _('Time zone') }}</span>
                     <select name="timezone">
                         {% for z in zones %}<option value="{{ z }}"{{ ' selected' if user.timezone == z }}>{{ z }}</option>{% endfor %}
-                        <option value="{{ browser_zone }}" data-browser-zone{{ ' selected' if user.timezone == browser_zone }}>Часовий пояс браузера</option>
+                        <option value="{{ browser_zone }}" data-browser-zone{{ ' selected' if user.timezone == browser_zone }}>{{ _('Browser time zone') }}</option>
                     </select>
                 </label>
-                <p><button class="btn btn--primary" type="submit">Зберегти</button></p>
+                <p><button class="btn btn--primary" type="submit">{{ _('Save') }}</button></p>
+            </form>
+        </section>
+
+        <section class="admin-card user-section" aria-labelledby="lang-title">
+            <h2 class="admin-card__title" id="lang-title">{{ _('Language') }}</h2>
+            <p class="page-head__lead">{{ _('The language of the admin. The site itself is English only.') }}</p>
+            <form class="lang-switch" method="post" action="{{ url('admin_language') }}" data-hard>
+                <input type="hidden" name="next" value="{{ url('admin_profile') }}">
+                {% for code, name in langs.items() %}
+                    <button type="submit" name="lang" value="{{ code }}" lang="{{ code }}"{% if code == lang %} aria-current="true"{% endif %}>{{ name }}</button>
+                {% endfor %}
             </form>
         </section>
 
         <section class="admin-card user-section">
-            <h2 class="admin-card__title">Ваші права</h2>
+            <h2 class="admin-card__title">{{ _('Your permissions') }}</h2>
             {% if user.role == 'root' %}
-                <p class="page-head__lead">Root: усі права, а також керування адмінами та групами.</p>
+                <p class="page-head__lead">{{ _('Root: every permission, and the management of admins and groups.') }}</p>
             {% elif user.role == 'user' %}
-                <p class="page-head__lead">У цього облікового запису немає доступу до адмінки. Попросіть адміністратора видати права.</p>
+                <p class="page-head__lead">{{ _('This account has no access to the admin. Ask an administrator to give you permissions.') }}</p>
             {% elif not user.perms %}
-                <p class="page-head__lead">Доступ до розділів вам ще не видано. Попросіть адміністратора додати вас до групи прав.</p>
+                <p class="page-head__lead">{{ _('You have no access to any section yet. Ask an administrator to add you to a permission group.') }}</p>
             {% else %}
                 {% for section, items in sections %}
-                    <p class="group-card__perms"><strong>{{ section }}:</strong>
-                        {% for label, has in items %}<span class="badge{{ '' if has else ' badge--off' }}">{{ label }}</span>{% endfor %}
+                    <p class="group-card__perms"><strong>{{ section|t }}:</strong>
+                        {% for label, has in items %}<span class="badge{{ '' if has else ' badge--off' }}">{{ label|t }}</span>{% endfor %}
                     </p>
                 {% endfor %}
             {% endif %}

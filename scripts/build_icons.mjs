@@ -23,7 +23,7 @@ const STATIC = [
     'chevron-down', 'chevron-left', 'chevron-right', 'chevron-up', 'chevrons-up-down', 'circle-check', 'circle-help',
     'circle-play', 'clipboard-list', 'clock', 'copy', 'corner-down-right', 'download', 'ear', 'ellipsis', 'external-link', 'eye', 'eye-off',
     'file-text', 'flower-2', 'gift', 'graduation-cap', 'hand-heart', 'heart-handshake', 'heart-pulse', 'house', 'layers', 'leaf',
-    'link', 'list-checks', 'list-filter', 'log-out', 'megaphone', 'monitor', 'smartphone', 'tablet', 'pause', 'pencil', 'play', 'plus', 'power', 'quote',
+    'link', 'list-checks', 'list-filter', 'log-out', 'mail', 'megaphone', 'monitor', 'smartphone', 'tablet', 'pause', 'pencil', 'play', 'plus', 'power', 'quote',
     'rotate-ccw', 'salad', 'search', 'send', 'share', 'shield-plus', 'smile', 'snowflake', 'sparkles',
     'star', 'stethoscope', 'sun', 'sunrise', 'timer', 'trash-2', 'triangle-alert', 'video', 'wind', 'x',
     'bold', 'italic', 'underline', 'strikethrough', 'code', 'heading-1', 'heading-2', 'list', 'list-ordered', 'image', 'paperclip', 'text-quote', 'calendar-clock', 'undo-2', 'save', 'mouse-pointer-click', 'file', 'moon', 'ban', 'pointer', 'radio', 'newspaper',

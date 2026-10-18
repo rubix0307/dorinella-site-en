@@ -95,7 +95,7 @@
     });
 })();
 
-// delete: the trash on the right marks the card (it goes on save, «Повернути» undoes); its lid opens on hover
+// delete: the trash on the right marks the card (it goes on save, «Restore» undoes); its lid opens on hover
 (() => {
     const morph = (el, name) => window.morphIcon?.(el, name);
     document.addEventListener('pointerover', (e) => {
@@ -112,7 +112,7 @@
         row.querySelector('.bio-row__deleted').hidden = !on;
         const trash = row.querySelector('[data-trash]');
         trash.setAttribute('aria-pressed', String(on));
-        trash.setAttribute('aria-label', on ? 'Не видаляти' : 'Видалити кнопку');
+        trash.setAttribute('aria-label', window.t(on ? 'Keep the button' : 'Delete the button'));
         morph(trash, on ? 'trash-open' : 'trash');
     }
     document.addEventListener('click', (e) => {
@@ -158,7 +158,7 @@
             box.querySelector('img').src = URL.createObjectURL(file);
         } catch {
             input.value = '';
-            window.adminConfirm({title: 'Фото не відкрито', message: 'Не вдалося відкрити це фото. Спробуйте PNG або JPEG.', confirmLabel: 'Зрозуміло', cancelLabel: 'Закрити'});
+            window.adminConfirm({title: window.t('The photo could not be opened'), message: window.t('This photo could not be opened. Try a PNG or JPEG.'), confirmLabel: window.t('Got it'), cancelLabel: window.t('Close')});
         } finally {
             pick.classList.remove('is-loading');
         }

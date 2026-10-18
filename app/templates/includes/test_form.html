@@ -1,7 +1,7 @@
 {# One question per card (main.js turns the form into a stepper); posts to self_test_submit, the result is swapped in. #}
 <form class="quiz" method="post" action="{{ url('self_test_submit', slug=test.slug) }}" data-quiz novalidate>
     <div class="quiz__top">
-        <button class="quiz__back" type="button" data-quiz-back hidden>{{ icon('chevron-left') }}Назад</button>
+        <button class="quiz__back" type="button" data-quiz-back hidden>{{ icon('chevron-left') }}Back</button>
         <div class="quiz__progress" aria-hidden="true">
             <div class="quiz__bar"><span data-quiz-bar></span></div>
             <span class="quiz__count" data-quiz-count></span>
@@ -28,7 +28,7 @@
     </div>
 
     <div class="quiz__actions">
-        <button class="btn btn--primary" type="button" data-quiz-next hidden>Далі{{ icon('arrow-right') }}</button>
-        <button class="btn btn--primary" type="submit" data-quiz-submit>Дізнатися результат{{ icon('arrow-right') }}</button>
+        <button class="btn btn--primary" type="button" data-quiz-next hidden>Next{{ icon('arrow-right') }}</button>
+        <button class="btn btn--primary" type="submit" data-quiz-submit>See my result{{ icon('arrow-right') }}</button>
     </div>
 </form>

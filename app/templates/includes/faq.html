@@ -1,8 +1,8 @@
-<section class="section faq" id="faq" aria-labelledby="faq-title">
+{% if faq %}<section class="section faq" id="faq" aria-labelledby="faq-title">
     <div class="container container--narrow">
         <div class="section-head section-head--center" data-reveal>
             <p class="eyebrow">FAQ</p>
-            <h2 class="section-title" id="faq-title">Часті запитання</h2>
+            <h2 class="section-title" id="faq-title">Frequently asked questions</h2>
         </div>
 
         <div class="accordion" data-reveal>
@@ -19,4 +19,4 @@
             {% endfor %}
         </div>
     </div>
-</section>
+</section>{% endif %}

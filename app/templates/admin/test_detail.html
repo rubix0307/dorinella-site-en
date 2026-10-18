@@ -1,7 +1,7 @@
 {% extends 'admin/base.html' %}
-{% from 'admin/_test_bars.html' import bars, plural, results %}
+{% from 'admin/_test_bars.html' import bars, results %}
 
-{% block title %}{{ summary.title }} · Тести{% endblock %}
+{% block title %}{{ summary.title|t }} · {{ _('Tests') }}{% endblock %}
 
 {% block body %}
     {% include 'admin/_bar.html' %}
@@ -9,11 +9,11 @@
     <main class="admin-wrap admin-main" data-tz="{{ tz_name }}" data-tz-asked="{{ tz_asked }}">
         <header class="page-head">
             <div>
-                <a class="test-back" href="{{ url('admin_tests') }}?{{ period_query }}">{{ icon('chevron-left') }}Усі тести</a>
-                <h1 class="admin-title">{{ summary.title }}</h1>
+                <a class="test-back" href="{{ url('admin_tests') }}?{{ period_query }}">{{ icon('chevron-left') }}{{ _('All tests') }}</a>
+                <h1 class="admin-title">{{ summary.title|t }}</h1>
                 <p class="page-head__lead">
-                    <strong>{{ summary.attempts }}</strong> {{ plural(summary.attempts, 'проходження', 'проходження', 'проходжень') }} ·
-                    <strong>{{ summary.people }}</strong> {{ plural(summary.people, 'людина', 'людини', 'людей') }} за період
+                    <strong>{{ summary.attempts }}</strong> {{ _('attempts') }} ·
+                    <strong>{{ summary.people }}</strong> {{ _('people') }} {{ _('in the period') }}
                 </p>
             </div>
         </header>
@@ -21,23 +21,23 @@
         {% include 'admin/_filter.html' %}
 
         <div class="admin-results" data-admin-results data-live="attempt">
-            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ rng.days }} дн. · {{ tz_label }}</span></p>
+            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ _('%(n)s days', n=rng.days) }} · {{ tz_label }}</span></p>
 
             {% if not summary.attempts %}
-                <section class="admin-card"><p class="pages-report__empty">За цей період тест не проходили.</p></section>
+                <section class="admin-card"><p class="pages-report__empty">{{ _('Nobody took this test in this period.') }}</p></section>
             {% else %}
                 <section class="admin-card test-section" aria-labelledby="result-title">
-                    <h2 class="admin-card__title" id="result-title">Результати</h2>
+                    <h2 class="admin-card__title" id="result-title">{{ _('Results') }}</h2>
                     {{ results(summary) }}
                 </section>
 
                 <section class="admin-card test-section" aria-labelledby="answers-title">
-                    <h2 class="admin-card__title" id="answers-title">Відповіді на запитання</h2>
-                    {% if older %}<p class="page-head__lead">Ще {{ older }} {{ plural(older, 'проходження', 'проходження', 'проходжень') }} — на попередню версію тесту, з іншими запитаннями: їх тут не враховано.</p>{% endif %}
+                    <h2 class="admin-card__title" id="answers-title">{{ _('Answers to the questions') }}</h2>
+                    {% if older %}<p class="page-head__lead">{{ _('%(n)s more attempts were made on an earlier version of the test, with other questions: they are not counted here.', n=older) }}</p>{% endif %}
                     <ol class="test-questions" role="list">
                         {% for q in questions %}
                             <li>
-                                <h3 class="test-questions__text"><span>{{ q.number }}.</span> {% if q.label %}<b>{{ q.label }}.</b> {% endif %}{{ q.text }}</h3>
+                                <h3 class="test-questions__text"><span>{{ q.number }}.</span> {% if q.label %}<b>{{ q.label|t }}.</b> {% endif %}{{ q.text|t }}</h3>
                                 {{ bars(q.options) }}
                             </li>
                         {% endfor %}
