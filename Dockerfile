@@ -40,6 +40,6 @@ COPY --chown=app:app . .
 # Expose app port
 EXPOSE 8000
 
-# Apply database migrations, then start the FastAPI app with Uvicorn
+# Development default: apply migrations, then start Uvicorn (production overrides the command, see docker-compose.prod.yml)
 # (trust X-Forwarded-* from the reverse proxy so client IPs and https are right)
 CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 3 --proxy-headers --forwarded-allow-ips '*'"]

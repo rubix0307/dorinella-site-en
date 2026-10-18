@@ -8,7 +8,4 @@ alembic==1.20.0
 tzdata==2025.2
 sentry-sdk[fastapi]==2.71.0
 boto3==1.43.108
-markdown-it-py==4.2.0
-mdit-py-plugins==0.6.1
 cryptography==50.0.2
-pillow==12.3.0

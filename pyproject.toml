@@ -1,7 +1,7 @@
 [project]
-name = "dorinella"
-version = "0.2.0"
-description = "dorinellla landing site on FastAPI, containerized with uv"
+name = "lolakrissss"
+version = "0.1.0"
+description = "lolakrissss.com: the English gut massage guide site on FastAPI, containerized with uv"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi==0.142.2",
@@ -13,19 +13,8 @@ dependencies = [
     "alembic==1.20.0",
     "tzdata==2025.2",
     "sentry-sdk[fastapi]==2.71.0",
-    # recipe recommendations: pgvector + an ONNX embedding model (app/embeddings.py)
-    "pgvector==0.5.0",
-    "numpy==2.5.3",
-    "onnxruntime==1.30.0",
-    "tokenizers==0.23.2",
-    "livekit-api==1.2.1",
-    "boto3==1.43.108",
-    "markdown-it-py==4.2.0",
-    "mdit-py-plugins==0.6.1",
-    "cryptography==50.0.2",
-    "pillow==12.3.0",
-    "av==16.1.0",            # decodes the call recordings to draw their waveform (app/meet_peaks.py)
-    "faster-whisper==1.2.1", # the local speech recogniser of the call recordings (app/meet_transcriber.py)
+    "boto3==1.43.108",        # the daily backup to a private bucket (app/backup.py)
+    "cryptography==50.0.2",   # seals the backup
 ]
 
 [tool.pytest.ini_options]

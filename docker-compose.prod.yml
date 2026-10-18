@@ -1,27 +1,19 @@
-# Production: deploy.sh runs it (blue-green, see below) — don't `up -d` it by hand.
-# Differences from docker-compose.yml (development): code comes from the image (no bind mount),
-# the database is not published, the app listens on localhost only (nginx in front), and the
-# memory limits fit a small server shared with other services.
-name: dorinella
+# Production: deploy.sh runs it (blue-green, see there) — don't `up -d` it by hand.
+# The same server also runs the Ukrainian site (project "dorinella": ports 8001/8002, its own database),
+# so this project has its own name, ports (8003/8004), network, database and upstream file.
+name: lolakrissss
 
-# the app; web_blue and web_green below are two copies of it on different ports
 x-web: &web
   build:
     context: .
     dockerfile: Dockerfile
-  image: dorinella-web:latest
+  image: lolakrissss-web:latest
   env_file:
     - .env
   environment:
     - PYTHONUNBUFFERED=1
-    - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dorinella}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-dorinella}
+    - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-lolakrissss}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-lolakrissss}
     - SENTRY_RELEASE=${SENTRY_RELEASE:-}   # the deployed git commit (deploy.sh)
-    - RECORDINGS_DIR=/recordings
-    - EMBEDDINGS_URL=http://embedder:8001   # vectors come from the embedder service (app/embeddings.py)
-    - EMBEDDINGS_TOKEN=${EMBEDDINGS_TOKEN:-}
-  volumes:
-    - ./volumes/recordings:/recordings     # the spool of the calls (meet profile): the site makes the folder of a call here
-    - ./volumes/telegram:/app/volumes/telegram   # the files of Telegram posts when there is no TG_S3_BUCKET: the site and the sender must see the same folder
   # migrations are a separate step in deploy.sh, so two colors never race on them;
   # X-Forwarded-* is trusted because only the host can connect
   command: >-
@@ -44,7 +36,7 @@ x-web: &web
     resources:
       limits:
         cpus: '1.0'
-        memory: 512m
+        memory: 384m
   logging:
     driver: "json-file"
     options:
@@ -54,16 +46,12 @@ x-web: &web
 
 services:
   db:
-    build:
-      context: docker
-      dockerfile: db.Dockerfile
-    image: dorinella-db:18   # postgres:18 + pgvector (docker/db.Dockerfile)
+    image: postgres:18
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-dorinella}
-      POSTGRES_USER: ${POSTGRES_USER:-dorinella}
+      POSTGRES_DB: ${POSTGRES_DB:-lolakrissss}
+      POSTGRES_USER: ${POSTGRES_USER:-lolakrissss}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-    # The data lives in the project folder (volumes/, gitignored): moving to another server is
-    # copying the folder (with the db stopped). PG 18 keeps it in /var/lib/postgresql/18/docker:
+    # The data lives in the project folder (volumes/, gitignored). PG 18 keeps it in /var/lib/postgresql/18/docker:
     # mount the parent, not .../data.
     volumes:
       - ./volumes/postgres:/var/lib/postgresql
@@ -88,182 +76,17 @@ services:
         max-file: "3"
     restart: unless-stopped
 
-  # Blue-green: one color serves, the other is stopped. deploy.sh starts the idle one with the
-  # new image, waits for its healthcheck, points nginx at its port
-  # (/etc/nginx/conf.d/dorinella-upstream.conf) and only then stops the old one.
-  # nginx on the host proxies to these ports; nothing else can reach them.
+  # Blue-green: one color serves, the other is stopped. deploy.sh starts the idle one with the new image, waits for its
+  # healthcheck, points nginx at its port (/etc/nginx/conf.d/lolakrissss-upstream.conf) and only then stops the old one.
   web_blue:
     <<: *web
     ports:
-      - "127.0.0.1:8001:8000"
-    networks:                  # the web colors, the Telegram sender and the moderator reach the bot database (the other workers and the backup do not)
-      - app-net
-      - bot-net
+      - "127.0.0.1:8003:8000"
 
   web_green:
     <<: *web
     ports:
-      - "127.0.0.1:8002:8000"
-    networks:                  # the web colors, the Telegram sender and the moderator reach the bot database (the other workers and the backup do not)
-      - app-net
-      - bot-net
-
-  # ---- Video calls (admin): started by deploy.sh only when LIVEKIT_API_KEY is set in .env (profile "meet") ----
-  # LiveKit takes the call, Egress cuts every voice into chunks (plain, in volumes/recordings), meet-worker seals
-  # each chunk (AES-GCM) and puts it to the private S3 bucket. MEET_RECORD=audio keeps all of it light.
-  # The browser reaches signalling through nginx (meet.dorinellla.com, wss -> 127.0.0.1:7880) and media directly on 7881/7882.
-  livekit-redis:
-    profiles: ["meet"]
-    image: redis:7-alpine
-    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "48mb"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    networks:
-      - app-net
-    deploy:
-      resources:
-        limits:
-          memory: 64m
-    restart: unless-stopped
-
-  livekit:
-    profiles: ["meet"]
-    image: livekit/livekit-server:v1.13.9
-    command: ["--node-ip=${LIVEKIT_NODE_IP:-127.0.0.1}"]
-    environment:
-      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-}: ${LIVEKIT_API_SECRET:-}"
-      LIVEKIT_CONFIG: |
-        port: 7880
-        rtc:
-          tcp_port: 7881
-          udp_port: 7882
-          use_external_ip: false
-        redis:
-          address: livekit-redis:6379
-        room:
-          auto_create: false      # rooms are made only by the site (app/meet.py)
-        webhook:
-          api_key: ${LIVEKIT_API_KEY:-}
-          urls:
-            - ${SITE_URL:-https://dorinellla.com}/api/livekit/webhook
-    ports:
-      - "127.0.0.1:7880:7880"     # signalling, only nginx reaches it
-      - "7881:7881"               # media over TCP
-      - "7882:7882/udp"           # media over UDP
-    depends_on:
-      livekit-redis:
-        condition: service_healthy
-    networks:
-      - app-net
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 192m
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped
-
-  livekit-egress:
-    profiles: ["meet"]
-    image: livekit/egress:v1.15.0
-    environment:
-      EGRESS_CONFIG_BODY: |
-        log_level: info
-        api_key: ${LIVEKIT_API_KEY:-}
-        api_secret: ${LIVEKIT_API_SECRET:-}
-        ws_url: ws://livekit:7880
-        redis:
-          address: livekit-redis:6379
-        cpu_cost:                       # a voice is cheap; the default (1 CPU per track) would refuse a job on this small server
-          track_composite_cpu_cost: 0.25
-    volumes:
-      - ./volumes/recordings:/out
-    depends_on:
-      - livekit
-    networks:
-      - app-net
-    deploy:
-      resources:
-        limits:
-          cpus: '0.7'
-          memory: 400m
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped
-
-  meet-worker:
-    <<: *web
-    profiles: ["meet"]
-    command: python -m app.meet_worker
-    healthcheck:
-      disable: true
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 128m
-
-  # Writes the words of every finished recording down with a local faster-whisper model (app/meet_transcriber.py), one track at
-  # a time and at low priority; the model is downloaded once into volumes/models/whisper. One copy only.
-  meet-transcriber:
-    <<: *web
-    profiles: ["meet"]
-    command: python -m app.meet_transcriber
-    volumes:
-      - ./volumes/models:/app/volumes/models
-    healthcheck:
-      disable: true
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1g
-
-  # The sender of the Telegram posts (app/tg_sender.py): takes the posts that are due and sends them with the token of the bot, straight to the
-  # Bot API. One copy only; deploy.sh starts it when TELEGRAM_BOT_TOKEN is set in .env (profile "telegram"). It never receives anything from Telegram.
-  telegram-sender:
-    <<: *web
-    profiles: ["telegram"]
-    command: python -m app.tg_sender
-    networks:                  # reads the bot database (the rights of the bot in the channels, app/tg_rights.py)
-      - app-net
-      - bot-net
-    stop_grace_period: 150s      # a deploy lets it finish the post it is sending (a big upload takes minutes) before it leaves
-    healthcheck:
-      disable: true
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 384m           # a 50 MB file is held once in memory while it is uploaded
-
-  # The moderator of the Telegram chats (app/tg_moderation.py): reads what the bot wrote down (BOT_DATABASE_URL), asks the moderation model about each text, puts the
-  # flagged ones in the admin inbox. One copy only; deploy.sh starts it when TELEGRAM_BOT_TOKEN, BOT_DATABASE_URL and OPENAI_API_KEY are all set (profile "telegram").
-  telegram-moderator:
-    <<: *web
-    profiles: ["telegram"]
-    command: python -m app.tg_moderation
-    networks:                  # reads the bot database
-      - app-net
-      - bot-net
-    stop_grace_period: 30s
-    healthcheck:
-      disable: true
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: 192m
+      - "127.0.0.1:8004:8000"
 
   # The daily database backup (app/backup.py): pg_dump, sealed with BACKUP_KEY, put to a private bucket. One copy only;
   # deploy.sh starts it when BACKUP_S3_BUCKET is set in .env (profile "backup").
@@ -279,47 +102,6 @@ services:
           cpus: '0.3'
           memory: 256m
 
-  # The embedder (app/embed_service.py): the one owner of the embedding model, always on, internal network only (no published port).
-  # The site (web colors, the CLI step of deploy.sh) asks it over HTTP: EMBEDDINGS_URL. The service itself stays tiny; its worker process
-  # loads the model (~0.75 GB) on the first request and exits after EMBED_IDLE_SECONDS of silence, so the memory is back for the server.
-  # One copy only (it keeps state). Same image as the site, but only this container sees the model (volumes/models); the image doesn't carry it.
-  embedder:
-    image: dorinella-web:latest      # built by deploy.sh with the web colors
-    environment:
-      - PYTHONUNBUFFERED=1
-      - EMBEDDINGS_TOKEN=${EMBEDDINGS_TOKEN:-}
-      - EMBED_IDLE_SECONDS=${EMBED_IDLE_SECONDS:-60}
-      - EMBED_THREADS=${EMBED_THREADS:-2}
-    command: uvicorn app.embed_service:app --host 0.0.0.0 --port 8001 --workers 1
-    volumes:
-      - ./volumes/models:/app/volumes/models   # the model (app/embeddings.py): downloaded once, kept here
-    healthcheck:   # does not load the model
-      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8001/health', timeout=4)"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - app-net
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1g
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped
-
-
 networks:
   app-net:
-    driver: bridge
-  # shared with the compose project of the bot, which joins it as an external network of the same name
-  bot-net:
-    name: dori-bridge
     driver: bridge

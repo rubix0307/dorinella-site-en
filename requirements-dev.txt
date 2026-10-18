@@ -1,12 +1,12 @@
 -r requirements.txt
-# the call-recording modules (app/meet_peaks.py, app/meet_transcriber.py) import these; pyproject.toml has the same pins
-av==16.1.0
-faster-whisper==1.2.1
 pytest==8.4.2
-pytest-timeout==2.4.0   # a hanging test fails with its name instead of freezing CI until the job is cancelled
+pytest-timeout==2.4.0   # a hanging test fails with its name instead of freezing until cancelled
 httpx2==2.13.1
 aiosqlite==0.22.1
-# the three checks CI runs; pinned so a new release cannot break the build by itself
+# scripts/build_og_images.py and scripts/build_fonts.py only
+pillow==12.3.0
+fonttools==4.60.1
+# the checks; pinned so a new release cannot break the build by itself
 ruff==0.17.1
 mypy==2.4.0
 pyright==1.1.414
