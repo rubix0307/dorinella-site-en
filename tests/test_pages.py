@@ -100,6 +100,13 @@ def test_a_failure_shows_the_error_page_in_english(monkeypatch):
     page = TestClient(app, raise_server_exceptions=False).get('/')
     assert page.status_code == 500 and 'Something went wrong' in page.text and not CYRILLIC.search(page.text)
     assert page.headers['x-robots-tag'].startswith('noindex')
+    assert page.headers['x-frame-options'] == 'DENY' and 'frame-ancestors' in page.headers['content-security-policy']    # the 500 page is built outside the middleware
+
+
+def test_the_csp_lets_the_editors_preview_a_chosen_photo(client):
+    csp = client.get('/').headers['content-security-policy']
+    assert 'img-src' in csp and 'blob:' in csp.split('img-src')[1].split(';')[0]
+    assert 'wss://testserver' in csp                                                          # the admin live socket, named for old Safari
 
 
 def test_login_is_not_indexed_and_says_what_it_needs(client):
@@ -159,3 +166,26 @@ def test_a_huge_answer_list_is_refused_before_it_is_checked():
 def test_no_price_is_published_by_the_api_before_the_sales_open(client):
     assert client.get('/api/v1/products/gut-massage-guide/plans').json() == []
     assert client.get('/api/v1/products/gut-massage-guide').json()['plans'] == []
+
+
+@pytest.mark.parametrize('path', ['/', '/guides/', '/health', '/robots.txt'])
+def test_a_head_probe_gets_the_status_and_headers_of_the_page(client, path):
+    """Uptime monitors and link previews send HEAD: it must not read as a 405."""
+    got, head = client.get(path), client.head(path)
+    assert head.status_code == got.status_code == 200
+    assert head.headers['content-type'] == got.headers['content-type']
+
+
+def test_the_sentence_of_stop_signs_copes_with_any_count():
+    from app.safety import sentence
+    assert (sentence(()), sentence(('a',)), sentence(('a', 'b', 'c'))) == ('', 'a', 'a, b or c')
+
+
+def test_the_missing_page_is_not_indexed_and_has_no_canonical():
+    page = TestClient(app).get('/no-such-page-at-all').text
+    assert 'name="robots" content="noindex"' in page and 'rel="canonical"' not in page
+
+
+def test_the_course_has_its_own_share_image():
+    page = TestClient(app).get('/products/massage-course/').text
+    assert 'og-course.jpg' in page and 'og-gut-guide.jpg' not in page

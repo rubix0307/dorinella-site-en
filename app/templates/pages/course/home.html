@@ -44,7 +44,7 @@
                         <p class="abm-pay__text"><span>{{ pay.title }}: <strong>{{ pay.price }}</strong>. Card details go to our payment provider; we never see them.{% if pay.test %} <strong>Test payment: no money is charged.</strong> Only you can see this.{% endif %}</span></p>
                         {% if pay.ready %}
                             <form method="post" action="{{ url('checkout', slug=pay.slug) }}">
-                                <label class="abm-pay__agree"><input type="checkbox" name="agree" value="1" required> <span>I have read and agree to the <a href="{{ url('terms') }}" target="_blank" rel="noopener">Terms</a> and the <a href="{{ url('privacy') }}" target="_blank" rel="noopener">Privacy Policy</a></span></label>
+                                <label class="abm-pay__agree"><input type="checkbox" name="agree" value="1" required> <span>I have read and agree to the <a href="{{ url('terms') }}" target="_blank" rel="noopener">Terms of Service</a>, the <a href="{{ url('privacy') }}" target="_blank" rel="noopener">Privacy Policy</a> and the <a href="{{ url('refund') }}" target="_blank" rel="noopener">Refund Policy</a>. I understand that I get access right after paying, and that I can ask for a full refund within {{ legal.refund_days }} days.</span></label>
                                 <button class="btn btn--primary" type="submit">{{ icon('credit-card') }}<span>Pay {{ pay.price }}</span></button>
                             </form>
                         {% else %}<p class="abm-pay__text"><span>Payments are not set up yet.</span></p>{% endif %}

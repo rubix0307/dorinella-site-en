@@ -207,8 +207,9 @@
                 <h2 class="section-title" id="contacts-title">Questions? Say hello</h2>
                 <p class="section-lead">I'm happy to help you choose where to start.</p>
                 <div class="cta-card__actions">
-                    <a class="btn btn--light" href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}Email me</a>
-                    <a class="btn btn--outline-light" href="{{ out(site.INSTAGRAM, 'contacts:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}Instagram</a>
+                    {% if site.CONTACT_EMAIL %}<a class="btn btn--light" href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}Email me</a>{% endif %}
+                    <a class="btn {{ 'btn--outline-light' if site.CONTACT_EMAIL else 'btn--light' }}" href="{{ out(site.INSTAGRAM, 'contacts:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}Instagram</a>
+                    <a class="btn btn--outline-light" href="{{ out(site.TIKTOK, 'contacts:tiktok') }}" target="_blank" rel="noopener">{{ icon('message-circle') }}TikTok</a>
                 </div>
             </div>
         </div>

@@ -106,3 +106,17 @@ def test_a_doctor_box_never_repeats_itself():
 def test_the_test_form_says_what_is_saved():
     page = client.get('/tests/bristol/').text
     assert 'random visitor ID' in page and '/privacy/#tests' in page
+
+
+def test_the_constipation_note_is_dropped_next_to_loose_stool():
+    assert 'constipation' in _evaluate([3, 3, 0])['notes'][0]['text']
+    for loose in (5, 6):
+        assert not _evaluate([loose, 3, 0])['notes']
+    assert _evaluate([6, 4, 0])['notes']              # the other frequency notes still apply
+
+
+def test_not_sure_about_warning_signs_is_worded_as_a_warning():
+    result = _evaluate([1, 1, 2])
+    assert result['alert'] and 'treat it as a warning sign' in result['notes'][0]['text']
+    page = client.post('/tests/bristol/', data={'q0': 1, 'q1': 1, 'q2': 2}).text
+    assert 'or you are not sure about one' in page

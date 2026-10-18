@@ -33,11 +33,12 @@ def _visitor(browser):
     return visitors.decode(browser.cookies.get(visitors.COOKIE)).id
 
 
-def _post(browser, answers, source):
+def _post(browser, answers, source, consent=True):
     if source == 'api':
-        return browser.post('/api/v1/tests/bristol/evaluate', json={'answers': answers})
+        return browser.post('/api/v1/tests/bristol/evaluate', json={'answers': answers, 'consent': consent})
     headers = {'sec-fetch-mode': 'navigate' if source == 'form' else 'cors'}
-    return browser.post('/tests/bristol/', data={f'q{i}': a for i, a in enumerate(answers)}, headers=headers)
+    data = {f'q{i}': a for i, a in enumerate(answers)} | ({'consent': '1'} if consent else {})
+    return browser.post('/tests/bristol/', data=data, headers=headers)
 
 
 @pytest.mark.parametrize('source', ['form', 'js', 'api'])
@@ -60,6 +61,25 @@ def test_attempt_is_saved_with_answers_result_version_and_visitor(sync_db, sourc
     assert [q['text'] for q in snap['questions']] == [q.text for q in BRISTOL.questions]
 
 
+@pytest.mark.parametrize('source', ['form', 'js', 'api'])
+def test_nothing_is_saved_without_the_consent_but_the_result_is_shown(sync_db, source):
+    browser = TestClient(app)
+    _visitor(browser)
+    before = _count(sync_db)
+    response = _post(browser, [2, 2, 0], source, consent=False)
+    assert response.status_code == 200
+    assert _count(sync_db) == before
+    if source != 'api':
+        assert 'data-result' in response.text and 'Nothing was saved' in response.text
+
+
+def test_the_form_has_an_unticked_consent_box_and_the_result_says_what_was_done():
+    page = TestClient(app).get('/tests/bristol/').text
+    assert 'name="consent"' in page and 'name="consent" value="1" checked' not in page and 'required' not in page.split('name="consent"')[1].split('>')[0]
+    saved = TestClient(app).post('/tests/bristol/', data={'q0': 3, 'q1': 1, 'q2': 0, 'consent': '1'}).text
+    assert 'stored anonymously, as you agreed' in saved
+
+
 def test_a_double_submit_is_one_attempt_but_a_retake_is_another(sync_db):
     browser = TestClient(app)
     _visitor(browser)
@@ -77,7 +97,7 @@ def test_invalid_answers_bots_and_flooding_are_not_saved(sync_db, monkeypatch):
     before = _count(sync_db)
     assert _post(browser, [0], 'api').status_code == 422
     assert _post(browser, [9, 0, 0], 'api').status_code == 422
-    TestClient(app, headers={'user-agent': 'Googlebot/2.1'}).post('/tests/bristol/', data={'q0': 3, 'q1': 1, 'q2': 0})
+    TestClient(app, headers={'user-agent': 'Googlebot/2.1'}).post('/tests/bristol/', data={'q0': 3, 'q1': 1, 'q2': 0, 'consent': '1'})
     assert _count(sync_db) == before
     monkeypatch.setattr(test_attempts, 'HOURLY_LIMIT', 2)
     for n in range(4):
@@ -87,7 +107,7 @@ def test_invalid_answers_bots_and_flooding_are_not_saved(sync_db, monkeypatch):
 
 
 def test_a_client_without_cookies_is_saved_without_an_id(sync_db):
-    TestClient(app).post('/tests/bristol/', data={'q0': 3, 'q1': 1, 'q2': 0})
+    TestClient(app).post('/tests/bristol/', data={'q0': 3, 'q1': 1, 'q2': 0, 'consent': '1'})
     assert _last(sync_db)['visitor_id'] is None
 
 
@@ -95,7 +115,7 @@ def test_saving_failure_still_shows_the_result(monkeypatch):
     def broken(*args, **kwargs):
         raise RuntimeError('db down')
     monkeypatch.setattr(test_attempts, 'version', broken)
-    response = TestClient(app).post('/tests/bristol/', data={'q0': 3, 'q1': 1, 'q2': 0})
+    response = TestClient(app).post('/tests/bristol/', data={'q0': 3, 'q1': 1, 'q2': 0, 'consent': '1'})
     assert response.status_code == 200 and 'data-result' in response.text
 
 

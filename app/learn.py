@@ -13,6 +13,9 @@ class Question:
     label: str = ''                        # short heading above the text
     notes: tuple[str, ...] = ()            # per option: a sentence added to the result when it is chosen ('' for none)
     alert: bool = False                    # the notes are a warning (shown as one), not a remark
+    # (note index, answers of the FIRST question): the note does not fit when the first question had one of these answers
+    # (constipation wording next to watery stool)
+    note_unless_first: tuple[tuple[int, tuple[int, ...]], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -54,7 +57,9 @@ class SelfTest:
 
     def notes_for(self, answers: list[int]) -> list[tuple[str, bool]]:
         """(sentence, is_warning) for every chosen option that carries a note."""
-        return [(q.notes[a], q.alert) for q, a in zip(self.questions, answers, strict=False) if q.notes and q.notes[a]]
+        first = answers[0] if answers else -1
+        return [(q.notes[a], q.alert) for q, a in zip(self.questions, answers, strict=False)
+                if q.notes and q.notes[a] and not any(a == i and first in firsts for i, firsts in q.note_unless_first)]
 
     def alerted(self, answers: list[int]) -> bool:
         """Whether a warning-type answer was chosen."""
@@ -95,7 +100,7 @@ BRISTOL = SelfTest(
         Question('How often do you usually have a bowel movement?',
                  (('More than three times a day', 0), ('One to three times a day', 0), ('Three to six times a week', 0),
                   ('Fewer than three times a week', 0), ('It changes a lot from week to week', 0)),
-                 label='Frequency',
+                 label='Frequency', note_unless_first=((3, (5, 6)),),
                  notes=('Going more than three times a day is normal for some people. If it is new for you, or comes with loose stools or urgency, '
                         'mention it to a doctor.',
                         '',
@@ -110,7 +115,8 @@ BRISTOL = SelfTest(
                  notes=('',
                         'Those signs should be checked by a doctor. Please book an appointment soon rather than waiting. If the pain is severe, '
                         'you are vomiting, feel faint or are passing a lot of blood, seek urgent care. Self-help and massage can wait until you have been seen.',
-                        'If you are not sure whether what you noticed counts, it is fine to check with a doctor or pharmacist. Asking costs nothing.')),
+                        'If you are not sure whether what you noticed counts, treat it as a warning sign for now and check with a doctor or pharmacist before anything else. '
+                        'Asking costs nothing.')),
     ),
     bands=(
         Band('type-7', 7, 'Type 7: watery stool',
@@ -278,7 +284,7 @@ GUT_BASICS = Guide(
 GUT_MASSAGE_GUIDE = Guide(
     slug='gut-massage-guide',
     title='Gut Massage Guide',
-    subtitle='A gentle, practical way to ease bloating and look after your digestion, with clear safety guidance',
+    subtitle='A gentle, practical way to look after your digestion, which many people find helps with bloating, with clear safety guidance',
     tagline='Paid. A calm, step-by-step approach to abdominal self-massage, with the safety guidance that comes with it.',
     icon='book-open-text',
     key_idea=('What it is for',

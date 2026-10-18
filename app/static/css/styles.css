@@ -4,7 +4,7 @@
 @font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 500 600; font-display: swap; src: url("/static/fonts/cormorant-garamond-72c23ded2e.woff2") format("woff2"); }
 @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 500 600; font-display: swap; src: url("/static/fonts/cormorant-garamond-italic-a798b92ffc.woff2") format("woff2"); }
 /* ==========================================================================
-   dorinellla — design system
+   lolakrissss — design system
    ========================================================================== */
 :root {
     /* palette */
@@ -880,6 +880,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .quiz__option input { flex-shrink: 0; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--ink); }
 .quiz__option:has(input:checked) { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, var(--bg)); }
 .quiz__option:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.quiz__consent { margin-top: 1rem; }
+.quiz__consent-label { display: flex; gap: .65rem; align-items: flex-start; font-size: var(--fs-sm); cursor: pointer; }
+.quiz__consent-label input { flex-shrink: 0; width: 1.25rem; height: 1.25rem; margin: .1rem 0 0; accent-color: var(--ink); }
+.quiz__consent-label:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
 .quiz__privacy { margin: 1rem 0 0; color: var(--muted); font-size: var(--fs-sm); }
 .quiz__actions { display: flex; justify-content: flex-end; gap: .75rem; }
 .quiz__error { padding: 1rem 1.25rem; border-radius: var(--radius); background: var(--blush-100); color: #8A2E36; font-weight: 600; }
@@ -1245,7 +1249,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .links__ads-title { margin: 0; font-family: var(--font-display); font-size: 1.6rem; line-height: 1.1; }
 .links__ads p { margin: 0 0 .4rem; color: var(--ink-soft); font-size: var(--fs-sm); }
 .links__ads-btn { gap: .5rem; }
-.links__ads-btn img { border-radius: 6px; }
 /* ---------- the full course on offer, and the native lesson materials (GUT HEALTH) ---------- */
 .section--tight { padding-block: clamp(1.5rem, 1rem + 2vw, 2.5rem); }
 .buy-card { display: grid; justify-items: center; gap: .9rem; padding: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem); border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--accent-soft), var(--blush-100)); text-align: center; }

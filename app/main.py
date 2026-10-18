@@ -1,4 +1,4 @@
-"""dorinellla — site on FastAPI.
+"""lolakrissss.com — site on FastAPI.
 
 Run locally:  uvicorn app.main:app --reload --reload-dir app
 
@@ -13,9 +13,10 @@ import re
 import secrets
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.routing import Match
@@ -60,10 +61,18 @@ async def lifespan(_app: FastAPI):
         await db.get_engine().dispose()
 
 
-app = FastAPI(title='dorinellla', docs_url='/api/docs', redoc_url=None, openapi_url='/api/openapi.json',
+app = FastAPI(title='lolakrissss', docs_url='/api/docs', redoc_url=None, openapi_url='/api/openapi.json',
               redirect_slashes=False,  # trailing-slash redirects are permanent, see http_error()
               lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1024)
+
+
+def include(router: APIRouter) -> None:
+    """Uptime monitors, link previews and crawlers probe with HEAD; a GET-only route would answer 405 (read as "page down")."""
+    for route in router.routes:
+        if isinstance(route, APIRoute) and route.methods and 'GET' in route.methods:
+            route.methods.add('HEAD')
+    app.include_router(router)
 
 
 # a content hash in the file name itself: fonts/manrope-cyrillic-c268b459a9.woff2, vendor chunks like spring-CFHloqPP.js
@@ -84,20 +93,20 @@ class CachedStaticFiles(StaticFiles):
 
 
 app.mount('/static', CachedStaticFiles(directory=STATIC_DIR), name='static')
-app.include_router(pages.router)
-app.include_router(course.router)
-app.include_router(account.router)
-app.include_router(api_v1.router)
-app.include_router(outbound.router)
-app.include_router(admin.router)
-app.include_router(admin_tests.router)
-app.include_router(admin_course.router)
-app.include_router(admin_links_page.router)
-app.include_router(admin_profile.router)
-app.include_router(admin_users.router)
-app.include_router(admin_groups.router)
-app.include_router(admin_orders.router)
-app.include_router(payments.router)
+include(pages.router)
+include(course.router)
+include(account.router)
+include(api_v1.router)
+include(outbound.router)
+include(admin.router)
+include(admin_tests.router)
+include(admin_course.router)
+include(admin_links_page.router)
+include(admin_profile.router)
+include(admin_users.router)
+include(admin_groups.router)
+include(admin_orders.router)
+include(payments.router)
 templating.setup(app)
 templating.templates.env.globals['catalog'] = PRODUCTS  # footer product links
 templating.templates.env.globals['listed'] = listed     # only the products that are shown
@@ -119,23 +128,28 @@ async def security_headers(request: Request, call_next):
         await analytics.record_page_view(db.SessionLocal, request)
     if visitor is not None:
         visitors.write(response, request, visitor)
-    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
-    response.headers.setdefault('X-Frame-Options', 'DENY')
-    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
-    response.headers.setdefault('Content-Security-Policy', _csp(request.state.csp_nonce))
+    apply_security_headers(response, request)
     return response
 
 
-def _csp(nonce: str) -> str:
+def apply_security_headers(response: Response, request: Request) -> None:
+    """Also used by the error pages: Starlette's outermost handler builds the 500 page outside the middleware above."""
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'DENY')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.setdefault('Content-Security-Policy', _csp(getattr(request.state, 'csp_nonce', None) or secrets.token_urlsafe(16), request))
+
+
+def _csp(nonce: str, request: Request) -> str:
     """Scripts run only from our own files, Google's sign-in script (the /login page) and the one nonced import map. Inline styles stay allowed:
     the first paint carries the stylesheet in the page, and some bars are sized by a style attribute (a style cannot run code)."""
     return '; '.join((
         "default-src 'self'",
         f"script-src 'self' 'nonce-{nonce}' https://accounts.google.com/gsi/client",
         "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
-        "img-src 'self' data: https:",
+        "img-src 'self' data: blob: https:",
         "font-src 'self' data:",
-        "connect-src 'self' https://accounts.google.com/gsi/",
+        f"connect-src 'self' wss://{request.url.netloc} https://accounts.google.com/gsi/",
         'frame-src https://accounts.google.com/gsi/',
         "object-src 'none'",
         "base-uri 'self'",
@@ -191,6 +205,7 @@ def _error_page(request: Request, status_code: int) -> Response:
         logging.getLogger(__name__).exception('error page failed')
         response = HTMLResponse(heading, status_code=status_code)
     response.headers.update(NO_INDEX)
+    apply_security_headers(response, request)
     return response
 
 

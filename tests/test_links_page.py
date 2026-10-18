@@ -12,7 +12,7 @@ from app.main import app
 STARTER = [   # a starter page as the first migration makes it: (slug, target, short-link title, button title, note, image, primary)
     ('links-guide', 'https://lolakrissss.com/products/gut-massage-guide/', 'Link · Guide', 'Gut Massage Guide', 'Gentle abdominal self-massage', 'book-open-text', 1),
     ('links-test', 'https://lolakrissss.com/tests/bristol/', 'Link · Bristol test', 'Free Bristol stool scale test', 'Tips matched to your result', 'circle-help', 0),
-    ('links-instagram', 'https://www.instagram.com/lolakrissss/', 'Link · Instagram', 'Instagram', '@lolakrissss', 'instagram', 0),
+    ('links-instagram', 'https://www.instagram.com/lola_krissss', 'Link · Instagram', 'Instagram', '@lolakrissss', 'instagram', 0),
 ]
 
 

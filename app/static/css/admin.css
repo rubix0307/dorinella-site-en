@@ -908,7 +908,7 @@ button.admin-tile {
 .emoji-panel__tabs button:hover { background: var(--surface-2); color: var(--ink); }
 .emoji-panel__tabs button.is-active { background: var(--accent-soft); color: var(--accent-text); }
 .emoji-panel__tabs .icon { width: 19px; height: 19px; }
-/* the icon panel's own tooltip: a small dark bubble with an arrow, Ukrainian name over the English one */
+/* the icon panel's own tooltip: a small dark bubble with an arrow, the translated name over the English one */
 .emoji-tip {
     position: absolute; z-index: 2; display: grid; justify-items: center; gap: .05rem; width: max-content; max-width: 220px;
     padding: .4rem .65rem; border-radius: 10px; background: var(--green-900, #22361F); color: #fff;
@@ -1170,7 +1170,7 @@ body.is-reordering { cursor: grabbing; user-select: none; }
 .admin-nav a:hover .icon { color: var(--ink-soft); }
 .admin-nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent-text); }
 .admin-nav a[aria-current="page"] .icon { color: var(--accent-text); }
-.admin-side__logo { display: inline-flex; align-items: center; gap: .55rem; padding-inline: .75rem; font-size: 1.6rem; }
+.admin-side__logo { display: inline-flex; align-items: center; gap: .55rem; padding-inline: .75rem; font-size: 1.6rem; white-space: nowrap; }
 .admin-side__foot { display: grid; gap: .5rem; margin-top: auto; }
 /* the account card: 4px inside a --r-m card, so its inner parts are --r-s (14 − 4 = 10, concentric) */
 .admin-account { display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }

@@ -75,7 +75,7 @@ def test_the_public_sale_needs_the_switch_the_product_and_an_open_course(account
     assert people['buyer'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 404            # PAYMENTS_PUBLIC is off
     public()
     assert people['buyer'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 404            # the seller details are still brackets
-    monkeypatch.setattr(payments.legal, 'SELLER', dataclasses.replace(payments.legal.SELLER, name='Acme LLC', address='1 Main St, Austin, TX, USA', governing_law='Texas, USA'))
+    monkeypatch.setattr(payments.legal, 'SELLER', dataclasses.replace(payments.legal.SELLER, name='Acme LLC', address='1 Main St, Austin, TX, USA', governing_law='Texas, USA', email='shop@example.test'))
     assert people['buyer'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 303
     public(mode='admin')                                                                                # a customer would get nothing: not offered
     assert people['other'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 404
@@ -266,6 +266,14 @@ def test_a_refund_that_overtakes_the_payment_is_sent_again_and_still_closes_the_
     assert send(early).status_code == 200                                                   # the retry
     assert order_of(accounts)['status'] == 'refunded'
     assert accounts.rows('SELECT revoked_at FROM entitlements')[0]['revoked_at']
+
+
+def test_a_refund_of_a_charge_no_order_waits_for_is_answered_not_retried(accounts, people, stripe):
+    import time
+    paid_order(accounts, people)                                                            # no order is left waiting for its payment
+    stray = refund_event(intent='pi_other_product')
+    stray['created'] = int(time.time())
+    assert send(stray).status_code == 200
 
 
 def test_a_refund_noted_on_an_unpaid_order_is_applied_when_the_payment_arrives(accounts, people, stripe):

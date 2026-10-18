@@ -149,5 +149,7 @@ async def self_test_submit(request: Request, slug: str):
         return render(request, 'pages/tests/test.html', test=test, error='Please answer every question.',
                       status_code=422)
     result = evaluate(request, test, answers)
-    await record_attempt(request, test, answers)
-    return render(request, 'pages/tests/test.html', test=test, result=result)
+    consented = field(form, 'consent') == '1'      # answers about digestion are stored only with the person's agreement
+    if consented:
+        await record_attempt(request, test, answers)
+    return render(request, 'pages/tests/test.html', test=test, result=result, saved=consented)

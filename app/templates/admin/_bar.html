@@ -59,7 +59,7 @@
         <a href="{{ url('admin_dashboard') }}" class="logo" aria-label="{{ _('Admin of %(brand)s', brand=site.BRAND) }}">{{ site.BRAND }}<span class="admin-header__tag">{{ _('admin') }}</span></a>
 
         {# phones: the same menu as on the site (main.js opens it) #}
-        <button class="burger" type="button" aria-label="{{ _('Open the menu') }}" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <button class="burger" type="button" aria-label="{{ _('Open the menu') }}" aria-expanded="false" aria-controls="mobile-menu" data-label-close="{{ _('Close the menu') }}" data-menu-toggle>
             {{ micon('menu') }}
         </button>
     </div>

@@ -1,7 +1,7 @@
 """Open a sealed database backup (app/backup.py) and, if asked, load it into a database.
 
-    BACKUP_KEY=<base64> python scripts/backup_restore.py dorinella-20261020-030000.dump.enc dorinella.dump
-    BACKUP_KEY=<base64> python scripts/backup_restore.py dorinella-....dump.enc dorinella.dump --restore postgresql://user:pass@host/newdb
+    BACKUP_KEY=<base64> python scripts/backup_restore.py lolakrissss-20261020-030000.dump.enc lolakrissss.dump
+    BACKUP_KEY=<base64> python scripts/backup_restore.py lolakrissss-....dump.enc lolakrissss.dump --restore postgresql://user:pass@host/newdb
 
 Download the file from the bucket first (with your own key: the server's key can only write). The first form only
 decrypts to a pg_dump file (custom format); --restore then runs `pg_restore --clean --if-exists` into the named database,

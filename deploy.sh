@@ -29,6 +29,7 @@ main() {
         return
     fi
 
+    check_env
     local branch="${DEPLOY_BRANCH:-main}" previous
     previous="$(git rev-parse HEAD)"
     git fetch --quiet origin "$branch"
@@ -60,6 +61,14 @@ main() {
     docker image prune -f >/dev/null   # images of stopped containers stay (that's the rollback)
     docker builder prune -af >/dev/null 2>&1 || true   # the build cache refills the small disk on every deploy
     echo "deployed: $idle is live"
+}
+
+check_env() {   # a missing or weak .env otherwise shows up only as a container that exits at import and a 2-minute "NOT healthy"
+    [ -f .env ] || { echo ".env is missing: copy .env.example and fill it in (docs/ops/Deploy.md)" >&2; return 1; }
+    local key
+    key="$(sed -n 's/^SECRET_KEY=//p' .env | tail -n 1)"
+    [ "${#key}" -ge 32 ] || { echo "SECRET_KEY in .env must be at least 32 characters (python3 -c 'import secrets; print(secrets.token_urlsafe(48))')" >&2; return 1; }
+    grep -q '^POSTGRES_PASSWORD=.\+' .env || { echo "POSTGRES_PASSWORD in .env is empty" >&2; return 1; }
 }
 
 bake_lastmod() {   # the sitemap's lastmod dates: the image has no git, so they are written to app/lastmod.json before the build; never fatal

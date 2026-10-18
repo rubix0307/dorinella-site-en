@@ -193,15 +193,39 @@ def test_answers_are_stored_with_time_and_history(admin, accounts):
     assert admin.post(f'{BASE}state', json={'key': 'goal', 'value': 'bloating'}).json()['saved'] is True
     assert admin.post(f'{BASE}state', json={'key': 'goal', 'value': 'bloating'}).json()['saved'] is False     # unchanged
     assert admin.post(f'{BASE}state', json={'key': 'goal', 'value': course.GOALS[1]['id']}).json()['saved'] is True
-    assert admin.post(f'{BASE}state', json={'key': 'checks', 'value': ['a1', 'r2']}).status_code == 200
+    assert admin.post(f'{BASE}state', json={'key': 'consent', 'value': {'ok': True}}).json()['saved'] is True
+    assert admin.post(f'{BASE}state', json={'key': 'checks', 'value': ['a1', 'r2']}).json()['saved'] is True
     now = accounts.rows("SELECT key, value, updated_at FROM course_answers WHERE key IN ('goal', 'checks') ORDER BY key")
     assert len(now) == 2 and all(r['updated_at'] for r in now)
     log = accounts.rows("SELECT value, at FROM course_answer_log WHERE key = 'goal' ORDER BY id")
     assert len(log) == 2 and all(r['at'] for r in log)
 
 
+def test_ticks_and_watch_time_are_stored_only_after_the_consent(admin, accounts):
+    walk(admin, 'techniques')
+    assert admin.post(f'{BASE}state', json={'key': 'checks', 'value': ['a1']}).json()['saved'] is False
+    admin.post(f'{BASE}track', json={'key': 'm1', 'seconds': 12, 'plays': 1, 'completed': True})
+    assert accounts.rows("SELECT key FROM course_answers WHERE key = 'checks' OR key LIKE 'tech.%'") == []
+    # reading and passing pages never depends on it
+    assert admin.get(f'{BASE}techniques/').status_code == 200
+    admin.post(f'{BASE}state', json={'key': 'consent', 'value': {'ok': True}})
+    assert admin.post(f'{BASE}state', json={'key': 'checks', 'value': ['a1']}).json()['saved'] is True
+    admin.post(f'{BASE}track', json={'key': 'm1', 'seconds': 12, 'plays': 1, 'completed': True})
+    assert len(accounts.rows("SELECT key FROM course_answers WHERE key = 'tech.m1'")) == 1
+    admin.post(f'{BASE}state', json={'key': 'consent', 'value': {'ok': False}})
+    assert admin.post(f'{BASE}state', json={'key': 'checks', 'value': ['a1', 'r1']}).json()['saved'] is False
+
+
+def test_the_safety_page_asks_for_the_consent_and_lists_the_skip_conditions(admin):
+    walk(admin, 'safety')
+    html = admin.get(f'{BASE}safety/').text
+    assert 'data-consent' in html and 'data-consent checked' not in html
+    assert 'flare-up of Crohn' in html and 'that has not been explained' in html
+
+
 def test_answers_come_back_with_the_page(admin):
     walk(admin, 'safety')
+    admin.post(f'{BASE}state', json={'key': 'consent', 'value': {'ok': True}})
     admin.post(f'{BASE}state', json={'key': 'checks', 'value': ['a1']})
     admin.post(f'{BASE}safety/complete', data={'ack': '1'})
     html = admin.get(f'{BASE}safety/').text
@@ -253,6 +277,7 @@ def test_no_saved_banner_or_status_chip(admin):
 
 def test_watching_is_summed_and_logged(admin, accounts):
     walk(admin, 'techniques')
+    admin.post(f'{BASE}state', json={'key': 'consent', 'value': {'ok': True}})
     assert admin.post(f'{BASE}track', json={'key': 'm1', 'seconds': 3, 'plays': 0}).json()['ok']
     assert accounts.rows("SELECT value FROM course_answers WHERE key = 'tech.m1'")[0]['value'] and True
     admin.post(f'{BASE}track', json={'key': 'm1', 'seconds': 4.5, 'plays': 1, 'completed': True})
@@ -264,6 +289,7 @@ def test_watching_is_summed_and_logged(admin, accounts):
 
 
 def test_nothing_is_recorded_for_a_locked_player_or_a_bad_key(admin, accounts):
+    admin.post(f'{BASE}state', json={'key': 'consent', 'value': {'ok': True}})
     admin.post(f'{BASE}track', json={'key': 'm1', 'seconds': 9, 'plays': 1})          # techniques not open yet
     walk(admin, 'techniques')
     admin.post(f'{BASE}track', json={'key': 'm9', 'seconds': 9, 'plays': 1})
@@ -283,6 +309,7 @@ def test_player_page_carries_the_track_url(admin):
 
 def test_statistics_page(admin):
     walk(admin, 'techniques')
+    admin.post(f'{BASE}state', json={'key': 'consent', 'value': {'ok': True}})
     admin.post(f'{BASE}track', json={'key': 'm1', 'seconds': 12, 'plays': 1, 'completed': True})
     admin.post(f'{BASE}state', json={'key': 'checks', 'value': ['a1']})
     r = admin.get('/admin/course/')

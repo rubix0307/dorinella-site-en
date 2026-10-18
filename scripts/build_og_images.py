@@ -1,4 +1,4 @@
-"""The Open Graph images of the site (1200x630): the default one and the one of the Gut Massage Guide, written to app/static/img.
+"""The Open Graph images of the site (1200x630): the default one and those of the Gut Massage Guide and the course, written to app/static/img.
 
 Run (Pillow is a dev-only dependency):
     pip install -r requirements-dev.txt
@@ -30,7 +30,8 @@ PAD = 72
 
 IMAGES = {
     'og-default.jpg': ('GUT HEALTH, MADE GENTLE', 'Gentle gut health, step by step', 'Abdominal self-massage, a Bristol stool scale test and practical guides.'),
-    'og-gut-guide.jpg': ('GUIDE', 'Gut Massage Guide', 'Step-by-step abdominal self-massage to ease bloating and look after your gut.'),
+    'og-gut-guide.jpg': ('GUIDE', 'Gut Massage Guide', 'Step-by-step abdominal self-massage and clear safety guidance to look after your gut.'),
+    'og-course.jpg': ('ONLINE COURSE', 'Abdominal Massage Course', 'Abdominal self-massage step by step, with animated demonstrations and safe preparation.'),
 }
 
 
@@ -66,24 +67,31 @@ def render(eyebrow: str, title: str, lead: str, fonts: Path) -> Image.Image:
     img.paste(art, (cx - art.width // 2, cy - art.height // 2), art)
 
     left_w = cx - r - PAD - 40
-    draw.text((PAD, 150), eyebrow, font=font(sans, 22, 700), fill=ACCENT)
-    for size in (80, 72, 64, 56):
+    # the footer (rule + name) is fixed at the bottom; the text block must end above it, so pick the largest title that fits
+    rule_y, name_y = H - 118, H - 100
+    top, bottom = 70, rule_y - 36
+    lead_font = font(sans, 26, 500)
+    lead_lines = wrap(draw, lead, lead_font, left_w)[:3]
+    for size in (80, 72, 64, 56, 50):
         title_font = font(serif, size, 600)
         lines = wrap(draw, title, title_font, left_w)
-        if len(lines) <= 3:
+        step = round(size * 1.08)
+        block = 22 + 30 + len(lines) * step + 22 + len(lead_lines) * 40
+        if len(lines) <= 3 and block <= bottom - top:
             break
-    y = 192
+    y = top + (bottom - top - block) // 2
+    draw.text((PAD, y), eyebrow, font=font(sans, 22, 700), fill=ACCENT)
+    y += 22 + 30
     for line in lines:
         draw.text((PAD, y), line, font=title_font, fill=INK)
-        y += round(size * 1.08)
-    lead_font = font(sans, 26, 500)
+        y += step
     y += 22
-    for line in wrap(draw, lead, lead_font, left_w)[:3]:
+    for line in lead_lines:
         draw.text((PAD, y), line, font=lead_font, fill=SOFT)
         y += 40
 
-    draw.line((PAD, H - 118, PAD + 64, H - 118), fill=ACCENT, width=3)
-    draw.text((PAD, H - 100), BRAND, font=font(fonts / 'CormorantGaramond-Italic.ttf', 46, 500), fill=INK)
+    draw.line((PAD, rule_y, PAD + 64, rule_y), fill=ACCENT, width=3)
+    draw.text((PAD, name_y), BRAND, font=font(fonts / 'CormorantGaramond-Italic.ttf', 46, 500), fill=INK)
     return img
 
 

@@ -48,15 +48,24 @@
             if (!was && stop.classList.contains('is-active') && ready) stop.scrollIntoView({ block: 'center', behavior: 'smooth' });
             caution.hidden = !rel.some((c) => c.checked);
         };
+        // the ticks are health information: they are stored only after the person agreed (the box above them)
+        const consent = safety.querySelector('[data-consent]');
+        const tickedIds = () => [...abs, ...rel].filter((x) => x.checked).map((x) => x.dataset.abs || x.dataset.rel);
         const ticked = new Set(saved('checks', []));
         [...abs, ...rel].forEach((c) => {
             c.checked = ticked.has(c.dataset.abs || c.dataset.rel);
             c.addEventListener('change', () => {
                 sync();
-                const ids = [...abs, ...rel].filter((x) => x.checked).map((x) => x.dataset.abs || x.dataset.rel);
-                save('checks', ids);
+                if (consent && consent.checked) save('checks', tickedIds());
             });
         });
+        if (consent) {
+            const agreed = saved('consent');
+            consent.checked = !!(agreed && agreed.ok);
+            consent.addEventListener('change', () => {
+                save('consent', { ok: consent.checked }).then(() => { if (consent.checked) save('checks', tickedIds()); });
+            });
+        }
         ack.checked = ackOk();
         // once confirmed it stays confirmed
         const lock = () => { if (ack.checked) { ack.disabled = true; ack.closest('.abm-check').classList.add('is-locked'); } };

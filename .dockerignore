@@ -7,4 +7,9 @@ assets/
 *.pyc
 volumes/
 media/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+tests/
+docs/
 .og-build/

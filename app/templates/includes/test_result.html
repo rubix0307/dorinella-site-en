@@ -16,7 +16,7 @@
     <h2 class="quiz-result__title">{{ band.title }}</h2>
     <div class="quiz-result__text prose">
         {#- the reassuring text of a band must not sit under a red-flag warning #}
-        {% if result.alert %}<p>Your answers include a warning sign, and that matters more than the shape of your stool. Please read the warning above first.</p>
+        {% if result.alert %}<p>Your answers include a warning sign, or you are not sure about one, and that matters more than the shape of your stool. Please read the warning above first.</p>
         {% else %}{% for paragraph in band.text.split('\n\n') %}<p>{{ paragraph }}</p>{% endfor %}{% endif %}
     </div>
 
@@ -32,7 +32,7 @@
     {% set remarks = result.notes|rejectattr('warning')|list %}
     {% if remarks %}
         <div class="bristol-block">
-            <h3 class="bristol-block__title">{{ icon('clock') }}About how often you go</h3>
+            <h3 class="bristol-block__title">{{ icon('clock') }}About your answers</h3>
             {% for note in remarks %}<p>{{ note.text }}</p>{% endfor %}
         </div>
     {% endif %}
@@ -49,6 +49,8 @@
     {% if not result.massage and not result.alert %}
         <p class="bristol-hint">Abdominal self-massage is best left for when your stools are back to normal. It is not meant for diarrhea.</p>
     {% endif %}
+
+    {% if saved is defined %}<p class="bristol-hint">{% if saved %}Your answers were stored anonymously, as you agreed.{% else %}Nothing was saved, as you chose.{% endif %}</p>{% endif %}
 
     <div class="cta-card__actions quiz-result__actions">
         {% if result.guide_url %}

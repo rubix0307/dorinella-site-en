@@ -244,6 +244,8 @@ def test_the_admin_speaks_english_by_default_and_russian_on_request(admin, sync_
     russian = admin.get('/admin/users/').text
     assert 'Новый пользователь' in russian and 'Ещё не входил' in russian and 'New user' not in russian
     assert 'Свою учётную запись' in russian
+    # the filter popovers are imported macros: they must see the language too
+    assert 'Выбрать все' in russian and 'Select all' not in russian and 'Close the menu' not in russian
 
 
 def test_a_refusal_is_shown_in_the_language_of_the_admin(admin):

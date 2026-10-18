@@ -151,7 +151,7 @@ from app.admin_tables import Column, TableSpec, TableView  # noqa: E402
 CLICKS = [   # (url, placement, how many clicks, hours ago)
     ('https://www.youtube.com/watch?v=abc', 'header:video', 5, 30),
     ('https://shop.example.com/o/basic', 'test-result:basic', 2, 1),
-    ('https://www.instagram.com/lolakrissss/', 'footer:instagram', 9, 50),
+    ('https://www.instagram.com/lola_krissss', 'footer:instagram', 9, 50),
     ('https://example.com/100%_off', 'faq:help', 1, 5),
 ]
 

@@ -69,7 +69,7 @@ PRODUCTS: dict[str, Product] = {p.slug: p for p in (
         slug='gut-massage-guide',
         type=ProductType.GUIDE,
         title='Gut Massage Guide',
-        tagline='A gentle, practical way to ease bloating and look after your gut',
+        tagline='A gentle, practical way to look after your gut, which many people find helps with bloating',
         summary=('A calm, practical guide to abdominal self-massage. It shows you the techniques step by step, how to prepare safely '
                  'and how to build a gentle routine that supports your digestion.'),
         template='pages/products/gut-massage-guide.html',
@@ -78,7 +78,7 @@ PRODUCTS: dict[str, Product] = {p.slug: p for p in (
         og_image_alt='Gut Massage Guide by Lola Krissss, with an illustration of the gut among blossoms',
         card=CardImage(
             sources=(('img/guts-hero-500.webp', 500), ('img/guts-hero-900.webp', 900)),
-            width=500, height=526, alt='Illustration of the gut wrapped in blossoming branches',
+            width=500, height=526, alt='',      # decorative: the title beside it says what the card is
             sizes='(min-width: 961px) 390px, 290px',
             media_class='product-card__media--sage',
         ),
@@ -96,11 +96,11 @@ PRODUCTS: dict[str, Product] = {p.slug: p for p in (
                  'step by step, with animations. Separate sections cover safety and nutrition.'),
         template='pages/products/massage-course.html',
         image='img/guts-hero-900.webp',
-        og_image='img/og-gut-guide.jpg',
+        og_image='img/og-course.jpg',
         og_image_alt='Abdominal Massage Course by Lola Krissss, with an illustration of the gut among blossoms',
         card=CardImage(
             sources=(('img/guts-hero-500.webp', 500), ('img/guts-hero-900.webp', 900)),
-            width=500, height=526, alt='Illustration of the gut wrapped in blossoming branches',
+            width=500, height=526, alt='',      # decorative: the title beside it says what the card is
             sizes='(min-width: 961px) 390px, 290px',
             media_class='product-card__media--blush',
         ),

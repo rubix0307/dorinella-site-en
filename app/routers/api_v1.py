@@ -105,5 +105,6 @@ async def evaluate_test(request: Request, slug: str, attempt: AttemptIn):
     if problems := test.validate(attempt.answers):
         raise HTTPException(status_code=422, detail=problems)
     result = evaluate(request, test, attempt.answers)
-    await record_attempt(request, test, attempt.answers)
+    if attempt.consent:
+        await record_attempt(request, test, attempt.answers)
     return result

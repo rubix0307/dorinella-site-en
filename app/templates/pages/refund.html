@@ -16,7 +16,7 @@
 
                 <h2>How to ask</h2>
                 <ol>
-                    <li>E-mail <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a> from the address of your account, with your order number (it is in your receipt and in your account). A line such as "please refund order LK-..." is enough.</li>
+                    <li>Contact us by {% include 'includes/contact_inline.html' %}, naming the e-mail address of your account, with your order number (it is in your receipt and in your account). A line such as "please refund order LK-..." is enough.</li>
                     <li>We confirm and send the refund to the card you paid with, normally within 2 business days.</li>
                     <li>Your bank usually shows the money after 5 to 10 business days; we cannot speed up the bank. The refund is in US dollars, the same amount you paid.</li>
                 </ol>
@@ -32,7 +32,7 @@
                 <p>If something is wrong, write to us before asking your bank for a chargeback: it is faster for you, and we will refund you without any fuss. We reserve the right to refuse a refund where there is clear abuse, such as repeatedly buying and refunding the same product, or sharing the content with others.</p>
 
                 <h2>Contact</h2>
-                <p>{{ legal.seller.name }}, {{ legal.seller.address }}. E-mail: <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>. See also the <a href="{{ url('terms') }}">Terms of Service</a> and the <a href="{{ url('privacy') }}">Privacy Policy</a>.</p>
+                <p>{{ legal.seller.name }}, {{ legal.seller.address }}. Contact: {% include 'includes/contact_inline.html' %}. See also the <a href="{{ url('terms') }}">Terms of Service</a> and the <a href="{{ url('privacy') }}">Privacy Policy</a>.</p>
             </div>
         </div>
     </section>

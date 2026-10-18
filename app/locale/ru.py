@@ -10,6 +10,7 @@ RU: dict[str, str] = {
     'Profile': 'Профиль',
     'Sign out': 'Выйти',
     'Open the menu': 'Открыть меню',
+    'Close the menu': 'Закрыть меню',
     'Groups': 'Группы',
     'Period': 'Период',
     'Today': 'Сегодня',

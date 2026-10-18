@@ -85,7 +85,7 @@
                 {% for section in guide.sections[:guide.preview_sections] %}{{ section_block(section) }}{% endfor %}
 
                 <section class="guide__section guide-lock" aria-labelledby="lock-title" data-reveal="quick">
-                    <h2 class="guide__h2" id="lock-title">{{ icon('lock') }}The rest of the guide is for readers</h2>
+                    <h2 class="guide__h2" id="lock-title">{{ icon('lock') }}The rest of the guide is for people who buy it</h2>
                     <p>Here is what you will find inside:</p>
                     <ul class="guide-lock__list">
                         {% for item in guide.highlights %}<li>{{ icon('circle-check') }}<span>{{ item }}</span></li>{% endfor %}

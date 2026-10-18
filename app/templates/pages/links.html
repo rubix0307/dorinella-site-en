@@ -50,7 +50,7 @@
         {% if ads.title %}<h2 class="links__ads-title">{{ ads.title }}</h2>{% endif %}
         {% if ads.text %}<p>{{ ads.text }}</p>{% endif %}
         <a class="btn btn--primary links__ads-btn" href="{{ ads.href }}" target="_blank" rel="noopener">
-            <img src="{{ static('img/brands/instagram.png') }}" width="22" height="22" alt="">{{ ads.button }}
+            {{ icon('arrow-right') }}{{ ads.button }}
         </a>
     </aside>
     {% endif %}

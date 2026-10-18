@@ -41,6 +41,7 @@ class SelfTestOut(BaseModel):
 
 class AttemptIn(BaseModel):
     answers: list[int] = Field(max_length=100)   # chosen option index per question, in question order
+    consent: bool = False                        # the answers may describe health: they are stored only when the person agreed
 
 
 class BandOut(BaseModel):

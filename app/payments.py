@@ -330,8 +330,10 @@ async def apply_event(session: AsyncSession, event: dict) -> str:
         return 'duplicate'                                           # the savepoint is undone; the rest of the transaction is untouched
     try:
         order, row.result, row.error = await _apply(session, kind, obj)
-        if order is None and kind in MONEY_BACK and time.time() - int(event.get('created') or 0) < EARLY:
-            # an order learns its payment intent from the paid event; a refund that came first finds nothing: Stripe must send it again later
+        young = time.time() - int(event.get('created') or 0) < EARLY
+        if order is None and kind in MONEY_BACK and young and await session.scalar(select(Order.id).where(Order.status == CREATED).limit(1)):
+            # an order learns its payment intent from the paid event; a refund that came first finds nothing: Stripe must send it again later.
+            # Only while some order still waits for its payment: a charge of another product or a manual one would be retried for nothing
             raise LookupError(f'{kind}: no order knows this payment yet')
         row.order_id = order.id if order else None
         await session.commit()

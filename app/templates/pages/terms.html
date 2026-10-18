@@ -52,7 +52,7 @@
                 <p>We may update these terms. The date at the top shows the latest version. If a change matters, we will tell you before it applies to you; a change does not affect an order you already made. Using the site after a change means you accept it.</p>
 
                 <h2>Contact</h2>
-                <p>{{ legal.seller.name }}, {{ legal.seller.address }}. E-mail: <a href="mailto:{{ legal.seller.email }}">{{ legal.seller.email }}</a>. How we handle your data is in the <a href="{{ url('privacy') }}">Privacy Policy</a>.</p>
+                <p>{{ legal.seller.name }}, {{ legal.seller.address }}. Contact: {% include 'includes/contact_inline.html' %}. How we handle your data is in the <a href="{{ url('privacy') }}">Privacy Policy</a>.</p>
             </div>
         </div>
     </section>

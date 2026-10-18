@@ -97,6 +97,8 @@ async def save_answer(request: Request, session: AsyncSession | None = Depends(d
     if cleaned is None:
         return JSONResponse({'ok': False}, status_code=400)
     state = await progress.load(session, user.id)
+    if key == 'checks' and not progress.consent_ok(state):
+        return JSONResponse({'ok': True, 'saved': False})        # health information: only with the person's agreement
     if key == 'safety' and progress.safety_ok(state) and isinstance(cleaned, dict) and not cleaned['ack']:
         return JSONResponse({'ok': True, 'saved': False})        # a confirmation is not taken back
     if not progress.unlocked(state, 'techniques') and key.startswith('list.'):
@@ -121,7 +123,7 @@ async def track_watching(request: Request, session: AsyncSession | None = Depend
     except Exception:  # noqa: BLE001 — any unreadable body is a 400
         return JSONResponse({'ok': False}, status_code=400)
     state = await progress.load(session, user.id)
-    if progress.unlocked(state, 'techniques', to_view=False):
+    if progress.consent_ok(state) and progress.unlocked(state, 'techniques', to_view=False):
         await progress.track(session, user.id, key, seconds, completed, plays)
     return JSONResponse({'ok': True})
 

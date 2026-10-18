@@ -26,10 +26,13 @@
     if (menu && toggle) {
         // everything behind the full-screen overlay leaves the tab order / a11y tree while it's open
         const background = document.querySelectorAll('main, footer, .skip-link, .site-nav, .site-header__cta');
+        // the admin burger carries its translated labels; the site's stay English
+        const labelOpen = toggle.getAttribute('aria-label') || 'Open the menu';
+        const labelClose = toggle.dataset.labelClose || 'Close the menu';
         const setOpen = (open) => {
             background.forEach((el) => { el.inert = open; });
             toggle.setAttribute('aria-expanded', String(open));
-            toggle.setAttribute('aria-label', open ? 'Close the menu' : 'Open the menu');
+            toggle.setAttribute('aria-label', open ? labelClose : labelOpen);
             menu.classList.toggle('is-open', open);
             menu.setAttribute('aria-hidden', String(!open));
             document.body.classList.toggle('is-locked', open);

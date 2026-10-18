@@ -26,7 +26,7 @@ class Seller:
     @property
     def placeholders(self) -> list[str]:
         """The values that are still brackets: the owner has to fill them before the sales open."""
-        return [label for label, value in (('name', self.name), ('address', self.address), ('governing_law', self.governing_law)) if value.startswith('[')]
+        return [label for label, value in (('name', self.name), ('address', self.address), ('governing_law', self.governing_law), ('email', self.email or '[E-mail]')) if value.startswith('[')]
 
 
 SELLER = Seller()
@@ -47,8 +47,8 @@ def cookies() -> list[dict]:
     """Every cookie the site's code sets for a visitor, as the privacy page lists them (names come from the code that sets them, so the page cannot drift).
     The admin's own preference cookies (language, time zone, chart) are set only for signed-in staff and are not listed here."""
     return [
-        {'name': visitors.COOKIE, 'purpose': 'A random, signed visitor ID. It counts visitors and returning visits without your name, and keeps your test results together; '
-                                              'it moves into your account when you sign in. Not set for bots, the admin or the sign-in pages.',
+        {'name': visitors.COOKIE, 'purpose': 'A random, signed visitor ID. It counts visitors and returning visits without your name and, if you agree to store them, '
+                                              'keeps your test answers together; it moves into your account when you sign in. Not set for bots, the admin or the sign-in pages.',
          'lifetime': f'{visitors.MAX_AGE // 86400} days, renewed while you keep visiting', 'essential': False},
         {'name': auth.SESSION_COOKIE, 'purpose': 'Keeps you signed in after you sign in with Google. Not set if you never sign in.',
          'lifetime': f'{auth.SESSION_TTL // 86400} days', 'essential': True},

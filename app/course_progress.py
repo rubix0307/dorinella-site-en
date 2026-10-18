@@ -21,6 +21,9 @@ def clean(key: str, value):
     if key == 'safety':
         if isinstance(value, dict) and isinstance(value.get('ack'), bool):
             return {'ack': value['ack'], 'ver': course.SAFETY_VERSION}
+    elif key == 'consent':          # agreement to keep the ticked conditions and the watch time (health information)
+        if isinstance(value, dict) and isinstance(value.get('ok'), bool):
+            return {'ok': value['ok']}
     elif key == 'checks':           # ticked items of the safety lists
         if isinstance(value, list) and len(value) <= 40 and all(isinstance(v, str) and _ID.match(v) for v in value):
             return sorted(set(value))
@@ -65,6 +68,12 @@ async def _save(session: AsyncSession, user_id: int, key: str, value, log_value=
 def safety_ok(state: dict) -> bool:
     s = (state.get('safety') or {}).get('value')
     return bool(isinstance(s, dict) and s.get('ack') and s.get('ver') == course.SAFETY_VERSION)
+
+
+def consent_ok(state: dict) -> bool:
+    """The person agreed that the ticked conditions and the watch time are stored; without it they are not (the course reads the same)."""
+    c = (state.get('consent') or {}).get('value')
+    return bool(isinstance(c, dict) and c.get('ok'))
 
 
 def is_done(state: dict, slug: str) -> bool:

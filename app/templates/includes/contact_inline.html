@@ -1,0 +1,2 @@
+{# how to reach the seller, inside a sentence: the mailbox once the owner has one, until then a direct message on Instagram #}
+{%- if site.CONTACT_EMAIL -%}<a href="mailto:{{ site.CONTACT_EMAIL }}">{{ site.CONTACT_EMAIL }}</a>{%- else -%}<a href="{{ out(site.INSTAGRAM, 'contact:instagram') }}" target="_blank" rel="noopener">a direct message on Instagram ({{ site.INSTAGRAM_HANDLE }})</a>{%- endif -%}

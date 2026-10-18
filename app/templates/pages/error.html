@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block title %}{{ heading }} | {{ site.BRAND }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block social %}{% endblock %}
 {% block description %}{{ lead }}{% endblock %}
 
 {% block content %}

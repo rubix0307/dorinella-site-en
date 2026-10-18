@@ -26,7 +26,7 @@ BASE = f'/course/{SLUG}/'
 DATA_URL = f'{BASE}data/massage.json'
 DATA_FILE = Path(__file__).parent / 'course_data' / 'massage.json'
 PHOTO = 'img/course/belly-896.webp'   # the belly photo of the player (static, shipped with the code)
-SAFETY_VERSION = '2026-10-18'     # bump when the safety copy changes: everyone is asked to confirm it again
+SAFETY_VERSION = '2026-10-18.2'     # bump when the safety copy changes: everyone is asked to confirm it again
 
 
 # ---------------------------------------------------------------- access
@@ -173,13 +173,15 @@ PAGES: tuple[Page, ...] = (
                    ('a5', 'An acute infection', 'A stomach bug or food poisoning with diarrhea, vomiting or fever.'),
                    ('a6', 'A hernia', 'Pressing on the belly can make a hernia worse. Skip massage until a doctor has checked it.'),
                    ('a7', 'Diverticulitis or an abdominal aortic aneurysm', 'Pressure on an inflamed or weakened part of the gut or a major vessel can be dangerous. Ask your doctor first.'),
+                   ('a8', 'A flare-up of Crohn’s disease or ulcerative colitis', 'During a flare-up, any handling of the belly can be painful and harmful. Wait until your doctor says it is fine.'),
+                   ('a9', 'Belly pain, fever or blood in your stool that has not been explained', 'These need a doctor’s diagnosis first. Massage could hide or worsen what is going on.'),
                ),
                relative_title='Be careful and talk to your doctor',
                relative_lead='If any of these applies to you, talk to your doctor about massage first and listen to your body.',
                relative=(
                    ('r1', 'Your period', 'Massage may make bleeding heavier. It is better to leave the lower belly alone; if you feel any discomfort, skip it.'),
-                   ('r2', 'A chronic bowel condition', 'Crohn’s disease or ulcerative colitis: during a flare-up, any handling of the belly '
-                                                       'can be painful and harmful. In remission, only after talking to your doctor.'),
+                   ('r2', 'A chronic bowel condition in remission', 'Crohn’s disease or ulcerative colitis when it is calm: only after talking to your doctor. '
+                                                                   'During a flare-up, do not massage (see the list above).'),
                    ('r3', 'Gallstones', 'Massage might shift stones, which risks a gallbladder attack. Be sure to talk to your doctor.'),
                    ('r4', 'Irritable bowel syndrome (IBS)', 'Talk to your doctor. Usually only soft techniques without firm pressure are suitable.'),
                    ('r5', 'Blood-thinning medication or a blood-clotting problem', 'Pressing on the belly may cause bruising or bleeding. Ask your doctor before you try anything.'),
@@ -269,7 +271,7 @@ PAGES: tuple[Page, ...] = (
          )),
 
     Page('goals', 'Massage for your goal', 'Your goal', 3,
-         'Bloating, constipation, relaxation, anxiety: what to choose.',
+         'Bloating, constipation, relaxation, stress: what to choose.',
          (B('goals'),)),
 
     Page('food', 'Food for your gut', 'Food', 4,
@@ -341,13 +343,13 @@ GOALS = (
      'chips': (('m2', 'Circles'), ('m8', 'Square'), ('m4', 'Breathing')),
      'tips': ('Afterwards, enjoy a cup of chamomile or lemon balm tea.',
               'Try the massage in the evening, before bed.')},
-    {'id': 'anxiety', 'title': 'Anxiety', 'lead': 'When stress “clenches” your belly.',
+    {'id': 'anxiety', 'title': 'Stress and tension', 'lead': 'When stress “clenches” your belly.',
      'prep': ('A warm compress; if you like, a few drops of neroli or ylang-ylang essential oil.',
               'Before you start, take 1–2 minutes of diaphragmatic breathing to settle your nervous system.'),
      'order': 'Slow circles over the whole belly, clockwise → light pressure just above the navel to ease tension → finish with the “Wave,” from top to bottom.',
      'chips': (('m4', 'Breathing'), ('m2', 'Circles'), ('m5', 'Wave')),
      'tips': ('Afterwards, a warm bath with lavender can be a nice way to unwind.',
-              'Persistent anxiety deserves proper support. Massage is a calming habit, not a treatment, so talk to a professional if it affects your daily life.')},
+              'Lasting anxiety or low mood deserves proper support. Massage is a calming habit, not a treatment, so talk to a professional if it affects your daily life.')},
 )
 
 FOOD_LISTS = (

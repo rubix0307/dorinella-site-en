@@ -47,7 +47,8 @@ class Settings:
     payments_testers: tuple[str, ...] = field(default_factory=lambda: tuple(
         e.strip().lower() for e in os.getenv('PAYMENTS_TESTERS', '').split(',') if e.strip()))
     # Days after the payment when a refund is promised on the Refund Policy page (the text shows this number).
-    refund_days: int = field(default_factory=lambda: int(os.getenv('REFUND_DAYS', '14')))
+    # Never below 14: that is the statutory withdrawal period for distance sales in the EU and the UK, and the checkout has no waiver of it.
+    refund_days: int = field(default_factory=lambda: max(14, int(os.getenv('REFUND_DAYS', '14'))))
 
 
 settings = Settings()

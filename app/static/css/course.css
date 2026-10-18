@@ -84,6 +84,7 @@
 .abm-stop.is-active { background: var(--stop-bg); color: #5c1710; box-shadow: 0 0 0 2px var(--stop); }
 .abm-stop.is-active .abm-callout__icon { color: var(--stop); }
 .abm-caution { margin: .75rem 0 0; padding: .75rem 1rem; border-radius: var(--radius-sm); background: var(--warn-bg); color: #4a3207; font-size: var(--fs-sm); }
+.abm-ack--consent { margin-bottom: 1.5rem; }
 .abm-ack { padding: 1rem; border: 1px dashed var(--accent); border-radius: var(--radius); }
 /* ---------- anatomy ---------- */
 .abm-anatomy { container-type: inline-size; }
@@ -261,7 +262,8 @@ html:not(.js) .abm-hint, html:not(.js) .abm-ctl, html:not(.js) .abm-player, html
 .abm-chapters__lock .abm-chapters__mark { color: var(--muted); }
 .abm-pager__form { grid-column: 2; display: grid; gap: .5rem; margin: 0; }
 .abm-pager__form .abm-pager__link { width: 100%; font: inherit; font-weight: 600; cursor: pointer; }
-.abm-pager__need { margin: 0; padding: .6rem .8rem; border-radius: var(--radius-sm); background: #fbe9e5; color: var(--stop); font-size: var(--fs-sm); font-weight: 600; }
+.abm-pager__form .abm-pager__link--next { grid-column: auto; }
+.abm-pager__need { min-width: 0; margin: 0; padding: .6rem .8rem; border-radius: var(--radius-sm); background: #fbe9e5; color: var(--stop); font-size: var(--fs-sm); font-weight: 600; }
 .abm-ack.is-need { border-radius: var(--radius); outline: 3px solid var(--stop); outline-offset: 6px; animation: abm-nudge .5s; }
 .abm-check.is-locked { cursor: default; }
 @keyframes abm-nudge { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }

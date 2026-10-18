@@ -11,7 +11,9 @@
 
         <div class="site-footer__social">
             <a href="{{ out(site.INSTAGRAM, 'footer:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}{{ site.INSTAGRAM_HANDLE }}</a>
-            <a href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}{{ site.CONTACT_EMAIL }}</a>
+            <a href="{{ out(site.TIKTOK, 'footer:tiktok') }}" target="_blank" rel="noopener">{{ icon('message-circle') }}TikTok {{ site.TIKTOK_HANDLE }}</a>
+            <a href="{{ out(site.THREADS, 'footer:threads') }}" target="_blank" rel="noopener">{{ icon('message-circle') }}Threads {{ site.THREADS_HANDLE }}</a>
+            {% if site.CONTACT_EMAIL %}<a href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}{{ site.CONTACT_EMAIL }}</a>{% endif %}
         </div>
     </div>
     <div class="container">

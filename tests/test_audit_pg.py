@@ -104,6 +104,9 @@ def keys(row):
 @pytest.fixture(scope='module')
 def pg():
     with pg_container() as (name, _):
+        # the migration seeds the starting /links/ page; the scenarios want empty tables (triggers off, so the cleaning is not logged)
+        done = run(name, 'SET session_replication_role = replica; DELETE FROM bio_buttons; DELETE FROM bio_page; DELETE FROM short_links')
+        assert done.returncode == 0, done.stderr
         yield name
 
 

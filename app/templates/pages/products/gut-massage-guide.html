@@ -19,7 +19,7 @@
                 <p class="hero__lead">{{ product.tagline }}</p>
                 {% if price %}<p class="buy-price" aria-label="Price"><strong>{{ price }}</strong> <span class="muted">one payment</span></p>{% endif %}
                 <div class="hero__actions">
-                    <a class="btn btn--primary" href="#buy">{{ icon('shopping-bag') }}{% if sales_open %}Get the guide{% else %}Coming soon{% endif %}</a>
+                    <a class="btn btn--primary" href="#buy">{{ icon('shopping-bag') }}{% if sales_open or (pay and pay.ready) %}Get the guide{% else %}Coming soon{% endif %}</a>
                     <a class="btn btn--ghost" href="#inside">What's inside?</a>
                 </div>
             </div>
@@ -107,9 +107,9 @@
                 <ol class="numbered" role="list">
                     <li data-reveal><span class="numbered__num" aria-hidden="true">01</span>Some people find it helps digestion feel more settled, for a lighter feeling in the belly</li>
                     <li data-reveal><span class="numbered__num" aria-hidden="true">02</span>Some people find it eases the tension and tightness that come with bloating</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">03</span>Give you a calm daily pause that helps you relax</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">04</span>Help you notice how your body responds to food and stress</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">05</span>Build a simple self-care habit that is yours to keep</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">03</span>Some people find it gives them a calm daily pause that helps them relax</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">04</span>It can help you notice how your body responds to food and stress</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">05</span>It can become a simple self-care habit that is yours to keep</li>
                 </ol>
             </div>
         </div>
@@ -143,7 +143,7 @@
     <section class="section section--tight" aria-labelledby="safety-title">
         <div class="container container--narrow">
             <div class="prose" data-reveal>
-                <h2 class="highlight-card__title" id="safety-title">{{ icon('shield-check') }} Please read first</h2>
+                <h2 class="highlight-card__title" id="safety-title">{{ icon('shield-check') }}Please read first</h2>
                 <p>Abdominal massage is not right for everyone, for example during pregnancy, after recent abdominal surgery or with some digestive conditions. The guide explains who should skip it. Everything here is educational and does not replace advice from your doctor. See a doctor for persistent pain, blood in your stool or any symptom that worries you.</p>
             </div>
         </div>

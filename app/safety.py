@@ -31,5 +31,8 @@ STOP_SIGNS = (
 
 
 def sentence(items: tuple[str, ...]) -> str:
-    """'a, b and c'."""
-    return ', '.join(items[:-1]) + ' or ' + items[-1] if len(items) > 1 else items[0]
+    """'a, b or c'; with semicolons ('a; b; or c') when an item holds a comma or an "or" itself, so that the items cannot run together."""
+    if len(items) > 1:
+        nested = any(',' in item or ' or ' in item for item in items)
+        return ('; ' if nested else ', ').join(items[:-1]) + ('; or ' if nested else ' or ') + items[-1]
+    return items[0] if items else ''

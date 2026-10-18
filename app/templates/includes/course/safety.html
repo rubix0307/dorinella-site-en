@@ -2,6 +2,12 @@
 <section class="abm-block abm-safety" data-safety data-version="{{ d.version }}">
     <p class="abm-safety__meta">This is general information, not medical advice.</p>
 
+    {% if course_state is not none %}
+        <div class="abm-ack abm-ack--consent" data-consent-box>
+            <label class="abm-check"><input type="checkbox" data-consent><span><strong>Keep my ticks and watch time</strong><small>I agree that the conditions I tick below and how long I watch each video are stored in my account (this is health information). Optional: without it you can still read and finish the course, and nothing of this is saved. See the <a href="{{ url('privacy') }}#tests">Privacy Policy</a>.</small></span></label>
+        </div>
+    {% endif %}
+
     <fieldset class="abm-safety__group abm-safety__group--stop">
         <legend><h2 class="abm-h2">{{ d.absolute_title }}</h2></legend>
         <p class="abm-lead">{{ d.absolute_lead }}</p>
