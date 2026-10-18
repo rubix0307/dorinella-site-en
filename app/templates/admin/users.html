@@ -50,8 +50,8 @@
                                         <td class="users-email"><a href="{{ url('admin_profile') if row.me else url('admin_user_edit', user_id=row.id) }}">{{ row.email }}</a>{% if row.me %} <span class="badge">{{ _('You') }}</span>{% endif %}</td>
                                         <td><span class="badge{{ ' badge--role' if row.role != 'user' }}">{{ role_labels[row.role]|t }}</span></td>
                                         <td><span class="badge{{ ' badge--off' if row.status == 'off' }}">{{ status_labels[row.status]|t }}</span></td>
-                                        <td class="nowrap"><time datetime="{{ row.created_at.isoformat() }}">{{ row.created_at|local }}</time></td>
-                                        <td class="nowrap">{% if row.last_login_at %}<time datetime="{{ row.last_login_at.isoformat() }}">{{ row.last_login_at|local }}</time>{% else %}—{% endif %}</td>
+                                        <td class="nowrap" data-label="{{ _('Created') }}"><time datetime="{{ row.created_at.isoformat() }}">{{ row.created_at|local }}</time></td>
+                                        <td class="nowrap" data-label="{{ _('Last sign-in') }}">{% if row.last_login_at %}<time datetime="{{ row.last_login_at.isoformat() }}">{{ row.last_login_at|local }}</time>{% else %}—{% endif %}</td>
                                         <td class="users-actions">
                                             {% if row.me %}
                                                 <a class="act-btn" href="{{ url('admin_profile') }}" title="{{ _('My profile') }}" aria-label="{{ _('My profile') }}">{{ icon('user') }}</a>

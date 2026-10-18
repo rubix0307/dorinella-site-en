@@ -1,7 +1,7 @@
 """Admin: the /links/ page — its buttons (order, text, image, short link) and the ads card.
 
 One form. A button can only point at one of the analytics short links: the choice is a list of
-them, and the server checks it again on save. The image is picked in a Telegram-reactions-like
+them, and the server checks it again on save. The image is picked in an emoji-picker-like
 panel (static/js/admin-links-page.js): a network logo, any Lucide icon, or an uploaded photo.
 """
 from typing import Any

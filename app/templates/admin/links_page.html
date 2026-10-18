@@ -36,7 +36,7 @@
 {% block body %}
     {% include 'admin/_bar.html' %}
 
-    <main class="admin-wrap admin-main recipe-editor">
+    <main class="admin-wrap admin-main links-editor">
         <header class="page-head">
             <div>
                 <h1 class="admin-title">{{ _('Links page') }}</h1>
@@ -45,10 +45,10 @@
             <a class="btn btn--ghost btn--sm" href="{{ url('links') }}" target="_blank" rel="noopener">{{ icon('external-link') }}{{ _('Open the page') }}</a>
         </header>
 
-        {% if error %}<p class="recipe-editor__error" role="alert">{{ icon('triangle-alert') }}{{ error|t }}</p>{% endif %}
-        {% if notice %}<p class="recipe-editor__notice" role="status">{{ icon('circle-check') }}{{ _('Saved. The page shows it at once.') }}</p>{% endif %}
+        {% if error %}<p class="links-editor__error" role="alert">{{ icon('triangle-alert') }}{{ error|t }}</p>{% endif %}
+        {% if notice %}<p class="links-editor__notice" role="status">{{ icon('circle-check') }}{{ _('Saved. The page shows it at once.') }}</p>{% endif %}
 
-        <form class="recipe-editor__form" method="post" action="{{ url('admin_links_page_save') }}" spellcheck="false" enctype="multipart/form-data">
+        <form class="links-editor__form" method="post" action="{{ url('admin_links_page_save') }}" spellcheck="false" enctype="multipart/form-data">
             <input type="hidden" name="count" value="{{ rows|length }}">
 
             <section class="editor-card" data-header-card>
@@ -138,7 +138,7 @@
                 </div>
             </section>
 
-            <div class="recipe-editor__save">
+            <div class="links-editor__save">
                 <button class="btn btn--primary" type="submit">{{ icon('check') }}{{ _('Save') }}</button>
                 <p class="bio-save-status" role="status" aria-live="polite" data-save-status></p>
             </div>

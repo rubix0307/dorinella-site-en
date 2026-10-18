@@ -1,9 +1,0 @@
-{# Pieces every native material shares: the heading with its intro, and the foot with the note. #}
-{% macro head(m) %}
-    <h3 class="mat__title">{{ m.title }}</h3>
-    {% if m.intro %}<p class="mat__intro">{{ m.intro }}</p>{% endif %}
-{% endmacro %}
-
-{% macro foot(m) %}
-    {% if m.note %}<p class="mat__note">{{ icon('triangle-alert') }}<span>{{ m.note }}</span></p>{% endif %}
-{% endmacro %}

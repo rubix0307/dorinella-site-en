@@ -179,7 +179,7 @@
         let current = 0;
 
         // Card swap: the old card slides out and fades, the new one slides in from the other side
-        // (direction follows «Далі» / «Назад»), and the stage eases between the two cards' heights.
+        // (direction follows “Next” / “Back”), and the stage eases between the two cards' heights.
         let running = [];
         let leaving = null;
         const settle = () => {
@@ -217,7 +217,7 @@
             }, () => {});
         };
 
-        // The result (and, on «Пройти ще раз», the form) takes the place of what was there, starting at the
+        // The result (and, on “Take it again”, the form) takes the place of what was there, starting at the
         // same top edge. Scroll only when that edge is out of sight: under the sticky header / above the
         // screen, or so low that most of the block is below it. If the person is looking at it, stay put.
         const bringIntoView = (el) => {
@@ -228,7 +228,7 @@
         };
 
         const answered = (i) => steps[i].querySelector('input:checked') !== null;
-        let advance = null;   // pending auto-advance after a tap: the card turns by itself, so no «Далі» meanwhile
+        let advance = null;   // pending auto-advance after a tap: the card turns by itself, so no “Next” meanwhile
         const cancelAdvance = () => {
             clearTimeout(advance);
             advance = null;
@@ -249,9 +249,9 @@
             count.textContent = `${current + 1} / ${steps.length}`;
             back.classList.toggle('is-shown', current > 0);   // folds away on the first card
             back.inert = current === 0;
-            // «Далі» only when it is the way on: the card is answered and isn't about to turn by itself
+            // “Next” only when it is the way on: the card is answered and isn't about to turn by itself
             // (that is a keyboard answer, or a card answered earlier and come back to); on the last card
-            // the way on is «Дізнатися результат», once that card is answered
+            // the way on is “See my result”, once that card is answered
             next.hidden = current === steps.length - 1 || !answered(current) || advance !== null;
             form.classList.toggle('is-ready', current === steps.length - 1 && answered(current));
             // the row under the card is only there when it holds a way on — no empty band otherwise
@@ -262,7 +262,7 @@
         back.hidden = false;   // the no-JS form has no use for it
         show(0);
 
-        // Clicks/taps advance automatically; keyboard users pick with arrows and move on with «Далі».
+        // Clicks/taps advance automatically; keyboard users pick with arrows and move on with “Next”.
         let viaPointer = false;
         form.addEventListener('pointerdown', () => { viaPointer = true; });
         form.addEventListener('keydown', () => { viaPointer = false; });
@@ -283,7 +283,7 @@
         back.addEventListener('click', () => {
             cancelAdvance();
             show(current - 1);
-            if (current === 0) steps[0].querySelector('input:checked, input')?.focus({preventScroll: true});  // «Назад» just folded away
+            if (current === 0) steps[0].querySelector('input:checked, input')?.focus({preventScroll: true});  // “Back” just folded away
         });
         next.addEventListener('click', () => {
             show(current + 1);
@@ -308,7 +308,7 @@
                 form.replaceWith(node);
                 bringIntoView(node);
                 node.focus({preventScroll: true});
-                // «Пройти ще раз» to this very page (a guide's #test): a same-page link wouldn't reload,
+                // “Take it again” to this very page (a guide's #test): a same-page link wouldn't reload,
                 // so bring the form back, empty, at the first card
                 node.querySelector('[data-quiz-again]')?.addEventListener('click', (event) => {
                     if (event.currentTarget.pathname !== location.pathname) return;

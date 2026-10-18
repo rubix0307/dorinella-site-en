@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 # Never sent, even with send_default_pii: the admin session cookie is as good as a password,
 # the visitor id is a tracking identifier.
-_PRIVATE_COOKIES = ['dori_admin', 'dori_vid', '__Host-dori_vid']
+_PRIVATE_COOKIES = ['lk_admin', 'lk_vid', '__Host-lk_vid']
 # Docker probes /health every 15 s and static files are not interesting: keep them out of tracing.
 _NOT_TRACED = ('/health', '/static/', '/favicon')
 

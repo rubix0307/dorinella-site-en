@@ -1,4 +1,4 @@
-// The /links/ page admin: the icon panel (like Telegram's reaction picker) for each button.
+// The /links/ page admin: the icon panel (like an emoji picker) for each button.
 // A logo, any Lucide icon or a photo (shrunk here to a 192 px square webp before it is sent).
 // Icons come from /admin/links/icons.json on first open, in groups as on lucide.dev. Only what is in
 // view (and a little below) is drawn: each group is cut into blocks of a few rows, empty and sized

@@ -65,12 +65,6 @@ def visitor_hash(ip: str, user_agent: str) -> str:
     return hashlib.sha256(raw).hexdigest()[:32]
 
 
-def cookie_visitor_hash(vid: str) -> str:
-    """How the old token cookie (before visitor ids) was stored; app/visitors.py upgrades it."""
-    raw = f'vid\n{settings.secret_key}\n{vid}'.encode()
-    return hashlib.sha256(raw).hexdigest()[:32]
-
-
 def _external_referrer(request: Request) -> str | None:
     """Host of another site that sent the visitor (e.g. l.instagram.com), else None."""
     referer = urlsplit(request.headers.get('referer', ''))

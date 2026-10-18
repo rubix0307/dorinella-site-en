@@ -41,7 +41,7 @@ def static(path: str) -> str:
 
 
 def absolute_url(request: Request, path: str) -> str:
-    if path.startswith(('https://', 'http://')):   # already absolute, e.g. media on a bucket
+    if path.startswith(('https://', 'http://')):   # already absolute
         return path
     base = settings.site_url or f'{request.url.scheme}://{request.url.netloc}'
     return base + path
@@ -129,7 +129,6 @@ def setup(app: FastAPI) -> None:
     templates.env.globals.update(
         seo=seo, static=static, url=url, route_exists=route_exists, icon=icon, micon=micon, absolute_url=absolute_url, now=datetime.now,
         out=outbound_url,  # {{ out('https://…', 'placement') }} — tracked external link
-        media=lambda path: f'{settings.media_url}/{path}',  # a file of the media bucket (or /media/ locally)
     )
 
 

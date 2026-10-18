@@ -58,7 +58,7 @@ async def _save(session: AsyncSession, user_id: int, key: str, value, log_value=
         row.value, row.updated_at = value, now
     session.add(CourseAnswerLog(user_id=user_id, course=COURSE, key=key, value=value if log_value is None else log_value, at=now))
     await session.commit()
-    live.published('course')            # the admin «Курс» page refreshes itself
+    live.published('course')            # the admin Course page refreshes itself
     return True
 
 

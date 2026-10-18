@@ -16,7 +16,7 @@ from . import audit, permissions
 from .core.config import settings
 from .models import AdminUser
 
-SESSION_COOKIE = 'dori_admin'
+SESSION_COOKIE = 'lk_admin'
 SESSION_TTL = 7 * 24 * 3600
 
 EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')

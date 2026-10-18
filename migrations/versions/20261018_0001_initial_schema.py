@@ -204,10 +204,8 @@ def upgrade() -> None:
     op.create_table('visitors',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('confirmed_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('legacy_hash', sa.String(length=32), nullable=True),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_visitors'))
     )
-    op.create_index(op.f('ix_visitors_legacy_hash'), 'visitors', ['legacy_hash'], unique=False)
     op.create_table('admin_user_groups',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('group_id', sa.Integer(), nullable=False),
@@ -468,7 +466,6 @@ def downgrade() -> None:
     op.drop_table('course_answer_log')
     op.drop_index(op.f('ix_admin_user_groups_group_id'), table_name='admin_user_groups')
     op.drop_table('admin_user_groups')
-    op.drop_index(op.f('ix_visitors_legacy_hash'), table_name='visitors')
     op.drop_table('visitors')
     op.drop_table('test_versions')
     op.drop_table('permission_groups')

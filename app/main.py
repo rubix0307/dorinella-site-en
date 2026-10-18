@@ -11,7 +11,6 @@ URL scheme:
 import logging
 import re
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -83,20 +82,7 @@ class CachedStaticFiles(StaticFiles):
         return response
 
 
-class MediaFiles(StaticFiles):
-    """Recipe videos and posters: named by the reel code, never change → cache for a year."""
-
-    async def get_response(self, path, scope):
-        response = await super().get_response(path, scope)
-        if response.status_code in (200, 206):
-            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
-        return response
-
-
 app.mount('/static', CachedStaticFiles(directory=STATIC_DIR), name='static')
-if settings.media_url == '/media' and Path(settings.media_dir).is_dir():
-    # recipe videos when they aren't on a bucket yet (local development); Range requests work
-    app.mount('/media', MediaFiles(directory=settings.media_dir), name='media')
 app.include_router(pages.router)
 app.include_router(course.router)
 app.include_router(account.router)
@@ -121,7 +107,7 @@ templating.templates.env.globals['legal'] = legal.context()   # the seller, the 
 @app.middleware('http')
 async def security_headers(request: Request, call_next):
     # Who this is, before the page runs: a new visitor's very first view is stored under their new id,
-    # and the routes (recipe history, test attempts) read request.state.visitor.
+    # and the routes (test attempts) read request.state.visitor.
     visitor = visitors.resolve(request, issue=visitors.wants_cookie(request))
     request.state.visitor = visitor
     if visitor is not None:
@@ -159,11 +145,11 @@ async def forbidden(request: Request, exc: Forbidden):
 async def http_error(request: Request, exc: StarletteHTTPException):
     path = request.url.path
     if exc.status_code == 404 and request.method in ('GET', 'HEAD') and not path.endswith('/') \
-            and not _is_api(request) and not path.startswith(('/static/', '/media/', '/course')) \
+            and not _is_api(request) and not path.startswith(('/static/', '/course')) \
             and _route_exists(request, path + '/'):
         query = f'?{request.url.query}' if request.url.query else ''
         return RedirectResponse(path + '/' + query, status_code=301)
-    if _is_api(request) or path.startswith(('/static/', '/media/')):
+    if _is_api(request) or path.startswith('/static/'):
         return JSONResponse({'detail': exc.detail}, status_code=exc.status_code)
     if exc.status_code == 404:
         return render(request, 'pages/404.html', status_code=404)
@@ -192,6 +178,6 @@ def _error_page(request: Request, status_code: int) -> Response:
 async def server_error(request: Request, exc: Exception):
     """Any bug nobody caught: a page in the site's style (JSON for the API) instead of the bare «Internal Server Error».
     Starlette still re-raises it afterwards, so the server log keeps the traceback."""
-    if _is_api(request) or request.url.path.startswith(('/static/', '/media/')):
+    if _is_api(request) or request.url.path.startswith('/static/'):
         return JSONResponse({'detail': 'server error'}, status_code=500, headers=NO_INDEX)
     return _error_page(request, 500)

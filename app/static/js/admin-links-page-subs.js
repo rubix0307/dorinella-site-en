@@ -2,7 +2,7 @@
 // server, which reads sub_count indices in order, never sees a gap. Delegated, so it survives the AJAX save
 // that swaps the button cards.
 (() => {
-    const form = document.querySelector('.recipe-editor__form');
+    const form = document.querySelector('.links-editor__form');
     if (!form) return;
 
     function sync(box) {

@@ -201,12 +201,6 @@ class BioPage(Base):
     ads_short_link: Mapped[ShortLink | None] = relationship(lazy='joined')
 
 
-# ---------------------------------------------------------------- admin video calls (app/meet.py)
-# One call = one LiveKit room = one row. A closed call is never opened again. Every published track is recorded in
-# chunks (MeetingSegment); each chunk is encrypted with the key of the call (Meeting.dek, itself wrapped with the master
-# key) before it leaves this computer, and lives in the private bucket. Only this site can read it back.
-
-
 # ---------------------------------------------------------------- visitors and test attempts
 
 class Visitor(Base):
@@ -217,8 +211,6 @@ class Visitor(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
     confirmed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    # the old dori_vid cookie this id replaced (its hash, as on old recipe_views rows)
-    legacy_hash: Mapped[str | None] = mapped_column(String(32), index=True)
 
 
 class VisitorAccount(Base):

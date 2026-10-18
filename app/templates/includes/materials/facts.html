@@ -1,9 +1,0 @@
-{% from 'includes/materials/_parts.html' import head, foot %}
-<section class="mat mat--facts" data-reveal>
-    {{ head(m) }}
-    <ol class="facts" role="list">
-        {% for text in m.items %}<li class="facts__item">{{ text }}</li>
-        {% endfor %}
-    </ol>
-    {{ foot(m) }}
-</section>

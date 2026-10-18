@@ -129,7 +129,7 @@ async def finish(request: Request, code: str, state: str) -> tuple[str, str]:
 # ---------------------------------------------------------------- One Tap
 
 TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo'
-ONE_TAP_SKIP = ('/admin', '/login', '/account', '/links', '/l/', '/api', '/auth', '/static', '/media')
+ONE_TAP_SKIP = ('/admin', '/login', '/account', '/links', '/l/', '/api', '/auth', '/static')
 
 
 def _get_json(url: str) -> dict:

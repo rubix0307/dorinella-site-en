@@ -28,10 +28,6 @@ class Settings:
     google_client_secret: str = field(default_factory=lambda: os.getenv('GOOGLE_CLIENT_SECRET', '').strip())
     # Who may open the course: admin (staff only, the default) | paid (staff and buyers) | public (everybody).
     course_access: str = field(default_factory=lambda: os.getenv('COURSE_ACCESS', 'admin').strip().lower())
-    # Where the images and files of the guides are served from. Production: a media origin in front of the bucket.
-    # Default: /media/, which the app serves itself from MEDIA_DIR (local development).
-    media_url: str = field(default_factory=lambda: os.getenv('MEDIA_URL', '/media').rstrip('/'))
-    media_dir: str = field(default_factory=lambda: os.getenv('MEDIA_DIR', 'media'))
     # The daily database backup (app/backup.py): a private bucket whose key can only write, and BACKUP_KEY (32 bytes, base64)
     # that seals every dump. Keep a copy of BACKUP_KEY somewhere else: without it the backups cannot be opened.
     backup_s3_key_id: str = field(default_factory=lambda: os.getenv('BACKUP_S3_KEY_ID', ''))
@@ -55,9 +51,6 @@ class Settings:
 
 
 settings = Settings()
-
-if not settings.media_url.startswith(('/', 'https://')):
-    raise ValueError(f'MEDIA_URL must be a /path or an https:// origin, got {settings.media_url!r}')
 
 if settings.secret_key == _DEV_SECRET:
     # on a real (https) site the dev key is public (it is in the repository): sessions and cookies would be forgeable

@@ -31,7 +31,7 @@
             form.querySelector('[data-header-card]').replaceWith(fresh.querySelector('[data-header-card]'));
             form.querySelector('[name=count]').value = fresh.querySelector('[name=count]').value;
             window.enhanceLinkSelects?.();
-            const error = page.querySelector('.recipe-editor__error');
+            const error = page.querySelector('.links-editor__error');
             if (error) say(error.textContent.trim(), 'error');
             else say(window.t('Saved. The page is updated at once.'), 'ok');
         } catch (err) {

@@ -9,16 +9,14 @@ The id lives in a signed cookie, `v1.<uuid hex>.<day>.<state>.<signature>`:
 - `state` is `n` until the cookie comes back once (then the visitor gets a row in `visitors`), `c` after.
   Bots and cookie-less clients therefore never get a row, and no request needs a database read to know.
 
-The cookie is `__Host-dori_vid` on the https site (host-only, Secure — a subdomain can't plant an id) and
-plain `dori_vid` on http (local development). The old `dori_vid` cookie (a random token, before UUIDs) is
-upgraded once: a new id is issued and remembers the old one's hash, so the history comes along.
+The cookie is `__Host-lk_vid` on the https site (host-only, Secure — a subdomain can't plant an id) and
+plain `lk_vid` on http (local development).
 """
 import base64
 import hashlib
 import hmac
 import logging
 import os
-import re
 import time
 import uuid
 from dataclasses import dataclass
@@ -34,13 +32,11 @@ from .models import TestAttempt, Visitor as VisitorRow, VisitorAccount
 
 log = logging.getLogger(__name__)
 
-LEGACY_COOKIE = 'dori_vid'
-COOKIE = '__Host-dori_vid' if settings.site_url.startswith('https://') else LEGACY_COOKIE
+COOKIE = '__Host-lk_vid' if settings.site_url.startswith('https://') else 'lk_vid'
 MAX_AGE = 60 * 60 * 24 * 400        # browsers cap a cookie's life at about 400 days anyway
 RENEW_AFTER_DAYS = 7
-_LEGACY = re.compile(r'^[A-Za-z0-9_-]{16,64}$')   # secrets.token_urlsafe — never has a dot
 # Not for these: files, health checks, the admin, JSON clients (an API caller's own cookie is still read).
-_UNTRACKED = ('/static/', '/media/', '/health', '/robots.txt', '/favicon', '/admin', '/login', '/account', '/auth/', '/api/', '/sitemap', '/checkout', '/stripe/')
+_UNTRACKED = ('/static/', '/health', '/robots.txt', '/favicon', '/admin', '/login', '/account', '/auth/', '/api/', '/sitemap', '/checkout', '/stripe/')
 
 
 def uuid7() -> uuid.UUID:
@@ -107,7 +103,6 @@ class Visitor:
     id: uuid.UUID
     new: bool                       # issued by this very request
     returned: bool = False          # the cookie came back for the first time: give the visitor a row now
-    legacy_hash: str | None = None  # an old dori_vid upgraded by this request
     write_cookie: bool = False
     state: str = 'n'
 
@@ -131,29 +126,23 @@ def resolve(request: Request, issue: bool) -> Visitor | None:
         return Visitor(parsed.id, new=False, returned=returned, write_cookie=returned or stale, state='c')
     if not issue:
         return None
-    legacy = request.cookies.get(LEGACY_COOKIE, '')
-    if _LEGACY.match(legacy):
-        from .analytics import cookie_visitor_hash
-        # someone who has been here before: no need to wait for the cookie to come back
-        return Visitor(uuid7(), new=True, returned=True, legacy_hash=cookie_visitor_hash(legacy),
-                       write_cookie=True, state='c')
     return Visitor(uuid7(), new=True, write_cookie=True)
 
 
-async def ensure_row(session: AsyncSession, vid: uuid.UUID, legacy_hash: str | None = None) -> None:
+async def ensure_row(session: AsyncSession, vid: uuid.UUID) -> None:
     """The visitor's row in `visitors`, made if it isn't there yet (the caller commits)."""
     if await session.get(VisitorRow, vid) is None:
-        session.add(VisitorRow(id=vid, legacy_hash=legacy_hash))
+        session.add(VisitorRow(id=vid))
         await session.flush()
 
 
 async def confirm(sessions: async_sessionmaker | None, visitor: Visitor) -> None:
-    """The cookie came back (or an old dori_vid was upgraded): give the visitor a row, . Never raises — a broken database must not break the page."""
+    """The cookie came back: give the visitor a row. Never raises — a broken database must not break the page."""
     if sessions is None or not visitor.returned:
         return
     try:
         async with sessions() as session:
-            await ensure_row(session, visitor.id, visitor.legacy_hash)
+            await ensure_row(session, visitor.id)
             await session.commit()
     except Exception:
         log.exception('could not record the visitor row')
@@ -187,8 +176,6 @@ def write(response: Response, request: Request, visitor: Visitor) -> None:
     response.set_cookie(COOKIE, encode(visitor.id, visitor.state), max_age=MAX_AGE, httponly=True,
                         samesite='lax', secure=COOKIE.startswith('__Host-') or request.url.scheme == 'https',
                         path='/')
-    if visitor.legacy_hash and COOKIE != LEGACY_COOKIE:
-        response.delete_cookie(LEGACY_COOKIE, path='/')
     # a response that hands out an id must never be stored by a shared cache and given to someone else
     cache = response.headers.get('cache-control', '')
     if 'private' not in cache and 'no-store' not in cache:
