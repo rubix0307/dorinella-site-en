@@ -1,0 +1,10 @@
+{% set d = b.d %}
+<section class="abm-block">
+    {% if d.title %}<h2 class="abm-h2">{{ d.title }}</h2>{% endif %}
+    {% if d.intro %}<p class="abm-lead">{{ d.intro }}</p>{% endif %}
+    <ul class="abm-cards abm-cards--{{ d.cols or 3 }}" role="list">
+        {% for title, text in d.rows %}
+            <li class="abm-card"><h3>{{ title }}</h3><p>{{ text }}</p></li>
+        {% endfor %}
+    </ul>
+</section>

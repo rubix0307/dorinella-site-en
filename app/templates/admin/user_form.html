@@ -1,0 +1,121 @@
+{% extends 'admin/base.html' %}
+
+{# the groups to tick: the ones the actor may not hand out are shown but disabled, with the reason #}
+{% macro group_picker(groups, member_ids, labels, invalid) -%}
+    <fieldset class="perm-set"{% if invalid %} aria-invalid="true"{% endif %}>
+        <legend class="field__label">Групи прав</legend>
+        {% for group, perms, ok in groups %}
+            <label class="perm-option{{ ' perm-option--locked' if not ok }}">
+                <input type="checkbox" name="group" value="{{ group.id }}"{% if group.id in member_ids %} checked{% endif %}{% if not ok %} disabled{% endif %} aria-describedby="pg-{{ group.id }}">
+                <span class="perm-option__name">{{ group.name }}</span>
+                <span class="perm-option__why" id="pg-{{ group.id }}">{% if not ok %}{{ icon('triangle-alert') }}{{ 'Лише root може видати цю групу.' if group.is_system else 'Дає права, яких немає у вас.' }} {% endif %}{% if group.is_system %}Усі права.{% elif perms %}{% for code in labels if code in perms %}{{ labels[code] }}{{ '; ' if not loop.last }}{% endfor %}{% else %}Без прав.{% endif %}</span>
+            </label>
+        {% else %}
+            <p class="field__hint">Груп ще немає.</p>
+        {% endfor %}
+        <p class="field__hint">Права видаються групами й діють лише для ролі «Адмін». Видати можна групу, чиї права є й у вас.</p>
+    </fieldset>
+{%- endmacro %}
+
+{% block title %}{{ target.email if target else 'Новий користувач' }}{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main">
+        <header class="page-head">
+            <div>
+                <p class="back-link"><a href="{{ url('admin_users') }}">{{ icon('chevron-left') }}Усі користувачі</a></p>
+                <h1 class="admin-title">{{ target.email if target else 'Новий користувач' }}</h1>
+                {% if target %}
+                    <p class="page-head__lead">
+                        <span class="badge{{ ' badge--role' if target.role != 'user' }}">{{ role_labels[target.role] }}</span>
+                        Створено <time datetime="{{ target.created_at.isoformat() }}">{{ target.created_at|kyiv }}</time>
+                        · останній вхід {% if target.last_login_at %}<time datetime="{{ target.last_login_at.isoformat() }}">{{ target.last_login_at|kyiv }}</time>{% else %}— ще не входив{% endif %}
+                        · зустрічей: {{ meetings }}, посилань: {{ links }}
+                    </p>
+                {% endif %}
+            </div>
+        </header>
+
+        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+        {% if target and not can_edit and not can_access %}
+            <p class="admin-alert admin-alert--ok" role="note">{{ icon('eye') }}{{ 'Root змінити не можна: його призначають лише з командного рядка.' if target.role == 'root' else ('Адміністраторів змінює лише root.' if target.role == 'admin' else 'У вас немає права змінювати цього користувача.') }}</p>
+        {% endif %}
+
+        {% if can_edit %}
+            <section class="admin-card user-section">
+                <form class="user-form" method="post" action="{{ url('admin_user_save', user_id=target.id) if target else url('admin_user_create') }}" autocomplete="off">
+                    <label class="field">
+                        <span class="field__label">Пошта Google-акаунта (вона ж логін)</span>
+                        <input type="email" name="email" value="{{ values.email }}" required maxlength="254" autocomplete="off"{% if error_field == 'email' %} aria-invalid="true" autofocus{% endif %}>
+                    </label>
+                    <label class="editor-radio"><input type="checkbox" name="active" value="1"{% if values.active %} checked{% endif %}><span>Активний (може входити)</span></label>
+                    {% if not target %}
+                        {% if user.can('users.promote') %}
+                            <label class="field">
+                                <span class="field__label">Роль</span>
+                                <select name="role">
+                                    <option value="user"{% if values.role != 'admin' %} selected{% endif %}>Користувач — без доступу до адмінки</option>
+                                    <option value="admin"{% if values.role == 'admin' %} selected{% endif %}>Адмін — з правами обраних груп</option>
+                                </select>
+                            </label>
+                            {{ group_picker(groups, values.group_ids, labels, error_field == 'groups') }}
+                        {% else %}
+                            <input type="hidden" name="role" value="user">
+                        {% endif %}
+                    {% endif %}
+                    <div class="user-form__actions">
+                        <button class="btn btn--primary" type="submit">{{ icon('check') }}{{ 'Зберегти' if target else 'Створити' }}</button>
+                        <a class="btn btn--ghost" href="{{ url('admin_users') }}">Скасувати</a>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+
+        {% if target and tg_link %}
+            <section class="admin-card user-section" aria-labelledby="user-tg-title">
+                <h2 class="admin-card__title" id="user-tg-title">Telegram</h2>
+                <p class="user-tg">{{ icon('send') }}<span>id <code>{{ tg_link.tg_user_id }}</code>{% if tg_link.tg_username %} · <a href="https://t.me/{{ tg_link.tg_username }}" target="_blank" rel="noopener">@{{ tg_link.tg_username }}</a>{% endif %}{% if tg_link.tg_name %} · {{ tg_link.tg_name }}{% endif %}</span>
+                    {% if user.can('telegram.messages') %}<a class="btn btn--sm" href="{{ url('admin_telegram_person', tg_id=tg_link.tg_user_id) }}">{{ icon('message-circle') }}Листування в Telegram</a>{% endif %}</p>
+            </section>
+        {% endif %}
+
+        {% if target %}
+            <section class="admin-card user-section">
+                <h2 class="admin-card__title">Доступ</h2>
+                {% if can_access %}
+                    <form class="user-form" method="post" action="{{ url('admin_user_access', user_id=target.id) }}"{% if target.role == 'user' %} data-confirm="Зробити {{ target.email }} адміном? Змінити чи понизити адміна потім зможе лише root."{% elif target.role == 'admin' %} data-confirm="Зберегти доступ для {{ target.email }}? Зміни діють одразу, а якщо понизити до користувача, групи буде знято."{% endif %}>
+                        <label class="field">
+                            <span class="field__label">Роль</span>
+                            <select name="role">
+                                <option value="user"{% if values.role != 'admin' %} selected{% endif %}>Користувач — без доступу до адмінки</option>
+                                <option value="admin"{% if values.role == 'admin' %} selected{% endif %}>Адмін — з правами обраних груп</option>
+                            </select>
+                            {% if target.role == 'user' %}<span class="field__hint">Зробити адміном можна з тими правами, що є у вас, або меншими. Змінити чи понизити адміна потім може лише root.</span>{% endif %}
+                        </label>
+                        {{ group_picker(groups, member_ids, labels, error_field == 'groups') }}
+                        <div class="user-form__actions">
+                            <button class="btn btn--primary" type="submit">{{ icon('check') }}Зберегти доступ</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="page-head__lead">Роль: {{ role_labels[target.role] }}.
+                        {% if target.role == 'root' %}Має всі права.
+                        {% elif target.role == 'admin' %}Групи: {% for group, perms, ok in groups if group.id in member_ids %}{{ group.name }}{{ ', ' if not loop.last }}{% else %}немає{% endfor %}.
+                        {% else %}Без доступу до адмінки.{% endif %}</p>
+                {% endif %}
+            </section>
+        {% endif %}
+
+        {% if target and can_edit %}
+            <section class="admin-card user-section">
+                <form class="user-form" method="post" action="{{ url('admin_user_delete', user_id=target.id) }}"
+                      data-confirm="Видалити {{ target.email }}?{% if open_meetings %} У нього є відкриті зустрічі ({{ open_meetings }}).{% endif %} Його зустрічі й посилання залишаться без автора. Це неможливо скасувати." data-confirm-danger>
+                    <p class="page-head__lead">Видалення назавжди прибирає обліковий запис. Зустрічі й короткі посилання, створені ним, лишаються без автора. Щоб лише закрити доступ, зніміть позначку «Активний».</p>
+                    <div><button class="btn btn--ghost btn--danger" type="submit">{{ icon('trash-2') }}Видалити користувача</button></div>
+                </form>
+            </section>
+        {% endif %}
+    </main>
+{% endblock %}

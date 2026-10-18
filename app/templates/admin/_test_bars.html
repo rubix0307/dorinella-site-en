@@ -1,0 +1,27 @@
+{# Shared by «Тести» and a test's page #}
+{%- macro plural(n, one, few, many) -%}{{ one if n % 10 == 1 and n % 100 != 11 else (few if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else many) }}{%- endmacro -%}
+
+{%- macro bars(shares) -%}
+    <dl class="test-bars">
+        {% for s in shares %}
+            <div>
+                <dt>{{ s.label }}</dt>
+                <dd>
+                    <span class="share-bar" aria-hidden="true"><span style="width: {{ (s.share * 100)|round(1) }}%"></span></span>
+                    <span class="share-value">{{ s.count }} · {{ (s.share * 100)|round|int }}%</span>
+                </dd>
+            </div>
+        {% endfor %}
+    </dl>
+{%- endmacro -%}
+
+{#- bands for a single-score test, the mean of every scale for a multi-scale one -#}
+{%- macro results(summary) -%}
+    {% if summary.bands %}{{ bars(summary.bands) }}{% else %}
+        <dl class="test-bars">
+            {% for title, mean, reference in summary.scales %}
+                <div><dt>{{ title }}</dt><dd class="test-bars__mean">у середньому <strong>{{ mean|round(1) }}</strong> · типово {{ reference }}</dd></div>
+            {% endfor %}
+        </dl>
+    {% endif %}
+{%- endmacro -%}

@@ -1,0 +1,20 @@
+{#- The chapter list, grouped. Rendered twice by page.html (the side column and the phone menu), so it needs no script. -#}
+{% macro chapters(pages, groups, current=None) %}
+    <nav class="abm-chapters" aria-label="Розділи курсу">
+        {% for g in groups %}
+            {% set in_group = pages|selectattr('group', 'equalto', loop.index0)|list %}
+            {% if in_group %}
+                <p class="abm-chapters__group">{{ g }}</p>
+                <ol class="abm-chapters__list" role="list">
+                    {% for p in in_group %}
+                        {% set locked = course_unlocked is not none and p.slug not in course_unlocked %}
+                        <li>{% if locked %}<span class="abm-chapters__lock" aria-disabled="true" title="Спершу пройдіть попередні кроки"><span class="abm-chapters__mark" aria-hidden="true">{{ icon('lock') }}</span>{{ p.nav }}</span>
+                            {% else %}<a href="{{ course.BASE }}{{ p.slug }}/" data-abm-slug="{{ p.slug }}"{% if p.slug in course_done %} class="is-done"{% endif %}
+                               {% if current and p.slug == current.slug %}aria-current="page"{% endif %}>
+                            <span class="abm-chapters__mark" aria-hidden="true">{{ icon('check') }}</span>{{ p.nav }}</a>{% endif %}</li>
+                    {% endfor %}
+                </ol>
+            {% endif %}
+        {% endfor %}
+    </nav>
+{% endmacro %}

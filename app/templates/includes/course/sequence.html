@@ -1,0 +1,14 @@
+{% set d = b.d %}
+<section class="abm-block abm-sequence">
+    <h2 class="abm-h2">{{ d.title }}</h2>
+    <ol class="abm-seq" role="list">
+        {% for key, title, note in d.rows %}
+            {% set t = course.TECH_BY_KEY[key] %}
+            <li><span class="abm-seq__n" aria-hidden="true">{{ loop.index }}</span>
+                <div><h3>{{ title }}</h3><p>{{ note }}</p></div>
+                <a class="abm-chip" href="{{ course.BASE }}tekhniky/#{{ key }}">{{ icon('play') }}№{{ t.number }} · {{ t.name }}</a></li>
+        {% endfor %}
+    </ol>
+    <p class="abm-lead">{{ d.note }}</p>
+    <button class="abm-linkbtn abm-print" type="button" data-print>Надрукувати шпаргалку</button>
+</section>

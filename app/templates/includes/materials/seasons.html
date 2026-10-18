@@ -1,0 +1,17 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--seasons" data-reveal>
+    {{ head(m) }}
+    <ol class="seasons" role="list">
+        {% for season, phase, symbol, text, word, state in m.items %}
+            <li class="seasons__item seasons__item--{{ loop.index }}">
+                <span class="seasons__icon" aria-hidden="true">{{ icon(symbol) }}</span>
+                <p class="seasons__season">{{ season }}</p>
+                <h4 class="seasons__phase">{{ phase }}</h4>
+                <p>{{ text }}</p>
+                <p class="seasons__meta"><strong>Слово-підказка:</strong> {{ word }}</p>
+                <p class="seasons__meta"><strong>Стан:</strong> {{ state }}</p>
+            </li>
+        {% endfor %}
+    </ol>
+    {{ foot(m) }}
+</section>

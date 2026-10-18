@@ -1,0 +1,5 @@
+{% set d = b.d %}
+<section class="abm-block abm-text">
+    {% if d.title %}<h2 class="abm-h2">{{ d.title }}</h2>{% endif %}
+    {% for p in d.paras %}<p>{{ p }}</p>{% endfor %}
+</section>

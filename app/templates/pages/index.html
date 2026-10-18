@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block schema %}{{ seo.graph(request, seo.page(request, 'Dori — бодіпозитивний нутриціолог', self.description()|trim), seo.main_faq()) }}{% endblock %}
+
+
+{% block preload %}
+    <link rel="stylesheet" href="{{ static('css/diplomas.css') }}">
+    <script src="{{ static('js/diplomas.js') }}" defer></script>
+    <link rel="preload" as="image" fetchpriority="high" href="{{ static('img/hero-cutout-480.webp') }}"
+          imagesrcset="{{ static('img/hero-cutout-480.webp') }} 480w, {{ static('img/hero-cutout-820.webp') }} 820w"
+          imagesizes="(min-width: 961px) 400px, (min-width: 641px) 300px, 260px">
+{% endblock %}
+
+{% block content %}
+    {# ---------- Hero ---------- #}
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="container hero__inner">
+            <div class="hero__text">
+                <p class="eyebrow">Нутриціолог · dorinellla</p>
+                <h1 class="hero__title" id="hero-title">
+                    Бодіпозитивний <em>нутриціолог</em>
+                </h1>
+                <p class="hero__lead">
+                    Допомагаю налагодити харчування, травлення та стосунки з тілом — без дієт, сорому і жорстких рамок.
+                </p>
+                <div class="hero__actions">
+                    <a class="btn btn--primary" href="#products">Обрати продукт{{ icon('arrow-right') }}</a>
+                    <a class="btn btn--ghost" href="#about">Про мене</a>
+                </div>
+                <ul class="hero__facts" role="list">
+                    <li>{{ icon('graduation-cap') }}Випускниця The College of Naturopathic Medicine (Лондон)</li>
+                    <li>{{ icon('brain') }}Клінічна психологиня — Київський медичний університет</li>
+                    <li>{{ icon('leaf') }}Навчаюсь у Institute for Integrative Nutrition (IIN)</li>
+                    <li>{{ icon('megaphone') }}Говорю вголос про жіночі теми без фільтрів</li>
+                </ul>
+            </div>
+
+            <figure class="hero__media hero-portrait">
+                <div class="hero-portrait__backdrop" aria-hidden="true"></div>
+                {# a 24 px blurred copy in the page itself: the photo is there at once, sharpening as it loads #}
+                <div class="hero-portrait__lqip" style="background-image: url({{ inline_image('img/hero-cutout-lqip.webp') }})" aria-hidden="true"></div>
+                <img class="hero-portrait__photo" onload="this.classList.add('is-loaded')" src="{{ static('img/hero-cutout-480.webp') }}"
+                     srcset="{{ static('img/hero-cutout-480.webp') }} 480w, {{ static('img/hero-cutout-820.webp') }} 820w"
+                     sizes="(min-width: 961px) 400px, (min-width: 641px) 300px, 260px"
+                     width="480" height="752"
+                     alt="Дорі усміхається, тримаючи паперовий пакет зі свіжими овочами"
+                     fetchpriority="high" decoding="async">
+                {{ icon('sparkles', 'sparkle sparkle--1') }}
+                {{ icon('sparkles', 'sparkle sparkle--2') }}
+            </figure>
+        </div>
+    </section>
+
+    {# ---------- About ---------- #}
+    <section class="section about" id="about" aria-labelledby="about-title">
+        <div class="container about__inner">
+            <figure class="about__media" data-reveal>
+                <img src="{{ static('img/about-400.webp') }}" width="382" height="573"
+                     alt="Чорно-білий портрет Дорі" loading="lazy" decoding="async">
+            </figure>
+            <div class="about__text">
+                <p class="eyebrow" data-reveal>Знайомство</p>
+                <h2 class="section-title" id="about-title" data-reveal>Про мене</h2>
+                <div class="prose" data-reveal>
+                    <p><strong>Я — сертифікований нутриціолог і клінічний психолог.</strong> Завершила навчання в The College of Naturopathic Medicine (Велика Британія) за напрямом натуропатичної та функціональної нутриціології, а також здобула освіту клінічного психолога в Київському медичному університеті. Наразі навчаюся в Institute for Integrative Nutrition (IIN, США) за програмою Health Coach, щоб ще краще поєднувати роботу з харчуванням, психологічним станом, звичками й реальними змінами у повсякденному житті.</p>
+                    <p><strong>Мій підхід</strong> — на перетині нутриціології, психології та коучингу. <strong>Я працюю комплексно:</strong> враховую харчування, спосіб життя, роботу травної та нервової систем, особливості харчової поведінки, емоційний стан і стосунки людини з їжею та власним тілом.</p>
+                    <p><strong>Маю власний досвід</strong> складних стосунків із їжею, дієтами та самокритикою. Саме він багато в чому сформував мій підхід: не створювати ще більше правил і заборон, а допомагати людині краще розуміти себе, своє тіло та поступово вибудовувати більш здорові й спокійні стосунки з їжею.</p>
+                </div>
+                <blockquote class="about__quote" data-reveal>
+                    Якщо ти шукаєш науковий і м’який шлях до балансу — я поруч, аби підтримати.
+                </blockquote>
+                <div class="about__diplomas" data-reveal>
+                    <h3 class="about__diplomas-title">Дипломи та сертифікати</h3>
+                    <div class="carousel" data-carousel>
+                        <div class="carousel__track" tabindex="0" role="group" aria-label="Сертифікати">
+                            {% for d in diplomas_all %}{% with full = true %}{% include 'includes/diploma_card.html' %}{% endwith %}{% endfor %}
+                        </div>
+                        <button type="button" class="carousel__btn carousel__btn--prev" data-carousel="prev" aria-label="Назад" hidden>{{ icon('chevron-left') }}</button>
+                        <button type="button" class="carousel__btn carousel__btn--next" data-carousel="next" aria-label="Далі" hidden>{{ icon('chevron-right') }}</button>
+                    </div>
+                    <a class="btn btn--ghost" href="{{ url('diplomas') }}">Усі сертифікати ({{ diplomas_all|length }}){{ icon('arrow-right') }}</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% include 'includes/lightbox.html' %}
+
+    {# ---------- Why ---------- #}
+    <section class="section why" id="why" aria-labelledby="why-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Чому я?</p>
+                <h2 class="section-title" id="why-title">Чому мої продукти варті твоєї уваги?</h2>
+                <p class="section-lead">Вони допомагають:</p>
+            </div>
+
+            <div class="why__grid">
+                <ul class="why__list" role="list">
+                    <li class="why__item" data-reveal>{{ icon('ear') }}Почати чути сигнали тіла</li>
+                    <li class="why__item" data-reveal>{{ icon('audio-waveform') }}Навчитися жити у своєму ритмі</li>
+                    <li class="why__item" data-reveal>{{ icon('salad') }}Підібрати харчування</li>
+                    <li class="why__item" data-reveal>{{ icon('hand-heart') }}Дати тілу м’яку підтримку</li>
+                </ul>
+                <figure class="why__media" data-reveal>
+                    <div class="why__circle">
+                        <img src="{{ static('img/bag-360.webp') }}"
+                             srcset="{{ static('img/bag-360.webp') }} 360w, {{ static('img/bag-560.webp') }} 560w, {{ static('img/bag-800.webp') }} 745w"
+                             sizes="(min-width: 1101px) 320px, (min-width: 641px) 300px, 200px"
+                             width="360" height="387" alt="Рожева сітчаста торбинка з кабачками, редискою та шпинатом"
+                             loading="lazy" decoding="async">
+                    </div>
+                </figure>
+                <ul class="why__list" role="list">
+                    <li class="why__item" data-reveal>{{ icon('smile') }}Позбутись «емоційної гойдалки»</li>
+                    <li class="why__item" data-reveal>{{ icon('layers') }}Отримати системну, структуровану базу</li>
+                    <li class="why__item" data-reveal>{{ icon('heart-pulse') }}Бути в ритмі з тілом</li>
+                    <li class="why__item" data-reveal>{{ icon('sparkles') }}Відчути, що здоров’я — це не складно</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    {# ---------- Free ---------- #}
+    <section class="section section--tinted" id="learn" aria-labelledby="learn-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Корисне</p>
+                <h2 class="section-title" id="learn-title">З чого почати</h2>
+                <p class="section-lead">Короткі міні-курси з відеоуроками й матеріалами та тест — щоб познайомитися з темою у своєму темпі.</p>
+            </div>
+            <ul class="free-teaser" role="list">
+                <li class="free-teaser__item theme-guts" data-reveal>
+                    <span class="icon-badge">{{ icon('leaf') }}</span>
+                    <div>
+                        <h3 class="free-teaser__title">Міні-курс «GUT HEALTH»</h3>
+                        <p>3 відеоуроки про здоров’я кишківника</p>
+                    </div>
+                    <a class="stretched-link" href="{{ url('learn_course', slug='gut-health') }}" aria-label="Міні-курс «GUT HEALTH»">{{ icon('arrow-right') }}</a>
+                </li>
+                <li class="free-teaser__item theme-cycle" data-reveal>
+                    <span class="icon-badge">{{ icon('sprout') }}</span>
+                    <div>
+                        <h3 class="free-teaser__title">Менструальне здоров’я</h3>
+                        <p>3 відеоуроки про цикл і гормони</p>
+                    </div>
+                    <a class="stretched-link" href="{{ url('learn_course', slug='menstrual-health') }}" aria-label="Міні-курс про менструальне здоров’я">{{ icon('arrow-right') }}</a>
+                </li>
+                <li class="free-teaser__item theme-guts" data-reveal>
+                    <span class="icon-badge">{{ icon('circle-help') }}</span>
+                    <div>
+                        <h3 class="free-teaser__title">Тести</h3>
+                        <p>Кишківник, цикл і харчова поведінка</p>
+                    </div>
+                    <a class="stretched-link" href="{{ url('learn_index') }}#tests" aria-label="Тести">{{ icon('arrow-right') }}</a>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    {# ---------- Products ---------- #}
+    <section class="section products" id="products" aria-labelledby="products-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Продукти</p>
+                <h2 class="section-title" id="products-title">Обери свій формат</h2>
+            </div>
+
+            {% include 'includes/product_cards.html' %}
+        </div>
+    </section>
+
+    {% include 'includes/reviews.html' %}
+    {% include 'includes/faq.html' %}
+
+    {# ---------- Contacts ---------- #}
+    <section class="section contacts" id="contacts" aria-labelledby="contacts-title">
+        <div class="container">
+            <div class="cta-card" data-reveal>
+                <p class="eyebrow eyebrow--light">Контакти</p>
+                <h2 class="section-title" id="contacts-title">Маєш питання? Напиши мені</h2>
+                <p class="section-lead">Відповім особисто та допоможу обрати формат, який підійде саме тобі.</p>
+                <div class="cta-card__actions">
+                    <a class="btn btn--light" href="{{ out('https://t.me/dori_nutritioner_bot', 'contacts:telegram') }}" target="_blank" rel="noopener">
+                        {{ icon('send') }}
+                        Telegram
+                    </a>
+                    <a class="btn btn--outline-light" href="{{ out('https://www.instagram.com/dorinellla/', 'contacts:instagram') }}" target="_blank" rel="noopener">
+                        {{ icon('instagram') }}
+                        Instagram
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

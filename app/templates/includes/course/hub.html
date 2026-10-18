@@ -1,0 +1,105 @@
+{#- The player hub: ONE animated figure for the 8 techniques, the written steps of every technique below it (rendered from the very
+    captions the animation shows). Without JS all the technique sections are simply listed one after another. -#}
+<section class="abm-block abm-hub" data-hub data-src="{{ course.DATA_URL }}">
+    <div class="abm-safebar" data-safebar data-version="{{ course.SAFETY_VERSION }}">
+        <span class="abm-callout__icon" aria-hidden="true">{{ icon('triangle-alert') }}</span>
+        <div>
+            <p><strong>Біль — це сигнал зупинитися.</strong> Масаж має бути м’яким. <a href="{{ course.BASE }}protypokazannia/">Протипоказання</a></p>
+            <details class="abm-stoplist">
+                <summary>Коли зупинитись і звернутись до лікаря</summary>
+                <ul>{% for r in course.STOP_RULES %}<li>{{ r }}</li>{% endfor %}</ul>
+            </details>
+        </div>
+    </div>
+
+    <ol class="abm-toc abm-toc--nojs" role="list" aria-label="Техніки">
+        {% for t in techniques %}<li><a href="#{{ t.key }}">№{{ t.number }} · {{ t.title }}</a></li>{% endfor %}
+    </ol>
+
+    <div class="abm-hub__grid">
+        <div class="abm-hub__stage" data-stage>
+            <div class="mplayer abm-player" data-player data-mp-id="mp">
+                <div class="mplayer__card" data-mp="card">
+                    <svg class="mplayer__stage" viewBox="0 0 896 1200" role="img" aria-label="Анімація техніки масажу" data-mp="svg">
+                        <defs>
+                            <image id="mp-photo" width="896" height="1200" preserveAspectRatio="none" href="{{ static('img/course/belly-896.webp') }}"></image>
+                            <linearGradient id="mp-fadeG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="191">
+                                <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".25" stop-color="#fff" stop-opacity=".125"/>
+                                <stop offset=".5" stop-color="#fff" stop-opacity=".354"/><stop offset=".75" stop-color="#fff" stop-opacity=".65"/>
+                                <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+                            </linearGradient>
+                            <mask id="mp-fadeM" maskUnits="userSpaceOnUse" x="0" y="0" width="896" height="1200"><rect width="896" height="1200" fill="url(#mp-fadeG)"/></mask>
+                            <radialGradient id="mp-lensG"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".42" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+                            <mask id="mp-lm0" maskUnits="userSpaceOnUse" x="0" y="0" width="896" height="1200"><circle data-mp="lc0" r="88" fill="url(#mp-lensG)"/></mask>
+                            <mask id="mp-lm1" maskUnits="userSpaceOnUse" x="0" y="0" width="896" height="1200"><circle data-mp="lc1" r="88" fill="url(#mp-lensG)"/></mask>
+                            <filter id="mp-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="11"/></filter>
+                            <filter id="mp-halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
+                        </defs>
+                        <g data-mp="world">
+                            <use href="#mp-photo" mask="url(#mp-fadeM)"/>
+                            <g data-mp="lens0" mask="url(#mp-lm0)" visibility="hidden"><use href="#mp-photo"/></g>
+                            <g data-mp="lens1" mask="url(#mp-lm1)" visibility="hidden"><use href="#mp-photo"/></g>
+                            <g data-mp="glow" filter="url(#mp-glow)" style="mix-blend-mode: screen">
+                                <ellipse data-mp="warm" cx="460" cy="645" rx="165" ry="150" fill="rgb(176,148,130)" opacity="0"/>
+                            </g>
+                            <g data-mp="grid"></g>
+                            <g data-mp="tips"></g>
+                        </g>
+                    </svg>
+                    <div class="mplayer__ov mplayer__tag" data-mp="tag"></div>
+                    <div class="mplayer__ov mplayer__title" data-mp="title"></div>
+                    <div class="mplayer__ov mplayer__intro" data-mp="intro" hidden></div>
+                    <div class="mplayer__ov mplayer__cap" data-mp="cap"><div class="mplayer__step" data-mp="step"></div><div class="mplayer__desc" data-mp="desc"></div></div>
+                    <div class="mplayer__ov mplayer__pill" data-mp="pill" hidden></div>
+                    <div class="mplayer__ov mplayer__lbl mplayer__lbl--brand" style="left: 50%">@dorinellla</div>
+                </div>
+                <div class="abm-ctl" role="group" aria-label="Керування анімацією">
+                    <div class="abm-ctl__row">
+                        <button class="mplayer__btn mplayer__btn--main" data-mp="play" type="button" data-label-play="Відтворити" data-label-pause="Пауза" aria-label="Пауза">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><g data-mp="playIcon"></g></svg>
+                        </button>
+                        <button class="mplayer__btn" data-mp="restart" type="button" aria-label="Спочатку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button>
+                        <span class="abm-ctl__sep" aria-hidden="true"></span>
+                        <button class="abm-toggle" data-mp="loop" type="button" aria-pressed="false" title="Повторювати поточний крок">{{ icon('rotate-ccw') }}<span>Крок</span></button>
+                        <button class="abm-toggle" data-mp="speed" type="button" aria-pressed="false" title="Повільніше">{{ icon('gauge') }}<span>0,5×</span></button>
+                    </div>
+                    <div class="abm-ctl__seek">
+                        <div class="abm-seekbar">
+                            <div class="abm-seg" data-mp="seg" aria-hidden="true"></div>
+                            <input class="mplayer__scrub" data-mp="scrub" type="range" min="0" max="35" step="0.01" value="0" aria-label="Позиція в анімації">
+                        </div>
+                        <span class="mplayer__time" data-mp="time">0:00</span>
+                    </div>
+                </div>
+                <p class="visually-hidden" aria-live="polite" data-mp="live"></p>
+            </div>
+        </div>
+
+        <div class="abm-hub__side">
+            <div class="abm-chips" role="radiogroup" aria-label="Оберіть техніку" data-chips hidden>
+                {% for t in techniques %}
+                    <button class="abm-tech-chip" type="button" role="radio" aria-checked="false" data-key="{{ t.key }}" tabindex="-1">
+                        <span class="abm-tech-chip__n">№{{ t.number }}</span><span class="abm-tech-chip__name">{{ t.name }}</span><span class="abm-tech-chip__t">{{ t.time }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+
+            <div class="abm-techs">
+                {% for t in techniques %}
+                    <section class="abm-tech" id="{{ t.key }}" data-tech="{{ t.key }}" aria-labelledby="{{ t.key }}-h">
+                        <h2 class="abm-tech__h" id="{{ t.key }}-h"><span class="abm-tech__n">№{{ t.number }}</span>{{ t.title }}</h2>
+                        <p class="abm-tech__lead">{{ t.lead }}</p>
+                        <ol class="abm-steps" role="list">
+                            {% for label, text, start in t.steps %}
+                                <li data-t="{{ start }}"><span class="abm-steps__label">{{ label }}</span><span class="abm-steps__text">{{ text }}</span></li>
+                            {% endfor %}
+                        </ol>
+                        {% if t.closing %}<p class="abm-tech__note">{{ t.closing }}</p>{% endif %}
+                        <p class="abm-tech__gives"><strong>Що це дає:</strong> {{ t.gives|join(' · ') }}</p>
+                    </section>
+                {% endfor %}
+            </div>
+            <p class="abm-hint">Натисніть на крок — і анімація перейде до нього.</p>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,84 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/_table.html' import sort_th, sort_menu, search_box, filter_popover %}
+
+{% block title %}Користувачі{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main">
+        <header class="page-head">
+            <div>
+                <h1 class="admin-title">Користувачі</h1>
+                <p class="page-head__lead">Облікових записів: {{ total }}{% if off %}, вимкнених {{ off }}{% endif %}. Свій обліковий запис змінюють у <a href="{{ url('admin_profile') }}">профілі</a>.</p>
+            </div>
+            {% if user.can('users.manage') %}<a class="btn btn--primary btn--sm" href="{{ url('admin_user_new') }}">{{ icon('plus') }}Новий користувач</a>{% endif %}
+        </header>
+
+        {% if notice %}<p class="admin-alert admin-alert--ok" role="status">{{ icon('check') }}{{ notice }}</p>{% endif %}
+        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+
+        {% if page is not none %}
+            <section class="admin-card admin-card--table users-card" aria-labelledby="users-title">
+                <div class="card-head"><h2 class="admin-card__title" id="users-title">Усі користувачі <span class="count">{{ page.total }}</span></h2></div>
+                <form id="users-filter" class="users-tools" method="get" action="{{ url('admin_users') }}" role="search">
+                    {% for name, value in view.outside_fields() if name not in ('notice', 'error') %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+                    {{ search_box(view, 'users-filter', 'Пошук за поштою') }}
+                    {{ filter_popover(view, 'role', 'users-filter', roles, role_labels.get, 'Роль') }}
+                    {{ filter_popover(view, 'status', 'users-filter', statuses, status_labels.get, 'Статус') }}
+                    <noscript><button class="btn btn--ghost btn--sm" type="submit">{{ icon('search') }}Знайти</button></noscript>
+                    {% if view.is_filtered %}<a class="tool-btn tool-btn--quiet" href="{{ view.reset_href() }}">{{ icon('rotate-ccw') }}<span class="tool-btn__text">Скинути</span></a>{% endif %}
+                </form>
+                <div class="card-tools card-tools--phone">{{ sort_menu(view, ['email', 'role', 'created', 'last']) }}</div>
+
+                {% if page.rows %}
+                    <div class="admin-table-wrap">
+                        <table class="admin-table users-table">
+                            <thead>
+                                <tr>
+                                    {{ sort_th(view, 'email') }}
+                                    {{ sort_th(view, 'role') }}
+                                    {{ sort_th(view, 'status') }}
+                                    {{ sort_th(view, 'created') }}
+                                    {{ sort_th(view, 'last') }}
+                                    <td class="actions-head"><span class="visually-hidden">Дії</span></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in page.rows %}
+                                    <tr class="{{ 'is-off' if row.status == 'off' }}">
+                                        <td class="users-email"><a href="{{ url('admin_profile') if row.me else url('admin_user_edit', user_id=row.id) }}">{{ row.email }}</a>{% if row.me %} <span class="badge">Ви</span>{% endif %}{% if row.tg_id %} <span class="badge badge--tg" title="Привʼязаний Telegram{% if row.tg_username %}: @{{ row.tg_username }}{% endif %}">{{ icon('send') }}Telegram{% if row.tg_username %} @{{ row.tg_username }}{% endif %}</span>{% endif %}</td>
+                                        <td><span class="badge{{ ' badge--role' if row.role != 'user' }}">{{ role_labels[row.role] }}</span></td>
+                                        <td><span class="badge{{ ' badge--off' if row.status == 'off' }}">{{ status_labels[row.status] }}</span></td>
+                                        <td class="nowrap"><time datetime="{{ row.created_at.isoformat() }}">{{ row.created_at|kyiv }}</time></td>
+                                        <td class="nowrap">{% if row.last_login_at %}<time datetime="{{ row.last_login_at.isoformat() }}">{{ row.last_login_at|kyiv }}</time>{% else %}—{% endif %}</td>
+                                        <td class="users-actions">
+                                            {% if row.me %}
+                                                <a class="act-btn" href="{{ url('admin_profile') }}" title="Мій профіль" aria-label="Мій профіль">{{ icon('user') }}</a>
+                                            {% elif row.can_edit or user.can('users.promote') %}
+                                                <a class="act-btn" href="{{ url('admin_user_edit', user_id=row.id) }}" title="Змінити" aria-label="Змінити {{ row.email }}">{{ icon('pencil') }}</a>
+                                            {% else %}
+                                                <a class="act-btn" href="{{ url('admin_user_edit', user_id=row.id) }}" title="Переглянути" aria-label="Переглянути {{ row.email }}">{{ icon('eye') }}</a>
+                                            {% endif %}
+                                            {% if row.can_edit %}
+                                                <form method="post" action="{{ url('admin_user_toggle', user_id=row.id) }}"{% if row.status != 'off' %} data-confirm="Вимкнути {{ row.email }}? Він більше не зможе увійти."{% endif %}>
+                                                    <button class="act-btn" type="submit" title="{{ 'Увімкнути' if row.status == 'off' else 'Вимкнути' }}" aria-label="{{ 'Увімкнути' if row.status == 'off' else 'Вимкнути' }} {{ row.email }}">{{ icon('power') }}</button>
+                                                </form>
+                                                <form method="post" action="{{ url('admin_user_delete', user_id=row.id) }}" data-confirm="Видалити {{ row.email }}? Його зустрічі й посилання залишаться без автора. Це неможливо скасувати." data-confirm-danger>
+                                                    <button class="act-btn act-btn--danger" type="submit" title="Видалити" aria-label="Видалити {{ row.email }}">{{ icon('trash-2') }}</button>
+                                                </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if page.next %}<p class="users-more"><a class="btn btn--ghost btn--sm" href="{{ view.next_href(page.next) }}">Показати ще</a></p>{% endif %}
+                {% else %}
+                    <p class="users-more">Нічого не знайдено.{% if view.is_filtered %} <a href="{{ view.reset_href() }}">Скинути пошук і фільтри</a>{% endif %}</p>
+                {% endif %}
+            </section>
+        {% endif %}
+    </main>
+{% endblock %}

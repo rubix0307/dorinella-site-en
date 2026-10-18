@@ -1,0 +1,74 @@
+# Ruff config: lint only (no formatter adopted, see [format] note).
+target-version = "py312"
+line-length = 200
+extend-exclude = ["local_articles", "volumes", "media", "assets", "docs", "deploy", "docker"]
+
+[lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # bugbear
+    "UP",       # pyupgrade
+    "C4",       # comprehensions
+    "SIM",      # simplify
+    "RUF",      # ruff-specific
+    "PL",       # pylint (subset ignored below)
+    "PT",       # pytest style
+    "S",        # bandit (security)
+    "DTZ",      # naive datetimes
+    "ASYNC",    # blocking calls in async code
+    "FAST",     # FastAPI
+    "PERF",     # perf anti-patterns
+    "T20",      # print
+    "Q",        # quotes (single, matches code)
+    "N",        # naming
+    "TRY",      # exception style
+    "BLE",      # blind except
+    "FURB", "PIE", "RET", "ERA", "PTH", "G", "LOG", "ISC",
+]
+ignore = [
+    "RUF001", "RUF002", "RUF003",  # Cyrillic text in strings, docstrings, comments is intentional
+    "B008",       # Depends()/Query()/File() in defaults is the FastAPI idiom
+    "FAST002",    # Annotated Depends migration: large churn, revisit separately
+    "PLR2004",    # magic values: too noisy
+    "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR0917", "C901",  # complexity metrics: not a goal
+    "PLC0415",    # lazy imports are deliberate (heavy deps: onnxruntime, whisper, av)
+    "TRY003", "EM101", "EM102",  # long messages in exceptions are fine
+    "COM812", "ISC001",          # conflict with formatter
+    "S608",       # SQL built from fixed fragments, reviewed by hand
+    "S101",       # asserts (also used outside tests); allowed
+    "PLW0603",    # module-level caches use global
+    "TRY300", "TRY301", "TRY400",
+    "RET504", "RET505",
+    "SIM108",
+    "N818",       # exception names without Error suffix: kept
+    "ERA001",
+    "ISC004",     # adjacent string literals in lists are used for long texts on purpose
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S", "PLR2004", "PT018", "SLF001", "ARG", "DTZ", "E501", "PT011", "PT006",
+    "T20",   # the *_pg_*.py helpers run as subprocesses and print their JSON result to the parent test
+    "N803",  # fakes of boto3 mirror its CamelCase keyword names (Bucket=, ExtraArgs=)
+]
+"app/cli.py" = ["T20"]  # a command-line tool: printing is its output
+"migrations/**" = ["E501", "N999", "I001", "UP", "ERA001", "S608", "RUF012"]
+"scripts/**" = ["T20", "S603", "S607", "S310", "PTH", "E501"]
+"app/article_seed.py" = ["E501"]  # seeded article text
+
+[lint.flake8-quotes]
+inline-quotes = "single"
+multiline-quotes = "double"
+docstring-quotes = "double"
+
+[lint.isort]
+known-first-party = ["app"]
+combine-as-imports = true
+
+[lint.pylint]
+max-args = 12
+
+[format]
+# Not adopted: `ruff format` rewrites most files. Run only if the owner agrees.
+quote-style = "single"

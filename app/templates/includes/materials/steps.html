@@ -1,0 +1,44 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+{# The route of each step on the belly, seen from the front: the person's left is the right of the picture. #}
+{% set routes = ('M92 76 L68 84', 'M92 24 V66 Q92 78 68 84', 'M28 24 H92 V66 Q92 78 68 84', 'M28 76 V24 H92 V66 Q92 78 68 84') %}
+{% set starts = ((92, 76), (92, 24), (28, 24), (28, 76)) %}
+<section class="mat mat--steps" data-reveal>
+    {{ head(m) }}
+    {% if m.cautions %}
+        <div class="mat__caution" role="note">
+            <p class="mat__caution-title">{{ icon('triangle-alert') }}Перш ніж почати</p>
+            <p>Не виконуйте масаж, якщо є:</p>
+            <ul class="lesson-list" role="list">
+                {% for item in m.cautions %}<li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <div class="steps-layout{% if m.player %} steps-layout--video{% endif %}">
+    {% if m.player %}
+        <div class="steps-layout__player">{% include 'includes/materials/_player.html' %}</div>
+        <script src="{{ static('js/massage-player.js') }}" defer></script>
+    {% endif %}
+    <ol class="steps" role="list">
+        {% for name, text in m.items %}
+            <li class="steps__item">
+                <div class="steps__map" aria-hidden="true">
+                    <svg viewBox="0 0 120 104" focusable="false">
+                        <path class="steps__body" d="M18 8 H102 V70 Q102 94 60 98 Q18 94 18 70 Z"/>
+                        <path class="steps__route" d="{{ routes[loop.index0] }}"/>
+                        <path class="steps__tip" d="M63 88 L74 86 L70 77 Z"/>
+                        <circle class="steps__start" cx="{{ starts[loop.index0][0] }}" cy="{{ starts[loop.index0][1] }}" r="3.5"/>
+                    </svg>
+                    <span class="steps__sides"><span>права</span><span>ліва</span></span>
+                </div>
+                <div class="steps__text">
+                    <h4 class="steps__name">{{ name }}</h4>
+                    <p>{{ text }}</p>
+                    <p class="steps__times">{{ icon('rotate-ccw') }}Повторіть 5 разів</p>
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+    </div>
+    {{ foot(m) }}
+</section>

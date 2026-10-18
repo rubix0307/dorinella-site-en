@@ -1,0 +1,11 @@
+{#- The stylesheet: linked when this browser already has it cached (the cookie says which version),
+    otherwise in the page itself — nothing blocks the first paint — and fetched without blocking so the
+    next page can link it. See inline_styles() in app/core/templating.py. -#}
+{%- set version = styles_version() -%}
+{%- if request.cookies.get(STYLES_COOKIE) == version %}
+    <link href="{{ static('css/styles.css') }}" rel="stylesheet">
+{%- else %}
+    <style>{{ inline_styles() }}</style>
+    <link rel="preload" href="{{ static('css/styles.css') }}" as="style" fetchpriority="low"
+          onload="document.cookie='{{ STYLES_COOKIE }}={{ version }}; path=/; max-age=2592000; samesite=lax'">
+{%- endif %}

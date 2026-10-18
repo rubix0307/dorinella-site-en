@@ -1,0 +1,22 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--phasefood" data-reveal>
+    {{ head(m) }}
+    <div class="daybar" aria-hidden="true">
+        {% for phase, days, length, tone, foods in m.items %}
+            <span class="daybar__part daybar__part--{{ tone }}" style="flex-grow: {{ length }}">{{ days }}</span>
+        {% endfor %}
+    </div>
+    <ul class="phases" role="list">
+        {% for phase, days, length, tone, foods in m.items %}
+            <li class="phases__item phases__item--{{ tone }}">
+                <h4 class="phases__name">{{ phase }}</h4>
+                <p class="phases__days">{{ days }}</p>
+                <ul class="phases__foods" role="list">
+                    {% for food in foods %}<li>{{ food }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+    {{ foot(m) }}
+</section>

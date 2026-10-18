@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block schema %}{{ seo.graph(request, seo.product(request, product), seo.crumbs(request, ('Продукти', '/products/'), (product.title, request.url.path))) }}{% endblock %}
+
+{% block title %}Онлайн-курс «Масаж живота»: програма, ціна й умови | dorinellla{% endblock %}
+{% block description %}Онлайн-курс «Масаж живота»: {{ course.PUBLIC_PAGES|length }} кроків, {{ course.TECHNIQUES|length }} технік самомасажу з анімацією, безпека, підготовка, харчування й напої. Ціна {{ price }}, оплата карткою Visa чи Mastercard.{% endblock %}
+{% block og_title %}Онлайн-курс «Масаж живота» від Дорі{% endblock %}
+{% block og_description %}Покрокові техніки самомасажу живота з анімацією, підготовка, харчування й напої для здоров’я кишківника.{% endblock %}
+{% block og_image %}{{ static(product.og_image) }}{% endblock %}
+{% block og_image_alt %}{{ product.og_image_alt }}{% endblock %}
+{% block body_class %}theme-guts{% endblock %}
+
+{% block content %}
+    <section class="hero hero--product" aria-labelledby="hero-title">
+        <div class="container hero__inner">
+            <div class="hero__text">
+                <p class="eyebrow">Онлайн-курс</p>
+                <h1 class="hero__title" id="hero-title">Масаж <em>живота</em></h1>
+                <p class="hero__lead">{{ product.tagline }}</p>
+                <p class="buy-price" aria-label="Ціна курсу"><strong>{{ price }}</strong> <span class="muted">одноразовий платіж, доступ у власному темпі</span></p>
+                <div class="hero__actions">
+                    <a class="btn btn--primary" href="#buy">{{ icon('credit-card') }}Придбати курс</a>
+                    <a class="btn btn--ghost" href="#program">Програма курсу</a>
+                </div>
+            </div>
+            <figure class="hero__media hero__media--illustration">
+                <img src="{{ static('img/guts-hero-500.webp') }}"
+                     srcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
+                     sizes="(min-width: 961px) 520px, 340px"
+                     width="500" height="526" alt="Ілюстрація кишківника, оповитого квітучими гілками"
+                     fetchpriority="high" decoding="async">
+            </figure>
+        </div>
+    </section>
+
+    <section class="section" aria-labelledby="about-title">
+        <div class="container container--narrow">
+            <div class="highlight-card" data-reveal>
+                <h2 class="highlight-card__title" id="about-title">Що це за курс</h2>
+                <p>{{ product.summary }}</p>
+                <ul class="buy-facts" role="list">
+                    <li>{{ icon('list-checks') }}<span><strong>{{ course.PUBLIC_PAGES|length }}</strong> кроків у п’яти розділах</span></li>
+                    <li>{{ icon('play') }}<span><strong>{{ course.TECHNIQUES|length }}</strong> технік самомасажу з анімацією</span></li>
+                    <li>{{ icon('heart-pulse') }}<span>Окремий розділ про безпеку й протипоказання</span></li>
+                    <li>{{ icon('clock') }}<span>Доступ зі свого акаунта: гарантовано 12 місяців, далі поки існує акаунт</span></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="program" aria-labelledby="program-title">
+        <div class="container container--narrow">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Зміст</p>
+                <h2 class="section-title" id="program-title">Програма курсу</h2>
+            </div>
+            {% for group_name in course.GROUPS %}
+                {% set gi = loop.index0 %}
+                <h3 class="buy-group">{{ gi + 1 }}. {{ group_name }}</h3>
+                <ul class="buy-program" role="list">
+                    {% for page in course.PUBLIC_PAGES if page.group == gi %}
+                        <li><strong>{{ page.title }}</strong><span class="muted"> — {{ page.promise }}</span></li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="section" aria-labelledby="format-title">
+        <div class="container container--narrow">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Формат</p>
+                <h2 class="section-title" id="format-title">Як проходить навчання й що ви отримуєте</h2>
+            </div>
+            <ul class="buy-facts" role="list">
+                <li>{{ icon('smartphone') }}<span>Курс працює на сайті dorinellla.com у браузері на телефоні, планшеті й комп’ютері, окремі застосунки не потрібні.</span></li>
+                <li>{{ icon('user') }}<span>Доступ відкривається на акаунт Google, з якого ви оформили замовлення, і є особистим.</span></li>
+                <li>{{ icon('credit-card') }}<span>Ціна вказана в гривнях (грн). Оплата карткою Visa або Mastercard на захищеній сторінці платіжної системи Portmone; дані картки ми не бачимо й не зберігаємо. Доступ гарантуємо щонайменше 12 місяців, далі він діє, поки існує ваш акаунт (докладніше в <a href="{{ url('offer') }}#access">оферті</a>).</span></li>
+                <li>{{ icon('zap') }}<span>Курс цифровий: фізичної доставки немає. Доступ відкривається автоматично після підтвердження оплати, зазвичай за кілька хвилин.</span></li>
+                <li>{{ icon('shield-check') }}<span>Матеріали мають освітній характер і не замінюють консультацію лікаря. Перед практиками прочитайте розділ про безпеку.</span></li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="section" id="buy" aria-labelledby="buy-title">
+        <div class="container container--narrow">
+            <div class="buy-card" data-reveal>
+                <h2 class="buy-card__title" id="buy-title">Вартість і оплата</h2>
+                <p class="buy-card__price">{{ price }}</p>
+                <p class="muted">Одноразовий платіж, доступ від 12 місяців</p>
+                {% include 'includes/payment_logos.html' %}
+                {% if pay and pay.bought %}
+                    <p class="buy-card__note">{{ icon('circle-check') }}Ви вже придбали курс.</p>
+                    <a class="btn btn--primary" href="{{ course.BASE }}">{{ icon('play') }}Перейти до курсу</a>
+                {% elif pay and pay.ready %}
+                    <form method="post" action="{{ url('payment_checkout', slug=pay.slug) }}" class="buy-card__form">
+                        <label class="abm-pay__agree"><input type="checkbox" name="agree" value="1" required> <span>Я ознайомився(лась) і погоджуюся з <a href="{{ url('offer') }}" target="_blank" rel="noopener">публічною офертою</a> та умовами <a href="{{ url('payment_terms') }}" target="_blank" rel="noopener">оплати, доставки, обміну й повернення</a>. Я знаю, що маю право відмовитися від договору протягом 14 днів без пояснення причин.</span></label>
+                        <button class="btn btn--primary" type="submit">{{ icon('credit-card') }}<span>Оплатити {{ price }}</span></button>
+                    </form>
+                {% elif sales_open and not signed_in %}
+                    <p>Щоб оплатити, увійдіть через акаунт Google: доступ відкриється на нього. Після входу поверніться на цю сторінку.</p>
+                    <a class="btn btn--primary" href="{{ url('login') }}">{{ icon('arrow-right') }}Увійти, щоб оплатити</a>
+                {% else %}
+                    <p>Продаж курсу відкриється найближчим часом.</p>{% if not signed_in %}<p class="muted"><a href="{{ url('login') }}">Увійти</a></p>{% endif %}
+                {% endif %}
+                <p class="buy-card__links"><a href="{{ url('offer') }}">Публічна оферта</a> · <a href="{{ url('payment_terms') }}">Оплата, доставка, обмін і повернення</a> · <a href="{{ url('contacts') }}">Контакти продавця</a></p>
+            </div>
+        </div>
+    </section>
+{% endblock %}

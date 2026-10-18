@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block schema %}{{ seo.graph(request, seo.mini_course(request, course), seo.crumbs(request, ('Корисне', '/learn/'), (course.short_title, request.url.path))) }}{% endblock %}
+
+
+{% block title %}{{ course.title }} | dorinellla{% endblock %}
+{% block description %}{{ course.tagline }}. {{ course.intro }}{% endblock %}
+{% block og_title %}{{ course.title }} — міні-курс від Дорі{% endblock %}
+{% block og_description %}{{ course.tagline }}{% endblock %}
+{% block og_image %}{{ static(product.og_image) }}{% endblock %}
+{% block og_image_alt %}{{ course.title }}{% endblock %}
+{% block body_class %}{{ course.theme }}{% endblock %}
+
+{% block content %}
+    <section class="hero hero--compact" aria-labelledby="hero-title">
+        <div class="container hero__inner hero__inner--single">
+            <div class="hero__text">
+                <p class="eyebrow"><a href="{{ url('learn_index') }}">Корисне</a> · міні-курс</p>
+                <h1 class="hero__title" id="hero-title">{{ course.title }}</h1>
+                <p class="hero__lead">{{ course.intro }}</p>
+                <div class="hero__actions">
+                    <a class="btn btn--primary" href="{{ url('learn_lesson', slug=course.slug, number=1) }}">{{ icon('play') }}Почати з уроку 1</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if course.benefits %}
+        <section class="section section--tight" aria-labelledby="benefits-title">
+            <div class="container container--narrow">
+                <div class="section-head section-head--center" data-reveal>
+                    <h2 class="section-title" id="benefits-title">{{ course.benefits_title }}</h2>
+                </div>
+                <ul class="benefits" role="list">
+                    {% for benefit in course.benefits %}
+                        <li class="benefits__item" data-reveal>{{ icon('circle-check') }}<span>{{ benefit }}</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+    {% endif %}
+
+    <section class="section" aria-labelledby="lessons-title">
+        <div class="container container--narrow">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Програма</p>
+                <h2 class="section-title" id="lessons-title">{{ course.lessons|length }} уроки</h2>
+            </div>
+            <ol class="lesson-cards" role="list">
+                {% for lesson in course.lessons %}
+                    <li class="lesson-card" data-reveal>
+                        <a class="lesson-card__thumb" href="{{ url('learn_lesson', slug=course.slug, number=lesson.number) }}" tabindex="-1" aria-hidden="true">
+                            <img src="https://i.ytimg.com/vi/{{ lesson.youtube_id }}/mqdefault.jpg" width="320" height="180" alt=""
+                                 loading="lazy" decoding="async">
+                            <span class="video__play">{{ icon('play') }}</span>
+                        </a>
+                        <div class="lesson-card__body">
+                            <p class="lesson-card__num">Урок {{ lesson.number }}</p>
+                            <h3 class="lesson-card__title">
+                                <a href="{{ url('learn_lesson', slug=course.slug, number=lesson.number) }}">{{ lesson.title }}</a>
+                            </h3>
+                            <p class="lesson-card__topic">{{ lesson.topic }}</p>
+                            <p class="lesson-card__meta">
+                                {{ icon('video') }}Відео
+                                {% if lesson.materials %} · {{ icon('book-open-text') }}{{ lesson.materials|length }} матеріали{% endif %}
+                                {% if lesson.homework %} · {{ icon('clipboard-list') }}завдання{% endif %}
+                            </p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </section>
+
+    {% with buy_text=course.buy_text %}{% include 'includes/course_buy.html' %}{% endwith %}
+    {% if course.outro_title %}{% include 'includes/course_outro.html' %}{% endif %}
+{% endblock %}

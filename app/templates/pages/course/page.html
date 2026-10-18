@@ -1,0 +1,56 @@
+{% extends 'pages/course/base.html' %}
+{% from 'includes/course/_nav.html' import chapters with context %}
+
+{% block title %}{{ page.title }} — Масаж живота | dorinellla{% endblock %}
+{% block description %}{{ page.promise }}{% endblock %}
+
+{% block content %}
+    {% set index = (pages|list).index(page) + 1 if page in pages else 0 %}
+    <div class="abm" data-abm data-page="{{ page.slug }}" data-total="{{ pages|length }}" data-save="{{ url('course_state') }}" data-track="{{ url('course_track') }}">
+        {% include 'includes/course/_state.html' %}
+        <div class="abm-bar">
+            <details class="abm-menu">
+                <summary><span class="abm-menu__where">{% if index %}Розділ {{ index }}/{{ pages|length }}{% else %}Для адмінів{% endif %}</span>
+                    <span class="abm-menu__title">{{ page.nav }}</span>{{ icon('chevron-down') }}</summary>
+                {{ chapters(pages, groups, page) }}
+            </details>
+            <span class="abm-bar__line" aria-hidden="true"><i data-abm-line style="width: {{ (index * 100 / pages|length)|round|int }}%"></i></span>
+        </div>
+
+        <div class="container abm-layout">
+            <aside class="abm-side">{{ chapters(pages, groups, page) }}</aside>
+
+            <article class="abm-main" aria-labelledby="abm-title">
+                <header class="abm-head">
+                    <p class="eyebrow">{{ groups[page.group] }}</p>
+                    <h1 class="abm-title" id="abm-title">{{ page.title }}</h1>
+                    <p class="abm-promise">{{ page.promise }}</p>
+                </header>
+
+                {% for b in page.blocks %}{% include 'includes/course/' ~ b.kind ~ '.html' %}{% endfor %}
+
+                {% if index %}
+                    {% set prev_open = previous and (course_unlocked is none or previous.slug in course_unlocked) %}
+                    {% set can_finish = following or course_unlocked is none or course_done|length >= pages|length - 1 %}
+                    <nav class="abm-pager" aria-label="Попередня й наступна сторінки">
+                        {% if prev_open %}<a class="abm-pager__link abm-pager__link--prev" href="{{ course.BASE }}{{ previous.slug }}/" rel="prev">
+                            {{ icon('chevron-left') }}<span><small>Назад</small>{{ previous.nav }}</span></a>{% else %}<span></span>{% endif %}
+                        {% if can_finish %}
+                        <form id="abm-complete" method="post" action="{{ course.BASE }}{{ page.slug }}/complete" class="abm-pager__form">
+                            {% if page.slug == 'protypokazannia' %}<p class="abm-pager__need" id="abm-need" role="alert"{% if not need_ack %} hidden{% endif %}>Щоб перейти далі, підтвердьте, що прочитали протипоказання.</p>{% endif %}
+                            <button class="abm-pager__link abm-pager__link--next" type="submit" data-abm-next>
+                                <span><small>{{ 'Далі' if following else 'Завершити курс' }}</small>{{ following.nav if following else 'Дякуємо, що дійшли до кінця' }}</span>{{ icon('chevron-right') }}</button>
+                        </form>
+                        {% else %}
+                        <a class="abm-pager__link abm-pager__link--next" href="{{ course.BASE }}">
+                            <span><small>Курс</small>До змісту</span>{{ icon('chevron-right') }}</a>
+                        {% endif %}
+                    </nav>
+                {% endif %}
+                <p class="abm-foot">
+                    <span>Курс не замінює консультацію лікаря. Якщо є біль чи сумніви — зверніться до фахівця.</span>
+                </p>
+            </article>
+        </div>
+    </div>
+{% endblock %}

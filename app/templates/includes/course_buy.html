@@ -1,0 +1,13 @@
+{# The card that offers the full course: under the lesson cards and under every lesson. Needs `course` and `buy_text`
+   (`{% with buy_text=… %}`); shown only for a course that sells (it has a `buy_title`). #}
+{% if course.buy_title %}
+    <section class="section section--tight" aria-labelledby="buy-title">
+        <div class="container container--narrow">
+            <div class="buy-card" data-reveal>
+                <h2 class="buy-card__title" id="buy-title">{{ course.buy_title }}</h2>
+                <p class="buy-card__text">{{ buy_text }}</p>
+                {% include 'includes/buy_full_course.html' %}
+            </div>
+        </div>
+    </section>
+{% endif %}

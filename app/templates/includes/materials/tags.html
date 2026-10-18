@@ -1,0 +1,12 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--tags" data-reveal>
+    {{ head(m) }}
+    {% for group, names in m.items %}
+        <h4 class="tags__group">{{ group }}</h4>
+        <ul class="tags" role="list">
+            {% for name in names %}<li class="tags__item">{{ name }}</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+    {{ foot(m) }}
+</section>

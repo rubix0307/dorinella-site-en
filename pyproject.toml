@@ -1,0 +1,32 @@
+[project]
+name = "dorinella"
+version = "0.2.0"
+description = "dorinellla landing site on FastAPI, containerized with uv"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.142.2",
+    "uvicorn[standard]==0.54.0",
+    "Jinja2==3.1.6",
+    "python-multipart==0.0.32",
+    "SQLAlchemy[asyncio]==2.1.2",
+    "asyncpg==0.31.0",
+    "alembic==1.20.0",
+    "tzdata==2025.2",
+    "sentry-sdk[fastapi]==2.71.0",
+    # recipe recommendations: pgvector + an ONNX embedding model (app/embeddings.py)
+    "pgvector==0.5.0",
+    "numpy==2.5.3",
+    "onnxruntime==1.30.0",
+    "tokenizers==0.23.2",
+    "livekit-api==1.2.1",
+    "boto3==1.43.108",
+    "markdown-it-py==4.2.0",
+    "mdit-py-plugins==0.6.1",
+    "cryptography==50.0.2",
+    "pillow==12.3.0",
+    "av==16.1.0",            # decodes the call recordings to draw their waveform (app/meet_peaks.py)
+    "faster-whisper==1.2.1", # the local speech recogniser of the call recordings (app/meet_transcriber.py)
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]   # never walk into volumes/ (database files) or media/

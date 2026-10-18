@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ heading }} | dorinellla{% endblock %}
+{% block description %}{{ lead }}{% endblock %}
+
+{% block content %}
+    <section class="section not-found" aria-labelledby="err-title">
+        <div class="container container--narrow">
+            <p class="eyebrow">Помилка {{ code }}</p>
+            <h1 class="section-title" id="err-title">{{ heading }}</h1>
+            <p class="section-lead">{{ lead }}</p>
+            <div class="hero__actions">
+                <a class="btn btn--primary" href="{{ url('index') }}">На головну{{ icon('arrow-right') }}</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}

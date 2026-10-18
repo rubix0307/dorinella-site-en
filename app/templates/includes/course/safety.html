@@ -1,0 +1,37 @@
+{% set d = b.d %}
+<section class="abm-block abm-safety" data-safety data-version="{{ d.version }}">
+    <p class="abm-safety__meta">Це інформація, а не медична консультація.</p>
+
+    <fieldset class="abm-safety__group abm-safety__group--stop">
+        <legend><h2 class="abm-h2">{{ d.absolute_title }}</h2></legend>
+        <p class="abm-lead">{{ d.absolute_lead }}</p>
+        <ul class="abm-checks" role="list">
+            {% for id, label, hint in d.absolute %}
+                <li><label class="abm-check"><input type="checkbox" data-abs="{{ id }}"><span><strong>{{ label }}</strong><small>{{ hint }}</small></span></label></li>
+            {% endfor %}
+        </ul>
+    </fieldset>
+
+    <div class="abm-stop" data-stop role="status" aria-live="polite">
+        <span class="abm-callout__icon" aria-hidden="true">{{ icon('triangle-alert') }}</span>
+        <div>
+            <h3>Якщо ви відзначили хоч один пункт — не починайте масаж</h3>
+            <p>Зверніться до лікаря. Поки що можна прочитати про <a href="{{ course.BASE }}tilo/">діафрагмальне дихання</a> та <a href="{{ course.BASE }}zapytannia/">часті запитання</a> — вони не потребують масажу.</p>
+        </div>
+    </div>
+
+    <fieldset class="abm-safety__group">
+        <legend><h2 class="abm-h2">{{ d.relative_title }}</h2></legend>
+        <p class="abm-lead">{{ d.relative_lead }}</p>
+        <ul class="abm-checks" role="list">
+            {% for id, label, hint in d.relative %}
+                <li><label class="abm-check"><input type="checkbox" data-rel="{{ id }}"><span><strong>{{ label }}</strong><small>{{ hint }}</small></span></label></li>
+            {% endfor %}
+        </ul>
+        <p class="abm-caution" data-caution role="status" aria-live="polite">Відзначено пункт, що потребує обережності: спершу обговоріть масаж із лікарем.</p>
+    </fieldset>
+
+    <div class="abm-ack{% if need_ack %} is-need{% endif %}" id="ack" data-ack-box>
+        <label class="abm-check"><input type="checkbox" name="ack" value="1" form="abm-complete" data-ack aria-describedby="abm-need"><span><strong>Я прочитала(в) протипоказання</strong><small>Розумію, що курс не замінює консультацію лікаря, і зупиняюсь, якщо з’являється біль.</small></span></label>
+    </div>
+</section>

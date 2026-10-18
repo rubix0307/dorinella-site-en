@@ -1,0 +1,19 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--prompts" data-reveal>
+    {{ head(m) }}
+    <ul class="prompts" role="list">
+        {% for question, hint, points in m.items %}
+            <li class="prompts__item">
+                <h4 class="prompts__question">{{ question }}</h4>
+                {% if hint %}<p>{{ hint }}</p>{% endif %}
+                {% if points %}
+                    <ul class="prompts__points" role="list">
+                        {% for point in points %}<li>{{ point }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {{ foot(m) }}
+</section>

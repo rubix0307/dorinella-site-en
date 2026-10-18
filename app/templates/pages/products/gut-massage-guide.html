@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block schema %}{{ seo.graph(request, seo.product(request, product), seo.crumbs(request, ('Продукти', '/products/'), (product.title, request.url.path)), seo.faq(faq)) }}{% endblock %}
+
+
+{% block title %}Абдомінальний самомасаж — гайд для легкості | dorinellla{% endblock %}
+{% block description %}Гайд з абдомінального самомасажу: покрокові техніки, підготовка, поради з харчування та адаптації під здуття, закрепи й тривожність. 10 хвилин на день.{% endblock %}
+{% block og_title %}Абдомінальний самомасаж — гайд від Дорі{% endblock %}
+{% block og_description %}Покрокові техніки масажу кишківника для легкості, здоров’я та гармонії з тілом.{% endblock %}
+{% block og_image %}{{ static(product.og_image) }}{% endblock %}
+{% block og_image_alt %}{{ product.og_image_alt }}{% endblock %}
+{% block body_class %}theme-guts{% endblock %}
+
+{% block content %}
+    {# ---------- Hero ---------- #}
+    <section class="hero hero--product" aria-labelledby="hero-title">
+        <div class="container hero__inner">
+            <div class="hero__text">
+                <p class="eyebrow">Гайд</p>
+                <h1 class="hero__title" id="hero-title">Абдомінальний <em>самомасаж</em></h1>
+                <p class="hero__lead">Гайд для легкості, здоров’я та гармонії з тілом</p>
+                <div class="hero__actions">
+                    <a class="btn btn--primary" href="#mini-course">{{ icon('gift') }}Спробувати безкоштовно</a>
+                    <a class="btn btn--ghost" href="#inside">Що всередині?</a>
+                </div>
+            </div>
+            <figure class="hero__media hero__media--illustration">
+                <img src="{{ static('img/guts-hero-500.webp') }}"
+                     srcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
+                     sizes="(min-width: 961px) 520px, 340px"
+                     width="500" height="526" alt="Ілюстрація кишківника, оповитого квітучими гілками"
+                     fetchpriority="high" decoding="async">
+            </figure>
+        </div>
+    </section>
+
+    {# ---------- Why it matters ---------- #}
+    <section class="section" aria-labelledby="important-title">
+        <div class="container container--narrow">
+            <div class="highlight-card" data-reveal>
+                <h2 class="highlight-card__title" id="important-title">Чому це важливо?</h2>
+                <p>Площа поверхні кишківника — як тенісний корт! І в ньому живе понад 100 трильйонів бактерій, які впливають на ваш настрій, імунітет і навіть зовнішній вигляд шкіри.</p>
+                <div class="stats">
+                    <div class="stat"><span class="stat__num">70%</span><span class="stat__label">імунітету формується в кишківнику</span></div>
+                    <div class="stat"><span class="stat__num">90%</span><span class="stat__label">серотоніну виробляється тут</span></div>
+                    <div class="stat"><span class="stat__num">100 трлн</span><span class="stat__label">бактерій живе в мікробіомі</span></div>
+                </div>
+                <p>Саме тут формується значна частина імунітету, виробляється більшість серотоніну — і закладається ваш емоційний стан. Дослідіть техніки, що допомагають травленню, зменшують здуття, тривогу й покращують самопочуття.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ---------- Inside ---------- #}
+    <section class="section" id="inside" aria-labelledby="inside-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Зміст</p>
+                <h2 class="section-title" id="inside-title">Що всередині гайду?</h2>
+            </div>
+            <ol class="feature-grid" role="list">
+                <li class="feature" data-reveal>Покрокові техніки масажу <span class="muted">(I Love You, Спіраль, Хвиля, Змія, Квадрат)</span></li>
+                <li class="feature" data-reveal>Підготовка до масажу: як, коли і з чим краще починати</li>
+                <li class="feature" data-reveal>Натуропатичні поради з харчування для здоров’я кишківника</li>
+                <li class="feature" data-reveal>Адаптації під різні стани: масаж при здутті, закрепах, тривожності</li>
+                <li class="feature" data-reveal>Відповіді на поширені питання <span class="muted">(менструація, СПК, схуднення тощо)</span></li>
+                <li class="feature" data-reveal>Детальне меню рецептів та напоїв для здоров’я кишківника</li>
+            </ol>
+        </div>
+    </section>
+
+    {# ---------- Who ---------- #}
+    <section class="section section--tinted" aria-labelledby="who-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Аудиторія</p>
+                <h2 class="section-title" id="who-title">Для кого цей гайд?</h2>
+            </div>
+            <ul class="icon-cards icon-cards--5" role="list">
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('wind') }}</span>
+                    <p>Для тих, хто часто відчуває здуття, важкість або закрепи</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('sunrise') }}</span>
+                    <p>Для тих, хто хоче запустити травну систему зранку й відчувати легкість</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('flower-2') }}</span>
+                    <p>Для людей зі стресовим способом життя, які шукають природні методи зниження напруги</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('shield-plus') }}</span>
+                    <p>Для тих, хто піклується про здоров’я мікрофлори кишківника та імунітет</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('heart-handshake') }}</span>
+                    <p>Для кожного, хто хоче знайти простий і безпечний спосіб підтримати себе щодня</p>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    {# ---------- Advantages ---------- #}
+    <section class="section" aria-labelledby="adv-title">
+        <div class="container">
+            <div class="split">
+                <div class="section-head" data-reveal>
+                    <p class="eyebrow">Користь</p>
+                    <h2 class="section-title" id="adv-title">Переваги масажу кишківника</h2>
+                </div>
+                <ol class="numbered" role="list">
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">01</span>Стимуляція перистальтики — легкість у животі, регулярність</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">02</span>Поліпшення кровообігу й живлення органів</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">03</span>Зменшення здуття, напруги та болю</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">04</span>Підтримка емоційного стану через взаємозв’язок кишківника й мозку</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">05</span>Природний спосіб підтримки гарного самопочуття без таблеток</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    {# ---------- How it works ---------- #}
+    <section class="section section--tinted" aria-labelledby="how-title">
+        <div class="container">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="eyebrow">Формат</p>
+                <h2 class="section-title" id="how-title">Як це працює?</h2>
+            </div>
+            <ul class="icon-cards icon-cards--3" role="list">
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('timer') }}</span>
+                    <p><strong>10 хвилин на день</strong> — м’яка щоденна практика; відчуття в кожної різні, тож іди у своєму темпі</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('list-checks') }}</span>
+                    <p><strong>Гайд адаптовано під ваші потреби:</strong> можна комбінувати техніки й створювати власний ритуал</p>
+                </li>
+                <li class="icon-card" data-reveal>
+                    <span class="icon-badge">{{ icon('circle-play') }}</span>
+                    <p><strong>Все пояснено у відео й тексті</strong> — легко почати навіть без досвіду</p>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    {# ---------- Free lessons ---------- #}
+    <section class="section" id="mini-course" aria-labelledby="mini-course-title">
+        <div class="container">
+            <div class="cta-card cta-card--split" data-reveal>
+                <div>
+                    <p class="eyebrow eyebrow--light">Міні-курс</p>
+                    <h2 class="section-title" id="mini-course-title">Думаєте, це не для вас? Спробуйте безкоштовно</h2>
+                    <p class="section-lead">Ці відео допоможуть вам одразу почати практику без страху, що щось зробите не так!</p>
+                    <div class="cta-card__actions cta-card__actions--start">
+                        <a class="btn btn--light" href="{{ url('learn_course', slug='gut-health') }}">{{ icon('play') }}Дивитися уроки</a>
+                    </div>
+                </div>
+                <div class="gift-list">
+                    <p class="gift-list__title">{{ icon('gift') }}3 безкоштовні відеоуроки</p>
+                    <ol role="list">
+                        <li>Основи здоров’я кишківника</li>
+                        <li>Як працює масаж кишківника? Безкоштовна практика «I Love You»</li>
+                        <li>Як правильно ходити в туалет? Харчування, пози та типи калу, які впливають на травлення</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% include 'includes/faq.html' %}
+    {% with reviews_title = 'Результати після гайду' %}{% include 'includes/reviews.html' %}{% endwith %}
+{% endblock %}

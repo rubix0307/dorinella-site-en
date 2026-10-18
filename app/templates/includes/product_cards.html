@@ -1,0 +1,23 @@
+{# Product cards from the catalog (app/catalog.py). Pass card_heading='h2' when the page has no h2 above. #}
+{% set heading = card_heading|default('h3') %}
+<div class="products__list">
+    {% for product in listed().values() %}
+        {% set card = product.card %}
+        <article class="product-card{% if loop.index is even %} product-card--reverse{% endif %}" data-reveal>
+            <div class="product-card__media {{ card.media_class }}">
+                <img src="{{ static(card.sources[0][0]) }}"
+                     srcset="{% for path, w in card.sources %}{{ static(path) }} {{ w }}w{{ ', ' if not loop.last }}{% endfor %}"
+                     sizes="{{ card.sizes }}"
+                     width="{{ card.width }}" height="{{ card.height }}" alt="{{ card.alt }}"
+                     loading="lazy" decoding="async">
+            </div>
+            <div class="product-card__body">
+                <p class="tag{% if product.type == 'course' %} tag--blush{% endif %}">{{ icon(product.type.icon) }}{{ product.type.label }}</p>
+                <{{ heading }} class="product-card__title">{{ product.title }}</{{ heading }}>
+                <p class="product-card__lead">{{ product.tagline }}</p>
+                <p>{{ product.summary }}</p>
+                <a class="btn btn--primary" href="{{ url('product_detail', slug=product.slug) }}" aria-label="Детальніше: {{ product.title }}">Детальніше{{ icon('arrow-right') }}</a>
+            </div>
+        </article>
+    {% endfor %}
+</div>

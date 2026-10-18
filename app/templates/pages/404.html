@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Сторінку не знайдено | dorinellla{% endblock %}
+{% block description %}Такої сторінки не існує.{% endblock %}
+
+{% block content %}
+    <section class="section not-found" aria-labelledby="nf-title">
+        <div class="container container--narrow">
+            <p class="eyebrow">Помилка 404</p>
+            <h1 class="section-title" id="nf-title">Ой, такої сторінки немає</h1>
+            <p class="section-lead">Можливо, посилання застаріло. Поверніться на головну — там усе найважливіше.</p>
+            <div class="hero__actions">
+                <a class="btn btn--primary" href="{{ url('index') }}">На головну{{ icon('arrow-right') }}</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}

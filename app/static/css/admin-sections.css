@@ -1,0 +1,86 @@
+/* Fixes shared by the payments, support, articles and Telegram pages of the admin (loaded after admin.css).
+   Controls that carry class="field" on the input/select/textarea itself, the card tables, touch sizes on phones. */
+
+/* the controls with class="field" on the control itself (the .field of admin.css is a label wrapper) */
+select.field, input.field, textarea.field {
+    display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: var(--h); padding: .55rem .85rem;
+    border: 1px solid var(--field-border); border-radius: var(--r-m); background-color: #fff; color: var(--ink);
+    font: inherit; font-size: 16px; line-height: 1.4;
+}
+textarea.field { min-height: 5rem; resize: vertical; }
+select.field {
+    padding-right: 2.4rem; appearance: none; -webkit-appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right .8rem center;
+}
+select.field:focus-visible, input.field:focus-visible, textarea.field:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+.users-tools select.field, .users-tools input.field { flex: 1 1 11rem; width: auto; max-width: 22rem; }
+.users-tools input.field[type="search"] { flex-basis: 14rem; }
+@media (max-width: 640px) {
+    .users-tools select.field, .users-tools input.field { flex: 1 1 100%; max-width: none; }
+    .users-tools .btn { min-height: 44px; }
+    .chip.chip--sm { min-height: 44px; }
+}
+
+/* ---- payments ---- */
+.pay-page .admin-card:not(.admin-card--table) > .card-head { padding: 0 0 .75rem; }
+.pay-page .admin-card--table > .card-head { padding-bottom: .75rem; }
+.pay-table td { min-width: 0; overflow-wrap: anywhere; }
+@media (min-width: 1101px) {
+    .pay-table td:nth-child(2), .pay-table td:nth-child(4), .pay-table td:nth-child(5) { white-space: nowrap; }
+    .pay-table td:nth-child(3) { max-width: 22rem; }
+}
+.pay-facts dt, .pay-raw { font-size: .82rem; }
+.pay-status--created, .pay-status--pending { background: #fff1d6; color: #8a5a00; }
+@media (max-width: 640px) {
+    .pay-page .tgj__line { flex-direction: column; align-items: flex-start; gap: .2rem; }
+    .pay-page .tgj__item { gap: .4rem; }
+}
+
+/* ---- the journal rows (payments events, Telegram journal) ---- */
+@media (max-width: 900px) {
+    .tgj__what a { display: inline-flex; align-items: center; min-height: 44px; }
+    .tgj__details summary, summary#add-title { display: flex; align-items: center; min-height: 44px; }
+}
+
+/* ---- Telegram ---- */
+.tg-tabs { padding-inline-end: 1.75rem; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.tgc-checks input, .tgc-dialog input[type="radio"], .tgc-dialog input[type="checkbox"] { accent-color: var(--accent); width: 1.25rem; height: 1.25rem; }
+@media (max-width: 900px) {
+    .tgc textarea { font-size: 16px; }
+    .tgc-tools__sep { display: none; }
+}
+
+/* ---- re-audit round 2 ---- */
+/* payments and support lists: no table scroll inside the card (the page scrolls), horizontal scroll only */
+.pay-page .admin-table-wrap:has(> .pay-table), [data-sup-rows] .admin-table-wrap { max-height: none; overflow-x: auto; overflow-y: hidden; }
+.pay-table td { overflow-wrap: break-word; }
+@media (min-width: 1101px) { .pay-facts > div:nth-child(2) { grid-column: span 2; } }
+@media (max-width: 1100px) {
+    .pay-page .users-tools input.field { flex: 1 1 100%; max-width: none; }
+}
+@media (max-width: 640px) {
+    .pay-table tbody tr { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense; }
+    .pay-table td[data-label="Замовлення"] { grid-column: 1 / -1; order: -1; }
+    .pay-table td[data-label="Замовлення"] a { white-space: nowrap; }
+    .pay-table td[data-label="Клієнт"] { grid-column: 1 / -1; }
+    .admin-table--support tbody tr { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-table--support td[data-label="Остання активність"] { grid-column: 1 / -1; order: 1; }
+    .admin-table--support .sup-badge { max-width: 100%; white-space: normal; }
+}
+
+/* ---- Telegram ---- */
+@media (max-width: 1180px) {
+    .tgch-row--head { display: none; }
+    .tgch-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .tgch-row__name { grid-column: 1 / -1; }
+    .tgch-row > span[data-label]:not(.tgch-row__name) { display: flex; gap: .4rem; align-items: baseline; }
+    .tgch-row > span[data-label]:not(.tgch-row__name)::before { content: attr(data-label) ":"; color: var(--muted); font-size: var(--fs-sm); }
+}
+.tgcal__kind { font-size: max(13px, var(--fs-sm)); }
+.admin-header__tag { font-size: .8125rem; }
+@media (max-width: 900px) {
+    .chip.chip--sm { min-height: 44px; }
+    .tgcal__kind, .tgcal__mode { min-height: 44px; }
+}
+@media (min-width: 1101px) { .page-head__lead { max-width: 72ch; } }

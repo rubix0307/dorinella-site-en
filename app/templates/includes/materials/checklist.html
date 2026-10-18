@@ -1,0 +1,13 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--checklist" data-reveal>
+    {{ head(m) }}
+    {% for group, tasks in m.items %}
+        <h4 class="checklist__group">{{ group }}</h4>
+        <ul class="checklist" role="list">
+            {% for task in tasks %}
+                <li><label class="checklist__item"><input class="checklist__box" type="checkbox"><span>{{ task }}</span></label></li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+    {{ foot(m) }}
+</section>

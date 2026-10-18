@@ -1,0 +1,322 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/_table.html' import sort_th, sort_menu, search_box, filter_popover %}
+
+{% block title %}Аналітика{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main" data-tz="{{ tz_name }}" data-tz-asked="{{ tz_asked }}">
+        <header class="page-head">
+            <div>
+                <h1 class="admin-title">Аналітика</h1>
+                <p class="page-head__lead">Відвідування сайту, переходи за посиланнями та ваші короткі посилання.</p>
+            </div>
+        </header>
+
+        {% include 'admin/_filter.html' %}
+
+        <div class="admin-results" data-admin-results>
+            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ rng.days }} дн. · <span title="Часовий пояс браузера">{{ tz_label }}</span></span></p>
+
+            {# each tile picks what the chart below shows (instantly, no reload; remembered in a cookie) #}
+            <div class="admin-tiles" role="group" aria-label="Що показує графік">
+                {% for metric, label, value, hint in [
+                    ('views', 'Перегляди сторінок', totals.views, ''),
+                    ('visitors', 'Відвідувачі', totals.visitors,
+                     'унікальні за період' ~ ((' · точно з ' ~ visitor_ids_since.strftime('%d.%m.%Y') ~ ', раніше — за кожен день')
+                                               if visitor_ids_since and visitor_ids_since > rng.start else '')),
+                    ('clicks', 'Переходи за посиланнями' ~ (' · за фільтром' if links_view.is_filtered else ''), totals.clicks, '')] %}
+                    <button class="admin-tile" type="button" data-chart-pick="{{ metric }}" aria-controls="chart-card"
+                            aria-pressed="{{ 'true' if metric == chart_metric else 'false' }}" title="Показати на графіку">
+                        <span class="admin-tile__icon">{{ icon('chart-line') }}</span>
+                        <span class="admin-tile__label">{{ label }}</span>
+                        <span class="admin-tile__value">{{ '{:,}'.format(value).replace(',', ' ') }}</span>
+                        {% if hint %}<span class="admin-tile__hint">{{ hint }}</span>{% endif %}
+                    </button>
+                {% endfor %}
+            </div>
+
+
+            {% set per = '15 хвилин' if hourly else '4 години' %}
+            <section class="admin-card" aria-labelledby="visits-title" id="chart-card">
+                <div class="admin-card__head">
+                    <h2 class="admin-card__title" id="visits-title">
+                        <span data-chart-for="views"{% if chart_metric != 'views' %} hidden{% endif %}>Перегляди по {{ per }}</span>
+                        <span data-chart-for="visitors"{% if chart_metric != 'visitors' %} hidden{% endif %}>Відвідувачі по {{ per }}</span>
+                        <span data-chart-for="clicks"{% if chart_metric != 'clicks' %} hidden{% endif %}>Переходи по {{ per }}</span>
+                    </h2>
+                    <ul class="chart-legend" role="list" data-chart-for="clicks"{% if chart_metric != 'clicks' %} hidden{% endif %}>
+                        <li><span class="chart-legend__key chart-legend__key--clicks"></span>Переходи</li>
+                        <li><span class="chart-legend__key chart-legend__key--visitors"></span>Унікальні</li>
+                        {% if links_view.is_filtered %}<li class="chart-legend__note">за фільтром</li>{% endif %}
+                    </ul>
+                </div>
+                {#- one day: it scrolls back into earlier days, loaded from data-day-url (with the page's link filters) -#}
+                <div class="chart{% if hourly %} chart--days{% endif %}" data-chart data-metric="{{ chart_metric }}"
+                     {% if hourly %}data-day-url="{{ url('admin_chart_day') }}?{{ request.url.query }}"{% endif %}>
+                    <script type="application/json" data-chart-data>{{ chart_data|tojson }}</script>
+                    <noscript><p class="admin-empty">Графік потребує JavaScript.</p></noscript>
+                </div>
+            </section>
+
+            {# Devices: site visitors, and who clicks the links (under the link filters, like the chart and the tile).
+               Folds away; open or closed is kept through live refreshes and remembered for the next visit. #}
+            <details class="admin-card devices-card" data-admin-keep-open="devices" data-remember="admin_devices"{% if devices_open %} open{% endif %}>
+                <summary class="devices-card__head">
+                    <h2 class="admin-card__title" id="devices-title">Пристрої</h2>
+                    <span class="devices-card__peek">
+                        {%- for key, label in [('visits', 'Відвідувачі'), ('clicks', 'Переходи')] if devices[key][0].total -%}
+                            {%- set top = devices[key]|sort(attribute='people', reverse=True)|first -%}
+                            {{ ' · ' if not loop.first }}{{ label }}: {{ top.label|lower }} {{ (top.share * 100)|round|int }}%
+                        {%- endfor -%}
+                    </span>
+                    {{ icon('chevron-down', 'devices-card__chevron') }}
+                </summary>
+                <div class="devices-card__body">
+                    {% for key, title, unit in [('visits', 'Відвідувачі сайту', 'перегл.'), ('clicks', 'Переходи за посиланнями' ~ (' · за фільтром' if links_view.is_filtered else ''), 'перех.')] %}
+                        {% set rows = devices[key] %}
+                        <div class="devices">
+                            <h3 class="devices__title">{{ title }}</h3>
+                            {% if rows[0].total %}
+                                <ul class="devices__list" role="list">
+                                    {% for d in rows %}
+                                        <li class="device{{ ' is-empty' if not d.people }}">
+                                            <span class="device__name">{{ icon(d.icon) }}{{ d.label }}</span>
+                                            <span class="share-bar" aria-hidden="true"><span style="width: {{ (d.share * 100)|round(1) }}%"></span></span>
+                                            {%- set n = d.people %}
+                                            <span class="device__value"><strong>{{ (d.share * 100)|round|int }}%</strong> · {{ '{:,}'.format(n).replace(',', ' ') }} {{ 'людина' if n % 10 == 1 and n % 100 != 11 else ('людини' if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else 'людей') }}<span class="device__hits"> · {{ '{:,}'.format(d.hits).replace(',', ' ') }} {{ unit }}</span></span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="devices__empty">За цей період {{ 'відвідувань' if key == 'visits' else 'переходів' }} немає.</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </details>
+
+            {# Link filters: the table right below, plus the clicks chart and the clicks tile (not views / visitors) #}
+            <section class="filter-bar" aria-labelledby="filter-title">
+                <div class="filter-bar__head">
+                    <h2 class="filter-bar__title" id="filter-title">Фільтр переходів</h2>
+                    <p class="filter-bar__hint">діє на таблицю посилань, а також на графік і плитку переходів</p>
+                </div>
+                <div class="filter-bar__body">
+                    {# one input per link; the table, the chart and the tiles show all of them together #}
+                    <div class="multi-search" data-multi-search>
+                        {% for q in (links_view.searches or ['']) %}
+                            <div class="multi-search__row">
+                                <label class="table-search">
+                                    {{ icon('search') }}
+                                    <span class="visually-hidden">Посилання {{ loop.index }}</span>
+                                    <input type="search" name="{{ links_view.spec.search_param }}" value="{{ q }}" form="links-filter"
+                                           placeholder="Посилання: код, адреса або назва" maxlength="100" autocomplete="off"
+                                           enterkeyhint="search" data-admin-search>
+                                </label>
+                                <button class="act-btn multi-search__remove" type="button" data-search-remove aria-label="Прибрати це посилання"
+                                        {% if links_view.searches|length < 2 %}hidden{% endif %}>{{ icon('x') }}</button>
+                            </div>
+                        {% endfor %}
+                        <button class="multi-search__add" type="button" data-search-add>{{ icon('plus') }}Ще посилання</button>
+                    </div>
+                    <div class="filter-bar__chips">
+                        {{ filter_popover(links_view, 'source', 'links-filter', sources, source_labels.get, 'Джерело') }}
+                        {{ filter_popover(links_view, 'placement', 'links-filter', placements, placement_label, 'Розміщення') }}
+                        {{ filter_popover(links_view, 'status', 'links-filter', statuses, status_labels.get, 'Статус') }}
+                        <a class="tool-btn{{ ' is-active' if '1' in links_view.selected('fav') }}" href="{{ links_view.toggle_href('fav', '1') }}" data-admin-sort
+                           aria-pressed="{{ 'true' if '1' in links_view.selected('fav') else 'false' }}">{{ icon('star') }}<span class="tool-btn__text">Обране</span></a>
+                        {% if links_view.is_filtered %}
+                            <a class="tool-btn tool-btn--quiet" href="{{ links_view.reset_href() }}" data-admin-sort>{{ icon('rotate-ccw') }}<span class="tool-btn__text">Скинути</span></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            {# ONE table: links on the site (grouped clicks) and short links (always listed, even without clicks) #}
+            <section class="admin-card admin-card--table" aria-labelledby="links-title" id="links">
+                <div class="card-head">
+                    <h2 class="admin-card__title" id="links-title">Посилання <span class="count">{{ page.total }}</span></h2>
+                    {% if user.can('links.manage') %}<button class="btn btn--primary btn--sm" type="button" data-link-new>{{ icon('plus') }}Нове</button>{% endif %}
+                </div>
+                <div class="card-tools card-tools--phone">
+                    {{ sort_menu(links_view, ['clicks', 'visitors', 'last', 'link', 'source', 'placement']) }}
+                </div>
+                <form id="links-filter" method="get" action="{{ url('admin_dashboard') }}" data-admin-form hidden>
+                    {% for name, value in links_view.outside_fields() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+                </form>
+
+                {% if links %}
+                    <div class="admin-table-wrap">
+                        <table class="admin-table admin-table--links" data-take-param="{{ links_view.spec.take_param }}">
+                            {# fixed layout: set widths for everything but the link and its placement, which share the rest #}
+                            <colgroup>
+                                <col class="col-link"><col class="col-source"><col class="col-placement">
+                                <col class="col-num"><col class="col-num"><col class="col-date"><col class="col-actions">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    {{ sort_th(links_view, 'link') }}
+                                    {{ sort_th(links_view, 'source') }}
+                                    {{ sort_th(links_view, 'placement') }}
+                                    {{ sort_th(links_view, 'clicks') }}
+                                    {{ sort_th(links_view, 'visitors') }}
+                                    {{ sort_th(links_view, 'last') }}
+                                    <td class="actions-head"><span class="visually-hidden">Дії</span></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for link in links %}
+                                    {% set starred = link.favorite == '1' %}
+                                    {% if link.is_short %}
+                                        {% set short_url = short_base ~ link.slug %}
+                                        {% set copy_url, copy_title = short_url, 'Копіювати коротке посилання' %}
+                                        {% set data = {'id': link.link_id, 'slug': link.slug, 'target_url': link.target_url, 'title': link.title,
+                                                       'active': link.is_active, 'short_url': short_url,
+                                                       'action': url('admin_links_update', link_id=link.link_id),
+                                                       'delete': url('admin_links_delete', link_id=link.link_id)} %}
+                                    {% elif link.source == 'site' %}
+                                        {% set copy_url, copy_title = absolute_url(request, out(link.target_url, link.placement)), 'Копіювати посилання з відстеженням' %}
+                                    {% endif %}
+                                    <tr class="link-row{{ ' is-short' if link.is_short }}{{ ' is-off' if not link.is_active }}{{ ' is-highlight' if link.is_short and link.slug == highlight }}{{ ' is-deleted' if link.is_deleted }}"
+                                        data-key="{{ link.target_url }} {{ link.placement }}"{% if link.is_short %} data-link="{{ data|tojson|forceescape }}"{% endif %}>
+                                        <td class="admin-link cell-link">
+                                            {% if link.is_short %}
+                                                <div class="link-id">
+                                                    <a class="link-id__slug" href="{{ short_url }}" target="_blank" rel="noopener">/l/{{ link.slug }}</a>
+                                                    {% if not link.is_active %}<span class="badge badge--off">Вимкнено</span>{% endif %}
+                                                </div>
+                                                {% if link.title %}<p class="link-id__title">{{ link.title }}</p>{% endif %}
+                                                <a class="link-target" href="{{ link.target_url }}" target="_blank" rel="noopener noreferrer" title="{{ link.target_url }}">{{ icon('corner-down-right') }}<span>{{ link.target_url.split('://', 1)[-1] }}</span></a>
+                                            {% elif link.is_deleted %}
+                                                <div class="link-id">
+                                                    <s class="link-id__slug">/l/{{ link.deleted_slug }}</s>
+                                                    <span class="badge badge--deleted">Видалено</span>
+                                                </div>
+                                                <span class="link-target" title="{{ link.target_url }}">{{ icon('corner-down-right') }}<s>{{ link.target_url.split('://', 1)[-1] }}</s></span>
+                                            {% else %}
+                                                <a href="{{ link.target_url }}" target="_blank" rel="noopener noreferrer" title="{{ link.target_url }}">{{ link.host }}</a>
+                                                {% if link.path %}<span class="admin-link__path">{{ link.path }}</span>{% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="cell-tag" data-label="Джерело"><span class="badge badge--{{ link.source }}" title="{{ source_labels[link.source] }}">{{ 'Коротке' if link.source == 'short' else 'Сайт' }}</span></td>
+                                        <td class="cell-placement" data-label="Розміщення">
+                                            {% if link.is_short %}<span class="muted">створено {{ short_datetime(link.created_at) }}</span>{% else %}{{ placement_label(link.placement) }}{% endif %}
+                                        </td>
+                                        <td class="num cell-stat" data-label="Переходи"><strong>{{ link.clicks }}</strong></td>
+                                        <td class="num cell-stat" data-label="Унікальні"><strong>{{ link.visitors }}</strong></td>
+                                        <td class="cell-date" data-label="Останній" title="{{ local_datetime(link.last_click) if link.last_click }}">{{ short_datetime(link.last_click) if link.last_click else '—' }}</td>
+                                        <td class="cell-actions">
+                                            {% if user.can('links.manage') %}
+                                            <form method="post" action="{{ url('admin_links_favorite', link_id=link.link_id) if link.is_short else url('admin_favorite_toggle') }}" data-star>
+                                                {% if not link.is_short %}
+                                                    <input type="hidden" name="target_url" value="{{ link.target_url }}">
+                                                    <input type="hidden" name="placement" value="{{ link.placement }}">
+                                                {% endif %}
+                                                <button class="act-btn star{{ ' is-on' if starred }}" type="submit" aria-pressed="{{ 'true' if starred else 'false' }}"
+                                                        aria-label="Обране" title="{{ 'Прибрати з обраного' if starred else 'Додати в обране' }}">{{ icon('star') }}</button>
+                                            </form>
+                                            {% endif %}
+                                            {% if not link.is_deleted %}
+                                                <button class="act-btn" type="button" data-copy="{{ copy_url }}" aria-label="{{ copy_title }}" title="{{ copy_title }}">{{ micon('copy') }}</button>
+                                            {% endif %}
+                                            {% if link.is_short %}
+                                                {% if user.can('links.manage') %}
+                                                <button class="act-btn" type="button" popovertarget="link-menu-{{ link.link_id }}" aria-label="Дії з /l/{{ link.slug }}">{{ micon('ellipsis', open='x') }}</button>
+                                                <div class="row-menu table-popover" id="link-menu-{{ link.link_id }}" popover aria-label="/l/{{ link.slug }}">
+                                                    <p class="table-popover__title">/l/{{ link.slug }}</p>
+                                                    <button class="menu-item" type="button" data-share="{{ short_url }}" data-title="{{ link.title }}" hidden>{{ icon('share') }}Поділитися</button>
+                                                    <button class="menu-item" type="button" data-link-edit>{{ icon('pencil') }}Змінити</button>
+                                                    <form method="post" action="{{ url('admin_links_toggle', link_id=link.link_id) }}">
+                                                        <button class="menu-item" type="submit">{{ icon('power') }}{{ 'Вимкнути' if link.is_active else 'Увімкнути' }}</button>
+                                                    </form>
+                                                    <button class="menu-item menu-item--danger" type="button" data-link-delete>{{ icon('trash-2') }}Видалити…</button>
+                                                    <button class="menu-item menu-item--cancel" type="button" popovertarget="link-menu-{{ link.link_id }}" popovertargetaction="hide">Скасувати</button>
+                                                </div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if page.next %}
+                        <div class="load-more" data-load-more data-total="{{ page.total }}">
+                            <a class="btn btn--ghost" href="{{ links_view.next_href(page.next) }}" data-admin-more>Показати ще</a>
+                            <span class="load-more__count">{{ page.rows|length }} з {{ page.total }}</span>
+                        </div>
+                    {% endif %}
+                {% elif links_view.is_filtered %}
+                    <div class="empty">
+                        <p class="empty__title">Нічого не знайдено</p>
+                        <p>Змініть пошук або фільтри.</p>
+                        <a class="btn btn--ghost btn--sm" href="{{ links_view.reset_href() }}" data-admin-sort>{{ icon('rotate-ccw') }}Скинути пошук і фільтри</a>
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        <span class="empty__icon">{{ icon('link') }}</span>
+                        <p class="empty__title">Поки що порожньо</p>
+                        <p>Тут з’являться переходи з сайту та ваші короткі посилання — створіть перше для сторіз чи шапки профілю.</p>
+                        {% if user.can('links.manage') %}<button class="btn btn--primary btn--sm" type="button" data-link-new>{{ icon('plus') }}Нове посилання</button>{% endif %}
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+    {# One dialog for both create and edit; admin.js fills it from the row's data-link #}
+    {% set editing = dialog == 'edit' %}
+    <dialog class="sheet" id="link-dialog" aria-labelledby="link-dialog-title" {% if dialog %}data-open-on-load data-page-url="{{ url('admin_dashboard') }}{{ '?' ~ request.url.query if request.url.query }}"{% endif %}
+            data-create-action="{{ url('admin_links_create') }}">
+        <form class="sheet__form" method="post"
+              action="{{ url('admin_links_update', link_id=form.id) if editing else url('admin_links_create') }}" data-link-form>
+            <header class="sheet__head">
+                <h2 class="sheet__title" id="link-dialog-title" tabindex="-1" data-new="Нове посилання" data-edit="Змінити посилання">{{ 'Змінити посилання' if editing else 'Нове посилання' }}</h2>
+                <button class="act-btn" type="button" data-dialog-close aria-label="Закрити">{{ icon('x') }}</button>
+            </header>
+            <div class="sheet__body">
+                {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+                {% if form.duplicate %}
+                    <label class="switch">
+                        <input type="checkbox" name="allow_duplicate" value="1" role="switch">
+                        <span class="switch__track" aria-hidden="true"></span>
+                        <span><span class="field__label">Все одно створити ще одне</span><span class="field__hint">Кліки рахуються окремо для кожного посилання — так роблять для різних джерел (сторіз, біо, розсилка).</span></span>
+                    </label>
+                {% endif %}
+                <label class="field">
+                    <span class="field__label">Куди веде</span>
+                    <input type="url" name="target_url" value="{{ form.target_url|default('') }}" required maxlength="2048"
+                           placeholder="https://" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
+                </label>
+                <label class="field">
+                    <span class="field__label">Код</span>
+                    <span class="field__affix">
+                        <span class="field__prefix">{{ short_base.split('://', 1)[-1] }}</span>
+                        <input type="text" name="slug" value="{{ form.slug|default('') }}" maxlength="32" pattern="[a-z0-9][a-z0-9\-]*"
+                               autocapitalize="off" spellcheck="false" autocomplete="off" placeholder="авто">
+                    </span>
+                    <span class="field__hint" data-new="Латиниця, цифри, дефіс. Порожньо — згенеруємо 5 символів."
+                          data-edit="Якщо змінити код, стара адреса перестане працювати.">{{ 'Якщо змінити код, стара адреса перестане працювати.' if editing else 'Латиниця, цифри, дефіс. Порожньо — згенеруємо 5 символів.' }}</span>
+                </label>
+                <label class="field">
+                    <span class="field__label">Назва <span class="field__optional">— бачите тільки ви</span></span>
+                    <input type="text" name="title" value="{{ form.title|default('') }}" maxlength="200" autocomplete="off"
+                           placeholder="Напр.: сторіз про сніданки">
+                </label>
+                <label class="switch" {% if not editing %}hidden{% endif %} data-edit-only>
+                    <input type="checkbox" name="active" role="switch" {% if not editing or form.active %}checked{% endif %}>
+                    <span class="switch__track" aria-hidden="true"></span>
+                    <span><span class="field__label">Працює</span><span class="field__hint">Вимкнене посилання відкриває сторінку 404.</span></span>
+                </label>
+            </div>
+            <footer class="sheet__foot">
+                <button class="btn btn--ghost" type="button" data-dialog-close>Скасувати</button>
+                <button class="btn btn--primary" type="submit" data-new="Створити" data-edit="Зберегти">{{ 'Зберегти' if editing else 'Створити' }}</button>
+            </footer>
+        </form>
+    </dialog>
+
+
+    {% include 'admin/_toast.html' %}
+{% endblock %}

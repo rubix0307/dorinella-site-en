@@ -1,0 +1,21 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--gutlink" data-reveal>
+    {{ head(m) }}
+    <div class="gutlink">
+        {% for side, points in m.items %}
+            <div class="gutlink__side gutlink__side--{{ loop.index }}">
+                <h4 class="gutlink__label">{{ icon('chevron-up' if loop.first else 'chevron-down') }}{{ side }}</h4>
+                <ul class="gutlink__list" role="list">
+                    {% for point in points %}<li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+        <div class="gutlink__axis" aria-hidden="true">
+            <span class="gutlink__node">{{ icon('brain') }}</span>
+            <span class="gutlink__link">{{ icon('arrow-up-down') }}</span>
+            <span class="gutlink__node">{{ icon('leaf') }}</span>
+        </div>
+    </div>
+    {{ foot(m) }}
+</section>

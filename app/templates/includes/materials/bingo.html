@@ -1,0 +1,10 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--bingo" data-reveal>
+    {{ head(m) }}
+    <ul class="bingo" role="list">
+        {% for text in m.items %}
+            <li><label class="bingo__cell"><input class="bingo__box" type="checkbox"><span>{{ text }}</span></label></li>
+        {% endfor %}
+    </ul>
+    {{ foot(m) }}
+</section>

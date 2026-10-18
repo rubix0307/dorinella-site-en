@@ -1,0 +1,180 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Сторінка посилань{% endblock %}
+
+{% macro link_select(name, selected, empty) %}
+    <select name="{{ name }}" data-link-select data-create-url="{{ url('admin_links_page_short_link') }}"{% if not empty %} required{% endif %}>
+        <option value="">{{ empty or '— оберіть посилання —' }}</option>
+        {% for s in short_links %}
+            <option value="{{ s.id }}" data-slug="{{ prefix }}{{ s.slug }}" data-target="{{ s.target_url }}" data-title="{{ s.title }}"{% if not s.is_active %} data-off{% endif %}{% if s.id == selected %} selected{% endif %}>
+                {{ prefix }}{{ s.slug }}{% if s.title %} · {{ s.title }}{% endif %}{% if not s.is_active %} (вимкнене){% endif %}
+            </option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+
+{% macro sub_row(i, j, selected, title, image, sub_id, photo_url) %}
+    <li class="bio-sub" data-sub>
+        {{ icon('corner-down-right', 'bio-sub__mark') }}
+        <div class="bio-sub__image" data-icon-pick data-optional>
+            <input type="hidden" name="b{{ i }}_s{{ j }}_image" value="{{ image }}" data-image>
+            <input type="hidden" name="b{{ i }}_s{{ j }}_id" value="{{ sub_id or '' }}">
+            <input type="file" name="b{{ i }}_s{{ j }}_photo" accept="image/png,image/jpeg,image/webp" hidden data-photo>
+            <button type="button" class="icon-pick" aria-haspopup="dialog" aria-label="Іконка підпосилання" data-icon-open>
+                {%- if image in logos %}<img src="{{ static('img/brands/' ~ image ~ '.png') }}" alt="">
+                {%- elif image == 'photo' and photo_url %}<img class="is-photo" src="{{ photo_url }}" alt="">
+                {%- elif image in lucide %}{{ svg(image) }}
+                {%- else %}{{ icon('plus', 'icon-pick__none') }}{% endif -%}
+            </button>
+        </div>
+        <input class="bio-sub__title" name="b{{ i }}_s{{ j }}_title" value="{{ title }}" maxlength="60" placeholder="Назва підпосилання" aria-label="Назва підпосилання">
+        <div class="bio-sub__link">{{ link_select('b' ~ i ~ '_s' ~ j ~ '_link', selected, '— оберіть посилання —') }}</div>
+        <button type="button" class="bio-sub__remove" data-sub-remove aria-label="Прибрати підпосилання" title="Прибрати">{{ icon('x') }}</button>
+    </li>
+{% endmacro %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main recipe-editor">
+        <header class="page-head">
+            <div>
+                <h1 class="admin-title">Сторінка посилань</h1>
+                <p class="page-head__lead">Кнопки сторінки для біо. Кожна веде лише на коротке посилання з аналітики —
+                    так кожен клік видно в таблиці посилань. Нове посилання спершу створіть в «Аналітиці».</p>
+            </div>
+            <a class="btn btn--ghost btn--sm" href="{{ url('links') }}" target="_blank" rel="noopener">{{ icon('external-link') }}Відкрити сторінку</a>
+        </header>
+
+        {% if error %}<p class="recipe-editor__error" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+        {% if notice %}<p class="recipe-editor__notice" role="status">{{ icon('circle-check') }}Збережено. На сторінці — одразу.</p>{% endif %}
+
+        <form class="recipe-editor__form" method="post" action="{{ url('admin_links_page_save') }}" spellcheck="false" enctype="multipart/form-data">
+            <input type="hidden" name="count" value="{{ rows|length }}">
+
+            <section class="editor-card" data-header-card>
+                <h2>Шапка</h2>
+                <div class="bio-header">
+                    <div class="bio-header__photo" data-header-photo>
+                        <img src="{{ header.photo_url or static('img/about-400.webp') }}" width="112" height="112" alt="" data-default="{{ static('img/about-400.webp') }}">
+                        <input type="file" name="header_photo" accept="image/png,image/jpeg,image/webp" hidden data-header-file>
+                        <input type="checkbox" name="header_reset" value="1" hidden data-header-reset>
+                        <div class="bio-header__photo-actions">
+                            <button type="button" class="btn btn--ghost btn--sm" data-header-pick>{{ icon('pencil') }}Змінити фото</button>
+                            {% if header.photo_url %}<button type="button" class="btn btn--ghost btn--sm" data-header-default>{{ icon('rotate-ccw') }}Стандартне</button>{% endif %}
+                        </div>
+                    </div>
+                    <div class="bio-header__text">
+                        <label class="editor-field"><span>Ім’я</span>
+                            <input name="header_name" value="{{ header.name }}" maxlength="60" required></label>
+                        <label class="editor-field"><span>Рядок під ім’ям</span>
+                            <input name="header_tagline" value="{{ header.tagline }}" maxlength="160" placeholder="Напр. @dorinellla · бодіпозитивний нутриціолог"></label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="editor-card">
+                <h2>Кнопки</h2>
+                <p class="editor-hint">Порядок — як тут: перетягуйте картку за праву смужку. Порожні рядки внизу — щоб додати кнопку.</p>
+                <ol class="bio-rows" role="list">
+                    {% for r in rows %}
+                        {% set i = loop.index0 %}
+                        <li class="bio-row{% if not r.short_link_id and not r.title %} is-new{% endif %}" data-bio-row>
+                            <input type="hidden" name="b{{ i }}_order" value="{{ loop.index }}" data-order>
+                            <div class="bio-row__side">
+                                <button type="button" class="bio-row__grip" data-grip aria-label="Перетягнути, щоб змінити порядок">{{ svg('grip-vertical') }}</button>
+                            </div>
+                            <div class="bio-row__deleted" hidden>Буде видалено після збереження <button type="button" class="btn btn--ghost btn--sm" data-restore>{{ icon('rotate-ccw') }}Повернути</button></div>
+                            <div class="editor-field bio-row__image" data-icon-pick>
+                                <span>Іконка</span>
+                                <input type="hidden" name="b{{ i }}_image" value="{{ r.image }}" data-image>
+                                <input type="hidden" name="b{{ i }}_id" value="{{ r.id or '' }}">
+                                <input type="file" name="b{{ i }}_photo" accept="image/png,image/jpeg,image/webp" hidden data-photo>
+                                <button type="button" class="icon-pick" aria-haspopup="dialog" aria-label="Обрати іконку" data-icon-open>
+                                    {%- if r.image in logos %}<img src="{{ static('img/brands/' ~ r.image ~ '.png') }}" alt="">
+                                    {%- elif r.image == 'photo' %}<img class="is-photo" src="{{ r.photo_url }}" alt="">
+                                    {%- else %}{{ svg(r.image if r.image in lucide else 'link') }}{% endif -%}
+                                </button>
+                            </div>
+                            <label class="editor-field"><span>Назва</span>
+                                <input name="b{{ i }}_title" value="{{ r.title }}" maxlength="80" placeholder="Напр. TikTok"></label>
+                            <label class="editor-field"><span>Підпис</span>
+                                <input name="b{{ i }}_note" value="{{ r.note }}" maxlength="120" placeholder="Напр. @dorinellla"></label>
+                            <label class="editor-field bio-row__link"><span>Посилання з аналітики <small>— без нього кнопка стає групою лише з підпосиланнями</small></span>
+                                {{ link_select('b' ~ i ~ '_link', r.short_link_id, '— без посилання (група) —') }}</label>
+                            <div class="bio-row__subs" data-subs>
+                                <input type="hidden" name="b{{ i }}_sub_count" value="{{ r.sublinks|length }}" data-sub-count>
+                                <p class="bio-row__subs-title">Підпосилання</p>
+                                <ol class="bio-subs" role="list" data-sub-list>
+                                    {% for sub in r.sublinks %}{{ sub_row(i, loop.index0, sub.short_link_id, sub.title, sub.image, sub.id, sub.photo_url) }}{% endfor %}
+                                </ol>
+                                <template data-sub-template>{{ sub_row(i, 0, none, '', '', none, '') }}</template>
+                                <button type="button" class="btn btn--ghost btn--sm" data-sub-add>{{ icon('plus') }}Додати підпосилання</button>
+                            </div>
+                            <div class="bio-row__flags">
+                                <label class="editor-check"><input type="checkbox" name="b{{ i }}_visible" value="1"{% if r.visible %} checked{% endif %}><span>{{ icon('eye') }}Видно</span></label>
+                                <label class="editor-check"><input type="checkbox" name="b{{ i }}_primary" value="1"{% if r.primary %} checked{% endif %}><span>{{ icon('star') }}Головна</span></label>
+                                {% if r.short_link_id or r.title %}
+                                    <input type="checkbox" name="b{{ i }}_delete" value="1" hidden data-delete>
+                                    <button type="button" class="bio-row__trash" data-trash aria-label="Видалити кнопку" title="Видалити" aria-pressed="false">{{ micon('trash') }}</button>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+
+            <section class="editor-card" data-ads>
+                <h2>Реклама та співпраця</h2>
+                <p class="editor-hint">Карточка під кнопками. Без посилання її не видно.</p>
+                <div class="editor-grid">
+                    <label class="editor-field"><span>Заголовок</span>
+                        <input name="ads_title" value="{{ ads.title }}" maxlength="80"></label>
+                    <label class="editor-field"><span>Текст кнопки</span>
+                        <input name="ads_button" value="{{ ads.button }}" maxlength="60"></label>
+                    <label class="editor-field editor-field--wide"><span>Текст</span>
+                        <textarea name="ads_text" rows="2">{{ ads.text }}</textarea></label>
+                    <label class="editor-field editor-field--wide"><span>Посилання з аналітики</span>
+                        {{ link_select('ads_link', ads.short_link_id, '— без карточки —') }}</label>
+                </div>
+            </section>
+
+            <div class="recipe-editor__save">
+                <button class="btn btn--primary" type="submit">{{ icon('check') }}Зберегти</button>
+                <p class="bio-save-status" role="status" aria-live="polite" data-save-status></p>
+            </div>
+        </form>
+
+        {# one panel for every row, like Telegram's reaction picker: opened next to the row's icon #}
+        <div class="emoji-panel" role="dialog" aria-label="Обрати іконку" hidden data-icon-panel data-icons-url="{{ url('admin_links_page_icons') }}?v={{ icons_version }}">
+            <label class="emoji-panel__search">{{ icon('search') }}
+                <input type="search" placeholder="Пошук: серце, їжа, heart, food…" autocomplete="off" data-icon-search>
+            </label>
+            <div class="emoji-panel__scroll">
+                <section data-section="top">
+                    <button type="button" class="emoji-panel__clear" data-value="" data-clear hidden>{{ icon('x') }}Без іконки</button>
+                    <p class="emoji-panel__label">Логотипи та фото</p>
+                    <div class="emoji-panel__grid">
+                        {% for key, name in logos.items() %}
+                            <button type="button" data-value="{{ key }}" data-logo data-tip="{{ name }}" aria-label="{{ name }}"><img src="{{ static('img/brands/' ~ key ~ '.png') }}" alt="{{ name }}"></button>
+                        {% endfor %}
+                        <button type="button" class="emoji-panel__photo" data-photo-pick data-tip="Своє фото" aria-label="Своє фото">{{ svg('image-plus') }}</button>
+                    </div>
+                    <p class="emoji-panel__label">Популярні</p>
+                    <div class="emoji-panel__grid">
+                        {% for name in popular %}<button type="button" data-value="{{ name }}" data-tip="{{ uk[name][0] if name in uk else name }}" aria-label="{{ uk[name][0] if name in uk else name }}">{{ svg(name) }}</button>{% endfor %}
+                    </div>
+                </section>
+                <div data-icon-groups><p class="emoji-panel__wait"><span class="spinner" aria-hidden="true"></span>Завантаження іконок…</p></div>
+                <div class="emoji-panel__grid" hidden data-icon-results></div>
+                <p class="emoji-panel__empty" hidden data-icon-empty>Нічого не знайдено</p>
+            </div>
+            <nav class="emoji-panel__tabs" aria-label="Групи іконок" data-icon-tabs></nav>
+        </div>
+    </main>
+    <script src="{{ static('js/admin-links-page.js') }}" defer></script>
+    <script src="{{ static('js/admin-link-select.js') }}" defer></script>
+    <script src="{{ static('js/admin-links-page-order.js') }}" defer></script>
+    <script src="{{ static('js/admin-links-page-subs.js') }}" defer></script>
+    <script src="{{ static('js/admin-links-page-save.js') }}" defer></script>
+{% endblock %}

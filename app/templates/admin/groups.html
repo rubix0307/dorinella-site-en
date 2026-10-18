@@ -1,0 +1,37 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Групи прав{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main">
+        <header class="page-head">
+            <div>
+                <h1 class="admin-title">Групи прав</h1>
+                <p class="page-head__lead">Група — набір прав. Адміністратору видають групи, а не окремі права. Адмін може видати лише ті групи, чиї права є і в нього самого.</p>
+            </div>
+            <a class="btn btn--primary btn--sm" href="{{ url('admin_group_new') }}">{{ icon('plus') }}Нова група</a>
+        </header>
+
+        {% if notice %}<p class="admin-alert admin-alert--ok" role="status">{{ icon('check') }}{{ notice }}</p>{% endif %}
+        {% if error %}<p class="admin-alert" role="alert">{{ icon('triangle-alert') }}{{ error }}</p>{% endif %}
+
+        <ul class="group-list" role="list">
+            {% for row in groups %}
+                {% set g = row.group %}
+                <li class="admin-card group-card">
+                    <div class="group-card__head">
+                        <h2 class="admin-card__title"><a href="{{ url('admin_group_edit', group_id=g.id) }}">{{ g.name }}</a>{% if g.is_system %} <span class="badge">Системна</span>{% endif %}</h2>
+                        <span class="group-card__count">{% set n = row.members %}{{ n }} {{ 'адмін' if n % 10 == 1 and n % 100 != 11 else ('адміни' if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else 'адмінів') }}</span>
+                    </div>
+                    {% if g.description %}<p class="page-head__lead">{{ g.description }}</p>{% endif %}
+                    <p class="group-card__perms">
+                        {% if g.is_system %}<span class="badge">Усі права</span>
+                        {% else %}{% for code in labels if code in row.perms %}<span class="badge">{{ labels[code] }}</span> {% else %}<span class="badge badge--off">Без прав</span>{% endfor %}{% endif %}
+                    </p>
+                </li>
+            {% else %}<li class="admin-card"><p class="page-head__lead">Груп ще немає.</p></li>{% endfor %}
+        </ul>
+    </main>
+{% endblock %}

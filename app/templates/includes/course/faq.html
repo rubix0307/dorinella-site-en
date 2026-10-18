@@ -1,0 +1,19 @@
+{#- Native <details>: works without JS. -#}
+<section class="abm-block abm-faq">
+    <p class="abm-lead">Перелік актуальних питань із відповідями. Правила безпеки не повторюються тут — вони зібрані на сторінці <a href="{{ course.BASE }}protypokazannia/">«Безпека»</a>.</p>
+    {% for group, items in course.FAQ %}
+        <h2 class="abm-h2">{{ group }}</h2>
+        <div class="abm-qa">
+            {% for q, paras in items %}
+                <details class="abm-q">
+                    <summary>{{ q }}{{ icon('chevron-down') }}</summary>
+                    <div>{% for p in paras %}<p>{{ p }}</p>{% endfor %}</div>
+                </details>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <aside class="abm-callout abm-callout--stop" role="note"><span class="abm-callout__icon" aria-hidden="true">{{ icon('stethoscope') }}</span>
+        <div><h3>Коли звернутися до лікаря</h3>
+            <p>Припиніть масаж і зверніться до лікаря, якщо є:</p>
+            <ul>{% for r in course.STOP_RULES %}<li>{{ r }}</li>{% endfor %}</ul></div></aside>
+</section>

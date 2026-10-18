@@ -1,0 +1,18 @@
+{% set d = b.d %}
+<section class="abm-block">
+    {% if d.title %}<h2 class="abm-h2">{{ d.title }}</h2>{% endif %}
+    {% if d.intro %}<p class="abm-lead">{{ d.intro }}</p>{% endif %}
+    <ol class="abm-stepper" role="list">
+        {% for title, text in d.rows %}
+            <li><span class="abm-stepper__n" aria-hidden="true">{{ loop.index }}</span>
+                <div><h3>{{ title }}</h3><p>{{ text }}</p></div></li>
+        {% endfor %}
+    </ol>
+    {% if d.link %}
+        {% set page_slug, key, label = d.link %}
+        {% if course_unlocked is none or page_slug in course_unlocked %}
+            <a class="abm-linkcard" href="{{ course.BASE }}{{ page_slug }}/#{{ key }}"><span class="abm-linkcard__icon" aria-hidden="true">{{ icon('play') }}</span>
+                <span>{{ label }}</span>{{ icon('chevron-right') }}</a>
+        {% endif %}
+    {% endif %}
+</section>

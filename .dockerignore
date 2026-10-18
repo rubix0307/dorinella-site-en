@@ -1,0 +1,10 @@
+.git
+.venv
+.idea
+.env
+assets/
+**/__pycache__
+*.pyc
+volumes/
+media/
+.og-build/

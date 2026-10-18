@@ -1,0 +1,22 @@
+<section class="section faq" id="faq" aria-labelledby="faq-title">
+    <div class="container container--narrow">
+        <div class="section-head section-head--center" data-reveal>
+            <p class="eyebrow">FAQ</p>
+            <h2 class="section-title" id="faq-title">Часті запитання</h2>
+        </div>
+
+        <div class="accordion" data-reveal>
+            {% for question, answer in faq %}
+                <details class="accordion__item" data-accordion>
+                    <summary class="accordion__summary">
+                        <span>{{ question }}</span>
+                        <span class="accordion__icon" aria-hidden="true">{{ micon('plus') }}</span>
+                    </summary>
+                    <div class="accordion__content">
+                        {% for paragraph in answer.split('\n\n') %}<p>{{ paragraph }}</p>{% endfor %}
+                    </div>
+                </details>
+            {% endfor %}
+        </div>
+    </div>
+</section>

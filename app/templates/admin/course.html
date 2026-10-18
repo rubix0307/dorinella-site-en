@@ -1,0 +1,164 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/_table.html' import sort_th, sort_menu, search_box, filter_popover %}
+{% from 'admin/_test_bars.html' import plural %}
+
+{% block title %}Курс{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main" data-tz="{{ tz_name }}" data-tz-asked="{{ tz_asked }}">
+        <header class="page-head">
+            <div>
+                <h1 class="admin-title">Курс «Масаж живота»</h1>
+                <p class="page-head__lead">Хто проходить курс, де зупиняється, скільки часу займає кожен крок і які техніки справді дивляться. Період — це активність людей: що вони робили за ці дні.</p>
+            </div>
+        </header>
+
+        {% include 'admin/_filter.html' %}
+
+        <div class="admin-results" data-admin-results data-live="course">
+            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ rng.days }} дн. · {{ tz_label }}</span>
+                <span class="live-badge" data-admin-live>Наживо</span></p>
+
+            <ul class="course-kpis" role="list">
+                <li class="admin-card"><span class="course-kpi__n">{{ kpis.active }}</span><span class="course-kpi__t">активних за період</span></li>
+                <li class="admin-card"><span class="course-kpi__n">{{ kpis.new }}</span><span class="course-kpi__t">почали курс</span></li>
+                <li class="admin-card"><span class="course-kpi__n">{{ kpis.finished }}</span><span class="course-kpi__t">завершили курс</span></li>
+                <li class="admin-card"><span class="course-kpi__n">{{ kpis.views }}</span><span class="course-kpi__t">переглядів технік</span></li>
+            </ul>
+            <p class="course-note course-note--flat">Усього в курсі {{ kpis.people }} {{ plural(kpis.people, 'людина', 'людини', 'людей') }}. Нижче кроки, цілі й відмітки — про {{ scope_n }} {{ plural(scope_n, 'активну людину', 'активних людей', 'активних людей') }} за період.</p>
+
+            <section class="admin-card" aria-labelledby="chart-title">
+                <h2 class="admin-card__title" id="chart-title">Активність{% if chart_step > 1 %} <small class="course-len">по тижнях</small>{% endif %}</h2>
+                <p class="course-legend"><span><i class="course-legend__dot"></i>Активні люди</span><span><i class="course-legend__dot course-legend__dot--steps"></i>Пройдено кроків</span></p>
+                <div class="course-plot" data-course-chart>
+                    <div class="course-plot__y" aria-hidden="true">
+                        {% for t in chart_axis %}<span style="bottom: {{ t.at }}%">{{ t.value }}</span>{% endfor %}
+                    </div>
+                    <div class="course-plot__area">
+                        {% for t in chart_axis %}<i class="course-plot__grid" style="bottom: {{ t.at }}%" aria-hidden="true"></i>{% endfor %}
+                        <div class="course-plot__cols" role="list">
+                            {% for c in chart %}
+                                <div class="course-plot__col" role="listitem" tabindex="0" data-when="{{ c.when }}" data-people="{{ c.people }}" data-steps="{{ c.steps }}"
+                                     aria-label="{{ c.when }}: {{ c.people }} {{ plural(c.people, 'людина', 'людини', 'людей') }}, пройдено кроків {{ c.steps }}">
+                                    <span class="course-plot__bar" style="height: {{ c.people_h }}%"></span>
+                                    <span class="course-plot__bar course-plot__bar--steps" style="height: {{ c.steps_h }}%"></span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="course-plot__x" aria-hidden="true">
+                        {% for c in chart %}<small>{{ c.label if (loop.index0 % ((chart|length / 8)|round(0, 'ceil')|int or 1)) == 0 else '' }}</small>{% endfor %}
+                    </div>
+                    <div class="course-plot__tip" role="status" hidden></div>
+                </div>
+            </section>
+
+            <section class="admin-card" aria-labelledby="funnel-title">
+                <h2 class="admin-card__title" id="funnel-title">Кроки курсу</h2>
+                {% if scope_n %}
+                    <ol class="course-funnel" role="list">
+                        {% for f in steps %}
+                            <li class="course-funnel__row{% if not f.passed %} is-empty{% endif %}">
+                                <span class="course-funnel__name"><b>{{ f.order }}</b>{{ f.nav }}</span>
+                                <span class="share-bar" aria-hidden="true"><span style="width: {{ f.percent }}%"></span></span>
+                                <span class="course-funnel__facts"><strong>{{ f.passed }}</strong> · {{ f.percent }}%{% if f.lost %} · відсіялися {{ f.lost }}{% endif %}{% if f.passed %} · типово {{ f.median_text }}{% endif %}</span>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p class="course-empty course-empty--flat">За цей період у курсі нічого не відбувалося.</p>
+                {% endif %}
+            </section>
+
+            <section class="admin-card admin-card--table" aria-labelledby="tech-title">
+                <div class="card-head"><h2 class="admin-card__title" id="tech-title">Техніки в плеєрі</h2></div>
+                <p class="course-note">Переглядом вважається не відкриття сторінки, а понад 5 секунд справжнього відтворення: плеєр на екрані, анімація йде, вкладка активна. Тут лише те, що сталося за період.</p>
+                <div class="card-tools card-tools--phone">{{ sort_menu(views.techs, ['number', 'viewers', 'completed', 'rate']) }}</div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table pages-table course-table">
+                        <thead><tr>
+                            {{ sort_th(views.techs, 'number') }}{{ sort_th(views.techs, 'viewers') }}{{ sort_th(views.techs, 'completed') }}
+                            {{ sort_th(views.techs, 'rate') }}
+                        </tr></thead>
+                        <tbody>
+                            {% for t in techs %}
+                                <tr{% if not t.viewers %} class="is-empty"{% endif %}>
+                                    <td data-label="Техніка"><strong>№{{ t.number }} · {{ t.name }}</strong> <small class="course-len">{{ t.length }}</small></td>
+                                    <td class="num" data-label="Дивилися">{{ t.viewers }}</td>
+                                    <td class="num" data-label="До кінця">{{ t.completed }}</td>
+                                    <td class="num" data-label="Додивилися">{{ t.rate }}%</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div class="course-two">
+                <section class="admin-card admin-card--table" aria-labelledby="goal-title">
+                    <div class="card-head"><h2 class="admin-card__title" id="goal-title">Що турбує</h2></div>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table pages-table course-table">
+                            <thead><tr>{{ sort_th(views.goals, 'title') }}{{ sort_th(views.goals, 'n') }}</tr></thead>
+                            <tbody>{% for g in goals %}<tr{% if not g.n %} class="is-empty"{% endif %}><td data-label="Мета"><strong>{{ g.title }}</strong></td><td class="num" data-label="Обрали">{{ g.n }}</td></tr>{% endfor %}</tbody>
+                        </table>
+                    </div>
+                </section>
+                <section class="admin-card admin-card--table" aria-labelledby="check-title">
+                    <div class="card-head"><h2 class="admin-card__title" id="check-title">Відмічені протипоказання</h2></div>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table pages-table course-table">
+                            <thead><tr>{{ sort_th(views.checks, 'label') }}{{ sort_th(views.checks, 'group') }}{{ sort_th(views.checks, 'n') }}</tr></thead>
+                            <tbody>{% for c in checks %}<tr{% if not c.n %} class="is-empty"{% endif %}><td data-label="Пункт"><strong>{{ c.label }}</strong></td><td data-label="Група">{{ c.group }}</td><td class="num" data-label="Відмітили">{{ c.n }}</td></tr>{% endfor %}</tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <section class="admin-card admin-card--table users-card" aria-labelledby="people-title">
+                <div class="card-head"><h2 class="admin-card__title" id="people-title">Люди <span class="count">{{ people_total }}</span></h2></div>
+                <form id="people-filter" class="users-tools" method="get" action="{{ url('admin_course') }}" role="search" data-admin-form>
+                    {% for name, value in views.people.outside_fields() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+                    {{ search_box(views.people, 'people-filter', 'Пошук за поштою') }}
+                    {{ filter_popover(views.people, 'status', 'people-filter', status_options, status_labels.get, 'Статус') }}
+                    {{ filter_popover(views.people, 'next', 'people-filter', next_options, step_names.get, 'Наступний крок') }}
+                    <noscript><button class="btn btn--ghost btn--sm" type="submit">{{ icon('search') }}Знайти</button></noscript>
+                    {% if views.people.is_filtered %}<a class="tool-btn tool-btn--quiet" href="{{ views.people.reset_href() }}" data-admin-sort>{{ icon('rotate-ccw') }}<span class="tool-btn__text">Скинути</span></a>{% endif %}
+                </form>
+                <div class="card-tools card-tools--phone">{{ sort_menu(views.people, ['email', 'status', 'next', 'done', 'techs', 'started', 'last']) }}</div>
+                {% if people %}
+                    <div class="admin-table-wrap">
+                        <table class="admin-table course-table course-people" data-take-param="{{ views.people.spec.take_param }}">
+                            <thead><tr>
+                                {% for key in ['email', 'status', 'next', 'done', 'techs', 'started', 'last'] %}{{ sort_th(views.people, key) }}{% endfor %}
+                            </tr></thead>
+                            <tbody>
+                                {% for p in people %}
+                                    <tr>
+                                        <td class="course-people__email" data-label="Акаунт">{{ p.email }}</td>
+                                        <td data-label="Статус"><span class="badge{{ ' badge--role' if p.status == 'finished' }}{{ ' badge--off' if p.status == 'stalled' }}">{{ status_labels[p.status] }}</span></td>
+                                        <td data-label="Наступний крок">{{ p.next_nav }}</td>
+                                        <td class="num" data-label="Кроків">{{ p.done }} / {{ total_pages }} · {{ p.percent }}%</td>
+                                        <td class="num" data-label="Технік">{{ p.techs }} / 8</td>
+                                        <td class="nowrap" data-label="Почали">{{ p.started_at }}</td>
+                                        <td class="nowrap" data-label="Остання активність">{{ p.last_at }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if people_next %}
+                        <div class="load-more" data-load-more data-total="{{ people_total }}">
+                            <a class="btn btn--ghost" href="{{ views.people.next_href(people_next) }}" data-admin-more>Показати ще</a>
+                            <span class="load-more__count">{{ people|length }} з {{ people_total }}</span>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="users-more">Нікого не знайдено.{% if views.people.is_filtered %} <a href="{{ views.people.reset_href() }}" data-admin-sort>Скинути пошук і фільтри</a>{% endif %}</p>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block schema %}{{ seo.graph(request, seo.page(request, 'Гайди та онлайн-курси', self.description()|trim, 'CollectionPage'), seo.crumbs(request, ('Продукти', request.url.path)), seo.item_list(request, seo.products())) }}{% endblock %}
+
+
+{% block title %}Продукти — гайди та курси | dorinellla{% endblock %}
+{% block description %}Гайди та онлайн-курси Дорі: масаж кишківника, менструальний цикл, харчування і стосунки з тілом.{% endblock %}
+{% block og_title %}Продукти dorinellla — гайди та курси{% endblock %}
+
+{% block content %}
+    <section class="section products" aria-labelledby="products-title">
+        <div class="container">
+            <div class="section-head section-head--center">
+                <p class="eyebrow">Продукти</p>
+                <h1 class="section-title" id="products-title">Гайди та курси</h1>
+                <p class="section-lead">Обери формат, з якого хочеш почати.</p>
+            </div>
+            {% with card_heading = 'h2' %}{% include 'includes/product_cards.html' %}{% endwith %}
+        </div>
+    </section>
+{% endblock %}

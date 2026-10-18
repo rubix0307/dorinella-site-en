@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block schema %}{{ seo.graph(request, seo.guide(request, guide), seo.crumbs(request, ('Корисне', '/learn/'), (guide.title, request.url.path))) }}{% endblock %}
+
+
+{% block title %}Гайд «{{ guide.title }}» | dorinellla{% endblock %}
+{% block description %}{{ guide.subtitle }}. Чек-лист самодіагностики, покроковий план і щоденні фокус-питання.{% endblock %}
+{% block og_title %}Гайд: {{ guide.title }}{% endblock %}
+{% block og_description %}{{ guide.subtitle }}{% endblock %}
+{% block og_image_alt %}Гайд «{{ guide.title }}»{% endblock %}
+
+{% macro section_block(section) %}
+    <section class="guide__section" data-reveal="quick">
+        <h2 class="guide__h2">{{ section.title }}</h2>
+        <div class="prose">
+            {% for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+        </div>
+    </section>
+{% endmacro %}
+
+{% block content %}
+    <article class="section guide" aria-labelledby="guide-title">
+        <div class="container container--narrow">
+            <nav class="breadcrumbs" aria-label="Навігація">
+                <a href="{{ url('learn_index') }}">Корисне</a>
+                <span aria-hidden="true">/</span>
+                <a href="{{ url('learn_index') }}#guides">Гайди</a>
+                <span aria-hidden="true">/</span>
+                <span aria-current="page">{{ guide.title }}</span>
+            </nav>
+
+            <header class="guide__head">
+                <span class="icon-badge">{{ icon(guide.icon) }}</span>
+                <p class="eyebrow">Практичний гайд</p>
+                <h1 class="section-title" id="guide-title">{{ guide.title }}</h1>
+                <p class="section-lead">{{ guide.subtitle }}</p>
+                <a class="btn btn--primary" href="#test">{{ icon('list-checks') }}Пройти чек-лист</a>
+            </header>
+
+            <aside class="guide__callout" data-reveal="quick">
+                <p class="guide__callout-label">{{ icon('lightbulb') }}{{ guide.key_idea[0] }}</p>
+                <p>{{ guide.key_idea[1] }}</p>
+            </aside>
+
+            {% for section in guide.sections %}{{ section_block(section) }}{% endfor %}
+
+            <section class="guide__section guide__test" id="test" aria-labelledby="test-title">
+                <p class="eyebrow">Тест · {{ test.questions|length }} карток · ~{{ test.minutes }} хв</p>
+                <h2 class="guide__h2" id="test-title">{{ guide.test_title }}</h2>
+                <p class="guide__test-intro">{{ test.intro }}</p>
+                {% include 'includes/test_form.html' %}
+            </section>
+
+            {% for section in guide.after_test %}{{ section_block(section) }}{% endfor %}
+
+            <section class="guide__section" data-reveal="quick">
+                <h2 class="guide__h2">{{ guide.steps_title }}</h2>
+                <ol class="guide-steps" role="list">
+                    {% for title, text in guide.steps %}
+                        <li class="guide-steps__item">
+                            <span class="guide-steps__num" aria-hidden="true">{{ loop.index }}</span>
+                            <div>
+                                <h3 class="guide-steps__title">{{ title }}</h3>
+                                <p>{{ text }}</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+
+            <section class="guide__section" data-reveal="quick">
+                <h2 class="guide__h2">{{ guide.focus_title }}</h2>
+                <div class="guide__focus">
+                    <p class="guide__focus-intro">{{ guide.focus_intro }}</p>
+                    <ol class="guide__focus-list">
+                        {% for question in guide.focus_questions %}<li>{{ question }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </section>
+
+            <blockquote class="guide__conclusion" data-reveal="quick">
+                {{ icon('quote') }}
+                <p><strong>Головний висновок.</strong> {{ guide.conclusion }}</p>
+            </blockquote>
+
+            {% set others = guides.values()|rejectattr('slug', 'equalto', guide.slug)|list %}
+            {% if others %}
+                <nav class="guide__more" aria-label="Інші гайди" data-reveal="quick">
+                    <h2 class="guide__h2">Інші гайди</h2>
+                    <ul class="guide__more-list" role="list">
+                        {% for other in others %}
+                            <li><a class="guide-link" href="{{ url('learn_guide', slug=other.slug) }}">
+                                <span class="icon-badge">{{ icon(other.icon) }}</span>
+                                <span><strong>{{ other.title }}</strong><small>{{ other.subtitle }}</small></span>
+                                {{ icon('arrow-right') }}
+                            </a></li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </article>
+{% endblock %}

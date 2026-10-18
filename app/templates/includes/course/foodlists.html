@@ -1,0 +1,29 @@
+{#- Fibre, probiotics, prebiotics: lists you can tick off (kept on this device, with a count). -#}
+<section class="abm-block abm-food">
+    <p class="abm-lead">Для підтримки здоров’я кишківника важливо поєднувати правильне харчування, розуміння тригерів і практичні звички, які працюють на довгостроковий результат. Відзначайте, що вже є у вашому раціоні.</p>
+    {% for l in course.FOOD_LISTS %}
+        {% set gi = loop.index0 %}
+        <article class="abm-list" data-list="{{ l.id }}" aria-labelledby="list-{{ l.id }}">
+            <header class="abm-list__head">
+                <h2 class="abm-h2" id="list-{{ l.id }}">{{ l.title }}</h2>
+                <p class="abm-list__count" data-count aria-live="polite"></p>
+            </header>
+            <p class="abm-lead">{{ l.lead }}</p>
+            <div class="abm-list__groups">
+                {% for group, items in l.groups %}
+                    {% set pi = loop.index0 %}
+                    <fieldset class="abm-list__group">
+                        <legend>{{ group }}</legend>
+                        <ul class="abm-checks" role="list">
+                            {% for it in items %}
+                                <li><label class="abm-check abm-check--sm"><input type="checkbox" data-id="{{ l.id }}-{{ pi }}-{{ loop.index0 }}"><span>{{ it }}</span></label></li>
+                            {% endfor %}
+                        </ul>
+                    </fieldset>
+                {% endfor %}
+            </div>
+            <aside class="abm-callout abm-callout--tip"><span class="abm-callout__icon" aria-hidden="true">{{ icon('sparkles') }}</span>
+                <div><h3>Практичні поради</h3><ul>{% for t in l.tips %}<li>{{ t }}</li>{% endfor %}</ul></div></aside>
+        </article>
+    {% endfor %}
+</section>

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{#- The course shell. While the course is admin-only nothing about it may leave the page: no canonical / Open Graph
+    (a shared link or screenshot would carry the address), noindex; the stylesheet and script are only linked from here. -#}
+{% block robots %}{% if course_preview %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
+{% block social %}{% if not course_preview %}{{ super() }}{% endif %}{% endblock %}
+{% block body_class %}theme-main abm-theme{% endblock %}
+{% block body_attrs %}{% if course_mark %} style="--wm: {{ course_mark }}"{% endif %}{% endblock %}
+{% block preload %}
+    <link rel="stylesheet" href="{{ static('css/course.css') }}">
+    <script src="{{ static('js/course.js') }}" defer></script>
+    <script src="{{ static('js/course-player.js') }}" defer></script>
+{% endblock %}

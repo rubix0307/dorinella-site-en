@@ -1,0 +1,9 @@
+{% set a = course.AUTHOR %}
+<section class="abm-block abm-author">
+    <figure class="abm-author__photo"><img src="{{ static('img/about-400.webp') }}" width="382" height="573" alt="{{ a.name }}" loading="lazy" decoding="async"></figure>
+    <div class="abm-author__text">
+        <h2 class="abm-h2">{{ a.name }}</h2>
+        {% for p in a.paras %}<p>{{ p }}</p>{% endfor %}
+        <p class="abm-author__motto">{{ a.motto }}</p>
+    </div>
+</section>

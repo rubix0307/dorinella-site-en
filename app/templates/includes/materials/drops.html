@@ -1,0 +1,16 @@
+{% from 'includes/materials/_parts.html' import head, foot %}
+<section class="mat mat--drops" data-reveal>
+    {{ head(m) }}
+    <ul class="drops" role="list">
+        {% for name, colour, text in m.items %}
+            <li class="drops__item">
+                <span class="drops__drop" style="--drop: {{ colour }}" aria-hidden="true"></span>
+                <div>
+                    <h4 class="drops__name">{{ name }}</h4>
+                    <p>{{ text }}</p>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    {{ foot(m) }}
+</section>

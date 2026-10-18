@@ -1,0 +1,218 @@
+services:
+  db:
+    build:
+      context: docker
+      dockerfile: db.Dockerfile
+    image: dorinella-db:18   # postgres:18 + pgvector (docker/db.Dockerfile)
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dorinella}
+      POSTGRES_USER: ${POSTGRES_USER:-dorinella}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    # Data in the project folder (volumes/, gitignored).
+    # PG 18 keeps its data in /var/lib/postgresql/18/docker: mount the parent, not .../data,
+    # otherwise the database silently lives in an anonymous volume and is lost on recreate.
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql
+    # Reachable from the host for analytics queries, but only on localhost.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"   # only the host (nginx) reaches the app; it trusts X-Forwarded-*
+    # Mount local files for hot-reloading in development.
+    # Note: For strict production environments, comment this out to prevent container file injection.
+    volumes:
+      - .:/app
+      - ./volumes/recordings:/recordings   # the recorded calls (livekit-egress writes the files, the site writes meta.json)
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    # Load env variables securely from .env file instead of hardcoding secrets in compose file
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dorinella}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-dorinella}
+      - LIVEKIT_INTERNAL_URL=http://livekit:7880
+      - RECORDINGS_DIR=/recordings
+    depends_on:
+      db:
+        condition: service_healthy
+    # /health checks the app and its database connection
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - app-net
+    # Prevent container from consuming all host resources (Resource Limit DoS protection)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1g
+    # Prevent disk space exhaustion by limiting container log sizes
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  # ---- video calls of the admins (app/meet.py): LiveKit + Egress, all local, nothing in the cloud ----
+  livekit-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - app-net
+    restart: unless-stopped
+
+  # Writes the words of every finished recording down with a local faster-whisper model (app/meet_transcriber.py).
+  meet-transcriber:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.meet_transcriber"]
+    volumes:
+      - .:/app
+      - ./volumes/recordings:/recordings
+      - ./volumes/models:/app/volumes/models
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dorinella}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-dorinella}
+      - RECORDINGS_DIR=/recordings
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2g
+    restart: unless-stopped
+
+  # Seals the chunks the recorder writes, stores them in the private bucket and removes the plain files (app/meet_worker.py).
+  # One copy only: two would only race each other.
+  meet-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "app.meet_worker"]
+    volumes:
+      - .:/app
+      - ./volumes/recordings:/recordings
+    security_opt:
+      - no-new-privileges:true
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dorinella}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-dorinella}
+      - RECORDINGS_DIR=/recordings
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:v1.13.9
+    # --node-ip: the address the browsers (and Egress) reach media on. 127.0.0.1 is enough for a browser on this
+    # computer, but Egress in another container needs the computer's own address: LIVEKIT_NODE_IP in .env
+    command: ["--node-ip=${LIVEKIT_NODE_IP:-127.0.0.1}"]
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}"
+      LIVEKIT_CONFIG: |
+        port: 7880
+        rtc:
+          tcp_port: 7881
+          udp_port: 7882
+          use_external_ip: false
+        redis:
+          address: livekit-redis:6379
+        room:
+          auto_create: false      # rooms are made only by the site (app/meet.py)
+        webhook:
+          api_key: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}
+          urls:
+            - http://web:8000/api/livekit/webhook
+    ports:
+      - "127.0.0.1:7880:7880"     # signalling (the browser: ws://localhost:7880)
+      - "7881:7881"               # media over TCP
+      - "7882:7882/udp"           # media over UDP
+    depends_on:
+      - livekit-redis
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  livekit-egress:
+    image: livekit/egress:v1.15.0
+    environment:
+      EGRESS_CONFIG_BODY: |
+        log_level: info
+        api_key: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}
+        api_secret: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}
+        ws_url: ws://livekit:7880
+        redis:
+          address: livekit-redis:6379
+    volumes:
+      - ./volumes/recordings:/out   # the plain chunks of every track until meet-worker has sealed them: /out/<room>/<track>/seg_N.ts
+    depends_on:
+      - livekit
+      - livekit-redis
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+
+networks:
+  app-net:
+    driver: bridge

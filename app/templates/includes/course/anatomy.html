@@ -1,0 +1,57 @@
+{% set shapes = [
+    (1, 'path', 'M350 322L450 318L560 335L630 322L705 322L742 345L745 430L765 490L750 560L715 640L690 690L640 700L610 745L560 740L500 725L440 715L432 690L430 640L428 560L428 500L380 455L352 400L348 360Z', 14, true),
+    (2, 'path', 'M270 500L300 480L345 485L392 520L408 570L412 620L396 652L350 658L310 642L276 602L262 550Z', 14, true),
+    (3, 'path', 'M318 290L305 400L300 480', 76, false),
+    (4, 'path', 'M325 268L420 255L520 300L640 292L720 210L780 125', 80, false),
+    (5, 'path', 'M815 125L818 300L835 430L838 520L815 600', 76, false),
+    (6, 'path', 'M815 600L780 675L730 735L670 748L610 738L575 735', 62, false),
+    (7, 'path', 'M585 740L575 800L590 870', 56, false)] %}
+{#- A photo of the belly with the intestines drawn in, and a clickable overlay: tap a point or a list entry and the organ is lit while the rest of the picture dims. #}
+<section class="abm-block abm-anatomy" data-anatomy>
+    <h2 class="abm-h2">Будова кишківника</h2>
+    <p class="abm-lead">Кишківник складається з тонкого й товстого відділів, і кожен має свою функцію. Товстий кишківник «обрамляє» тонкий: сліпа, висхідна, поперечна, низхідна, сигмовидна й пряма кишки. Розуміння цієї будови допоможе краще орієнтуватися під час масажу.</p>
+    <div class="abm-anatomy__grid">
+        <figure class="abm-anatomy__figure">
+            <div class="abm-anatomy__box">
+                <img src="{{ static('img/course/abdomen-900.webp') }}" srcset="{{ static('img/course/abdomen-560.webp') }} 560w, {{ static('img/course/abdomen-900.webp') }} 900w" sizes="(min-width: 900px) 360px, 90vw"
+                     width="1100" height="1140" alt="Живіт спереду: контури тонкого й товстого кишківника, показані крізь одяг" decoding="async">
+                <svg viewBox="0 0 1100 1140" aria-hidden="true" focusable="false">
+                    <defs>
+                        <filter id="abm-an-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="9"/></filter>
+                        <mask id="abm-an-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1100" height="1140">
+                            <rect width="1100" height="1140" fill="#fff"/>
+                            <g filter="url(#abm-an-soft)" fill="#000" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+                                {% for n, kind, d, w, closed in shapes %}
+                                    {% if kind == 'ellipse' %}<ellipse class="abm-an__cut" data-lit="{{ n }}" cx="322" cy="580" rx="64" ry="110"/>
+                                    {% else %}<path class="abm-an__cut" data-lit="{{ n }}" d="{{ d }}" stroke-width="{{ w }}"{% if not closed %} fill="none"{% endif %}/>{% endif %}
+                                {% endfor %}
+                            </g>
+                        </mask>
+                    </defs>
+                    <rect class="abm-an__veil" width="1100" height="1140" mask="url(#abm-an-mask)"/>
+                    {#- leader lines: from the spot on the organ to the label that has stepped aside #}
+                    {% for n, title, text, x, y, side in course.ANATOMY %}
+                        <g class="abm-an__lead" data-lead="{{ n }}"><line x1="{{ (x * 11)|round|int }}" y1="{{ (y * 11.4)|round|int }}" x2="{{ (11 * (6 if side == 'l' else 94))|round|int }}" y2="{{ (y * 11.4)|round|int }}"/><circle cx="{{ (x * 11)|round|int }}" cy="{{ (y * 11.4)|round|int }}" r="10"/></g>
+                    {% endfor %}
+                    {#- the areas that react to the pointer #}
+                    {% for n, kind, d, w, closed in shapes %}
+                        {% if kind == 'ellipse' %}<ellipse class="abm-an__hit" data-hit="{{ n }}" cx="322" cy="580" rx="64" ry="110"/>
+                        {% else %}<path class="abm-an__hit" data-hit="{{ n }}" d="{{ d }}" stroke-width="{{ w }}"{% if closed %} pointer-events="all"{% else %} fill="none" pointer-events="stroke"{% endif %}/>{% endif %}
+                    {% endfor %}
+                </svg>
+                <button class="abm-iconbtn abm-eye" type="button" data-spread aria-pressed="false" aria-label="Показати всі підписи" title="Показати всі підписи"
+                        data-on="{{ icon('eye')|forceescape }}" data-off="{{ icon('eye-off')|forceescape }}">{{ icon('eye') }}</button>
+                {% for n, title, text, x, y, side in course.ANATOMY %}
+                    <button class="abm-hot" type="button" data-hot="{{ n }}" style="--x: {{ x }}%; --y: {{ y }}%; --sx: {{ 6 if side == 'l' else 94 }}%" aria-label="{{ n }}. {{ title }}">{{ n }}</button>
+                {% endfor %}
+            </div>
+            <figcaption>Вигляд спереду. Ваша права сторона — ліворуч на фото. Схематично: розташування петель у кожної людини трохи відрізняється.</figcaption>
+        </figure>
+        <ol class="abm-anatomy__list" role="list">
+            {% for n, title, text, x, y, side in course.ANATOMY %}
+                <li class="abm-an-item" data-item="{{ n }}"><span class="abm-an-item__n" aria-hidden="true">{{ n }}</span>
+                    <div><h3>{{ title }}</h3><p>{{ text }}</p></div></li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>

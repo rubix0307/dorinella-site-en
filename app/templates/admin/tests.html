@@ -1,0 +1,36 @@
+{% extends 'admin/base.html' %}
+{% from 'admin/_test_bars.html' import plural, results %}
+
+{% block title %}Тести{% endblock %}
+
+{% block body %}
+    {% include 'admin/_bar.html' %}
+
+    <main class="admin-wrap admin-main" data-tz="{{ tz_name }}" data-tz-asked="{{ tz_asked }}">
+        <header class="page-head">
+            <div>
+                <h1 class="admin-title">Тести</h1>
+                <p class="page-head__lead">Скільки разів проходили кожен тест і з яким результатом. Як відповідали на кожне запитання — усередині тесту.</p>
+            </div>
+        </header>
+
+        {% include 'admin/_filter.html' %}
+
+        <div class="admin-results" data-admin-results data-live="attempt">
+            <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ rng.days }} дн. · {{ tz_label }}</span></p>
+
+            <ul class="tests-grid" role="list">
+                {% for s in tests %}
+                    <li class="admin-card test-card">
+                        <h2 class="test-card__title"><a href="{{ url('admin_test', slug=s.test.slug) }}?{{ period_query }}"><span>{{ s.title }}</span>{{ icon('chevron-right') }}</a></h2>
+                        <p class="test-card__totals">
+                            <strong>{{ s.attempts }}</strong> {{ plural(s.attempts, 'проходження', 'проходження', 'проходжень') }} ·
+                            <strong>{{ s.people }}</strong> {{ plural(s.people, 'людина', 'людини', 'людей') }}
+                        </p>
+                        {% if s.attempts %}{{ results(s) }}{% else %}<p class="test-card__empty">За цей період його не проходили.</p>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </main>
+{% endblock %}

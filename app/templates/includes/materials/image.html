@@ -1,0 +1,9 @@
+<li class="material" data-reveal>
+    <a class="material__link" href="{{ static('img/learn/' ~ m.image ~ '-full.webp') }}" target="_blank" rel="noopener">
+        <img src="{{ static('img/learn/' ~ m.image ~ '-thumb.webp') }}" width="{{ m.width }}" height="{{ m.height }}"
+             alt="{{ m.alt }}" loading="lazy" decoding="async">
+    </a>
+    <p class="material__title">{{ m.title }}</p>
+    <a class="material__download" href="{{ static('img/learn/' ~ m.image ~ '-full.webp') }}"
+       download="{{ m.image }}.webp">{{ icon('download') }}Зберегти</a>
+</li>

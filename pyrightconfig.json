@@ -1,0 +1,58 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+  "include": ["app", "tests", "scripts", "migrations"],
+  "exclude": [
+    "**/__pycache__",
+    "**/.venv",
+    "local_articles",
+    "media",
+    "volumes",
+    "assets",
+    "docs",
+    "deploy",
+    "docker"
+  ],
+  "pythonVersion": "3.12",
+  "pythonPlatform": "All",
+  "venvPath": ".",
+  "venv": ".venv",
+  "typeCheckingMode": "standard",
+  "useLibraryCodeForTypes": true,
+  "reportMissingModuleSource": "warning",
+  "reportUnnecessaryTypeIgnoreComment": "warning",
+  "reportPrivateImportUsage": "warning",
+  "executionEnvironments": [
+    {
+      "root": "tests",
+      "extraPaths": ["."],
+      "reportArgumentType": "none",
+      "reportOptionalMemberAccess": "none",
+      "reportOptionalSubscript": "none",
+      "reportOptionalCall": "none",
+      "reportOptionalOperand": "none",
+      "reportAttributeAccessIssue": "none",
+      "reportFunctionMemberAccess": "none",
+      "reportCallIssue": "none",
+      "reportIndexIssue": "none",
+      "reportIncompatibleMethodOverride": "none",
+      "reportAssignmentType": "none"
+    },
+    {
+      "root": "scripts",
+      "extraPaths": ["."],
+      "reportMissingImports": "none",
+      "reportAttributeAccessIssue": "none"
+    },
+    {
+      "root": "migrations",
+      "extraPaths": ["."],
+      "reportAttributeAccessIssue": "none",
+      "reportArgumentType": "none",
+      "reportCallIssue": "none"
+    },
+    {
+      "root": ".",
+      "extraPaths": ["."]
+    }
+  ]
+}
