@@ -24,7 +24,7 @@
             <p class="admin-range"><span>{{ rng.start.strftime('%d.%m.%Y') }} — {{ rng.end.strftime('%d.%m.%Y') }} · {{ _('%(n)s days', n=rng.days) }} · {{ tz_label }}</span></p>
 
             {% if not summary.attempts %}
-                <section class="admin-card"><p class="pages-report__empty">{{ _('Nobody took this test in this period.') }}</p></section>
+                <section class="admin-card"><p class="pages-report__empty">{{ _('No saved results for this test in this period.') }}</p></section>
             {% else %}
                 <section class="admin-card test-section" aria-labelledby="result-title">
                     <h2 class="admin-card__title" id="result-title">{{ _('Results') }}</h2>

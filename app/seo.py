@@ -21,6 +21,7 @@ from xml.sax.saxutils import escape
 from markupsafe import Markup
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from . import legal
 from .catalog import Product, ProductType, listed
 from .core.config import settings
 from .learn import GUIDES, SELF_TESTS
@@ -81,8 +82,9 @@ def _head() -> list[tuple[str, date | None]]:
     out.append(('/guides/', _page('pages/learn/index.html', *learn)))
     out += [(f'/guides/{slug}/', _page('pages/learn/guide.html', *learn)) for slug in GUIDES]
     out += [(f'/tests/{slug}/', _page('pages/tests/test.html', *learn)) for slug in SELF_TESTS]
-    out += [('/links/', _page('pages/links.html')), ('/privacy/', _page('pages/privacy.html')), ('/terms/', _page('pages/terms.html')),
-            ('/refund/', _page('pages/refund.html'))]
+    out.append(('/links/', _page('pages/links.html')))
+    if not legal.SELLER.placeholders:      # the legal pages are noindex while they still print brackets (pages/privacy.html), so they stay out of the sitemap too
+        out += [(f'/{name}/', _page(f'pages/{name}.html')) for name in ('privacy', 'terms', 'refund')]
     return out
 
 

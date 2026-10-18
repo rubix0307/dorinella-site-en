@@ -41,7 +41,7 @@ async def orders(request: Request, session: AsyncSession = Depends(db.get_sessio
     mode = mode if mode in dict(payments.MODES) else 'live'
     q = request.query_params.get('q', '').strip()[:80]
     try:
-        page = max(1, int(request.query_params.get('page', '1')))
+        page = min(100_000, max(1, int(request.query_params.get('page', '1'))))
     except ValueError:
         page = 1
     rows, total, more = await payments.orders_page(session, status=status, mode=mode, q=q, page=page)

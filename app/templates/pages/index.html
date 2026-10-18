@@ -24,7 +24,7 @@
                     routine that some people find eases bloating and supports their digestion.
                 </p>
                 <div class="hero__actions">
-                    <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">{{ icon('book-open-text') }}Get the guide</a>
+                    <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">{{ icon('book-open-text') }}{{ 'Get the guide' if guide.on_sale else 'About the guide' }}</a>
                     <a class="btn btn--ghost" href="#inside">See what's inside</a>
                 </div>
                 <ul class="hero__facts" role="list">

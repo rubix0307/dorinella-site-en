@@ -895,3 +895,9 @@ def test_devices_of_visitors_and_of_the_filtered_link_clicks(sync_db, accounts):
     assert ' open' not in folded.search(admin.get('/admin/').text).group(0)
     admin.cookies.set('admin_devices', '1', path='/admin')
     assert folded.search(admin.get('/admin/').text).group(0).endswith(' open>')
+
+
+def test_a_short_link_with_an_impossible_port_is_a_form_error_not_a_crash():
+    from app import shortlinks
+    assert shortlinks.validate('', 'https://a.com:99999/x')
+    assert shortlinks.validate('', 'https://a.com:443/x') is None

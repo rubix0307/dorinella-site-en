@@ -18,7 +18,6 @@ SECTIONS = {
     'products': ('Products', 'gift', '/products/'),
     'guides': ('Guides', 'book-open-text', '/guides/'),
     'tests': ('Tests', 'circle-help', '/tests/'),
-    'course': ('Course', 'graduation-cap', '/course/'),
     'links': ('Links', 'link', '/links/'),
     'other': ('Other', 'ellipsis', ''),
 }

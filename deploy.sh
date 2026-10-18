@@ -69,6 +69,8 @@ check_env() {   # a missing or weak .env otherwise shows up only as a container 
     key="$(sed -n 's/^SECRET_KEY=//p' .env | tail -n 1)"
     [ "${#key}" -ge 32 ] || { echo "SECRET_KEY in .env must be at least 32 characters (python3 -c 'import secrets; print(secrets.token_urlsafe(48))')" >&2; return 1; }
     grep -q '^POSTGRES_PASSWORD=.\+' .env || { echo "POSTGRES_PASSWORD in .env is empty" >&2; return 1; }
+    { grep -q '^GOOGLE_CLIENT_ID=.\+' .env && grep -q '^GOOGLE_CLIENT_SECRET=.\+' .env; } \
+        || echo "warning: GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are not set in .env: nobody can sign in and the Sign in links are hidden" >&2
 }
 
 bake_lastmod() {   # the sitemap's lastmod dates: the image has no git, so they are written to app/lastmod.json before the build; never fatal

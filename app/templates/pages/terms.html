@@ -3,6 +3,7 @@
 
 {% block title %}Terms of Service | {{ site.BRAND }}{% endblock %}
 {% block description %}The rules for using {{ site.DOMAIN }}, buying its guides and courses, and what the content can and cannot do for your health.{% endblock %}
+{% block robots %}{% if legal.seller.placeholders %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 
 {% block content %}
     {#- TODO(owner): a lawyer should read these Terms. Open points: the seller's legal name and address (app/legal.py), governing law, sales tax / VAT on digital products, how long a bought product stays available. #}

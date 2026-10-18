@@ -59,7 +59,7 @@ def test_sections_add_up_and_sort_by_views(admin):
     assert rows['Home'] == (6, 3)
     assert rows['Guides'] == (9, 2)           # the library + a guide; the same 2 visitors counted once
     assert rows['Products'] == (2, 1) and rows['Tests'] == (1, 1) and rows['Other'] == (1, 1)
-    assert rows['Course'] == (0, 0)           # nobody, still listed
+    assert 'Course' not in rows               # /course/ views are never stored, so the section would always be 0
     assert [r[1] for r in _rows(html)] == sorted((r[1] for r in _rows(html)), reverse=True)
     assert 'section=guides' in html and '19 views' in html
 

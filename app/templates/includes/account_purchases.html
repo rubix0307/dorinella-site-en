@@ -9,7 +9,7 @@
                     <p><strong>{{ p.title }}</strong> <span class="muted">{{ p.price }}{% if p.paid_at %} · {{ p.paid_at|en_date }}{% endif %}{% if p.test %} · test order{% endif %}</span></p>
                     <p class="muted">Order {{ p.number }} · {{ p.label }}{% if p.refunded %} ({{ p.refunded }} refunded){% endif %}. Your receipt was e-mailed by Stripe.</p>
                     {% if p.open_path %}<a class="btn btn--ghost btn--sm" href="{{ p.open_path }}">{{ icon('arrow-right') }}Open</a>{% endif %}
-                    {% if p.refundable_until %}<p class="muted">You can ask for a full refund until {{ p.refundable_until|en_date }}: <a href="mailto:{{ site.CONTACT_EMAIL }}?subject=Refund%20{{ p.number }}">write to us</a> with the order number. <a href="{{ url('refund') }}">Refund Policy</a></p>{% endif %}
+                    {% if p.refundable_until %}<p class="muted">You can ask for a full refund until {{ p.refundable_until|en_date }}: {% if site.CONTACT_EMAIL %}<a href="mailto:{{ site.CONTACT_EMAIL }}?subject=Refund%20{{ p.number }}">write to us</a>{% else %}{% include 'includes/contact_inline.html' %}{% endif %} with the order number. <a href="{{ url('refund') }}">Refund Policy</a></p>{% endif %}
                 </li>
             {% endfor %}
         </ul>

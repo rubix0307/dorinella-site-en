@@ -34,6 +34,10 @@ def validate(slug: str, target_url: str) -> str | None:
         return 'Code: Latin letters, digits and hyphens only, up to 32 characters.'
     if not re.fullmatch(r'https?://[^\s/]+\.[^\s]+', target_url) or len(target_url) > 2048:
         return 'Enter a full address starting with https://'
+    try:
+        _ = urlsplit(target_url).port
+    except ValueError:                       # a port outside 0-65535
+        return 'Enter a full address starting with https://'
     return None
 
 

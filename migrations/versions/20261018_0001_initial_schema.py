@@ -109,7 +109,7 @@ def _postgres_only_down() -> None:
 # The /links/ page the site starts with (short links first, then the buttons, then the one bio_page row). Frozen here on purpose: the page is
 # data the owner edits in the admin afterwards. (slug, goes to, button title, note, picture, primary)
 STARTER_LINKS = (
-    ('links-guide', '/products/gut-massage-guide/', 'Gut Massage Guide', 'Gentle abdominal self-massage', 'book-open', True),
+    ('links-guide', '/products/gut-massage-guide/', 'Gut Massage Guide', 'Coming soon', 'book-open', True),
     ('links-test', '/tests/bristol/', 'Free Bristol stool scale test', 'Tips matched to your result', 'activity', False),
     ('links-guides', '/guides/', 'Free guides', 'Short, practical gut health guides', 'library', False),
     ('links-instagram', 'https://www.instagram.com/lola_krissss', 'Instagram', '@lola_krissss', 'instagram', False),

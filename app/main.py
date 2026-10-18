@@ -15,13 +15,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.routing import Match
 
-from . import analytics, db, legal, live, payments as payments_module, site, visitors
+from . import analytics, db, google_login, legal, live, payments as payments_module, site, visitors
 from .auth import Forbidden
 from .catalog import PRODUCTS, listed
 from .core import templating
@@ -61,7 +61,7 @@ async def lifespan(_app: FastAPI):
         await db.get_engine().dispose()
 
 
-app = FastAPI(title='lolakrissss', docs_url='/api/docs', redoc_url=None, openapi_url='/api/openapi.json',
+app = FastAPI(title='lolakrissss', docs_url=None, redoc_url=None, openapi_url=None,
               redirect_slashes=False,  # trailing-slash redirects are permanent, see http_error()
               lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1024)
@@ -92,6 +92,14 @@ class CachedStaticFiles(StaticFiles):
         return response
 
 
+
+
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+    """Browsers and crawlers ask for /favicon.ico whatever the page head says; answer with the SVG instead of a 404 page."""
+    return FileResponse(STATIC_DIR / 'img' / 'favicon.svg', media_type='image/svg+xml', headers={'Cache-Control': 'public, max-age=2592000'})
+
+
 app.mount('/static', CachedStaticFiles(directory=STATIC_DIR), name='static')
 include(pages.router)
 include(course.router)
@@ -111,6 +119,7 @@ templating.setup(app)
 templating.templates.env.globals['catalog'] = PRODUCTS  # footer product links
 templating.templates.env.globals['listed'] = listed     # only the products that are shown
 templating.templates.env.globals['site'] = site          # the brand, the author, the language (app/site.py)
+templating.templates.env.globals['sign_in_open'] = google_login.configured   # no Google keys: the Sign in links are hidden
 templating.templates.env.globals['legal'] = legal.context()   # the seller, the version date and the refund days of the legal pages (app/legal.py)
 
 

@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import auth, catalog, google_login, legal, payments, visitors
+from app.core import templating
 from app.main import app
 
 pytest_plugins = ['tests.stripe_fake']          # the fixtures `stripe` and `people`
@@ -33,6 +34,23 @@ def test_the_placeholders_of_the_seller_are_printed_not_hidden(client, path):
     page = client.get(path).text
     assert legal.SELLER.name in page and legal.SELLER.address in page
     assert 'direct message on Instagram' in page
+
+
+@pytest.mark.parametrize('path', PAGES)
+def test_the_pages_are_noindex_and_out_of_the_sitemap_while_a_placeholder_is_left(client, path, monkeypatch):
+    from app import seo
+    seo.invalidate()
+    assert '<meta name="robots" content="noindex">' in client.get(path).text
+    assert path not in client.get('/sitemap.xml').text
+    filled = dataclasses.replace(legal.SELLER, name='Jane Doe LLC', address='1 Main St, Springfield', governing_law='the State of Delaware', email='hi@example.test')
+    monkeypatch.setattr(legal, 'SELLER', filled)
+    monkeypatch.setitem(templating.templates.env.globals['legal'], 'seller', filled)
+    seo.invalidate()
+    try:
+        assert 'name="robots"' not in client.get(path).text
+        assert f'{path}</loc>' in client.get('/sitemap.xml').text
+    finally:
+        seo.invalidate()
 
 
 def test_the_owner_can_see_which_placeholders_are_left():
@@ -78,13 +96,10 @@ def test_the_refund_days_are_the_setting():
     assert Settings().refund_days == 14
 
 
-def test_the_footer_links_the_three_texts_and_the_sitemap_lists_them(client):
+def test_the_footer_links_the_three_texts(client):
     home = client.get('/').text
     for path in PAGES:
         assert f'href="{path}"' in home, path
-    sitemap = client.get('/sitemap.xml').text
-    for path in PAGES:
-        assert path in sitemap, path
 
 
 def test_the_buy_box_asks_for_the_texts_and_names_the_refund_days(accounts, people, stripe, monkeypatch):

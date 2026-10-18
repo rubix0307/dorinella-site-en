@@ -26,7 +26,7 @@
                 <div class="hero__actions"><a class="btn btn--ghost" href="{{ url('checkout_result', number=order.number) }}">{{ icon('rotate-ccw') }}Check again</a></div>
             {% else %}
                 <h1 class="section-title" id="res-title">The payment did not go through</h1>
-                <p class="section-lead">Nothing was charged. You can try again{% if product %} from <a href="{{ url('product_detail', slug=product.slug) }}">the product page</a>{% endif %}. If money left your account, it opens by itself when Stripe confirms it; otherwise write to <a href="mailto:{{ site.CONTACT_EMAIL }}">{{ site.CONTACT_EMAIL }}</a> with the order number.</p>
+                <p class="section-lead">Nothing was charged. You can try again{% if product %} from <a href="{{ url('product_detail', slug=product.slug) }}">the product page</a>{% endif %}. If money left your account, it opens by itself when Stripe confirms it; otherwise write to us by {% include 'includes/contact_inline.html' %} with the order number.</p>
             {% endif %}
         </div>
     </section>

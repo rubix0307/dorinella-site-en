@@ -1,10 +1,11 @@
 """The public shell: the landing, the products, the cabinet, sign-in and the error pages are English, complete and honest about what is not for sale yet."""
+import dataclasses
 import re
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app import payments
+from app import catalog, google_login, payments
 from app.main import app
 
 CYRILLIC = re.compile('[А-Яа-яІіЇїЄєҐґЁё]')
@@ -33,12 +34,37 @@ def test_the_landing_sells_the_guide_and_has_its_sections(client):
         assert gone not in html, gone
 
 
-def test_the_navigation_has_no_leftovers_of_the_ukrainian_site(client):
+def test_the_navigation_has_no_leftovers_of_the_ukrainian_site(client, monkeypatch):
+    monkeypatch.setattr(google_login, 'settings', dataclasses.replace(google_login.settings, google_client_id='id', google_client_secret='secret'))
     html = client.get('/').text
     nav = re.search(r'<footer.*?</footer>', html, re.DOTALL).group(0)
     assert 'Privacy' in nav and 'Terms' in nav and 'Sign in' in nav
     for gone in ('/cooking/', '/learn/', 'recipes', 'Articles', 'newsletter'):
         assert gone not in html, gone
+
+
+def test_the_sign_in_links_are_hidden_while_google_is_not_set_up(client, monkeypatch):
+    unset = dataclasses.replace(google_login.settings, google_client_id='', google_client_secret='')
+    monkeypatch.setattr(google_login, 'settings', unset)
+    assert '>Sign in<' not in client.get('/').text
+    page = client.get('/login').text
+    assert 'Sign-in is not available yet' in page and 'not set up' not in page
+    monkeypatch.setattr(google_login, 'settings', dataclasses.replace(unset, google_client_id='id', google_client_secret='secret'))
+    assert '>Sign in<' in client.get('/').text
+
+
+def test_the_guide_buttons_are_honest_while_it_is_not_on_sale(client, monkeypatch):
+    html = client.get('/').text
+    assert 'Get the guide' not in html and html.count('About the guide') >= 3
+    monkeypatch.setitem(catalog.PRODUCTS, 'gut-massage-guide', dataclasses.replace(catalog.PRODUCTS['gut-massage-guide'], on_sale=True))
+    html = client.get('/').text
+    assert html.count('Get the guide') >= 3 and 'About the guide' not in html
+
+
+def test_favicon_ico_and_the_api_docs(client):
+    icon = client.get('/favicon.ico')
+    assert icon.status_code == 200 and icon.headers['content-type'].startswith('image/svg+xml') and 'max-age=2592000' in icon.headers['cache-control']
+    assert client.get('/api/docs').status_code == 404 and client.get('/api/openapi.json').status_code == 404
 
 
 def test_a_product_that_is_not_on_sale_shows_coming_soon_and_no_price(client):

@@ -78,7 +78,7 @@ async def funnels(session: AsyncSession, rng: DateRange) -> list[Funnel]:
 
     finished_tests = {vid or attempt for attempt, vid in (await session.execute(
         select(TestAttempt.id, TestAttempt.visitor_id).where(TestAttempt.created_at >= since, TestAttempt.created_at < until))).all()}
-    tests = _steps(['Visitors', 'Opened a test', 'Finished a test'], [
+    tests = _steps(['Visitors', 'Opened a test', 'Saved a test result'], [
         everyone,
         await _visitors(session, rng, PageView.path.like('/tests/_%')),
         len(finished_tests),

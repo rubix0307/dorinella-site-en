@@ -3,4 +3,4 @@
 <a href="{{ url('guide_list') }}">Free guides</a>
 <a href="{{ url('self_test', slug='bristol') }}">Bristol test</a>
 <a href="{{ url('index') }}#faq">FAQ</a>
-{% if request.cookies.get('lk_admin') %}<a href="{{ url('account') }}" rel="nofollow">My account</a>{% else %}<a href="{{ url('login') }}" rel="nofollow">Sign in</a>{% endif %}
+{% if request.cookies.get('lk_admin') %}<a href="{{ url('account') }}" rel="nofollow">My account</a>{% elif sign_in_open() %}<a href="{{ url('login') }}" rel="nofollow">Sign in</a>{% endif %}

@@ -3,6 +3,7 @@
 
 {% block title %}Refund Policy | {{ site.BRAND }}{% endblock %}
 {% block description %}Not what you hoped for? You can have a full refund of a guide or course within {{ legal.refund_days }} days of buying.{% endblock %}
+{% block robots %}{% if legal.seller.placeholders %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 
 {% block content %}
     {#- TODO(owner): confirm the number of days (REFUND_DAYS in .env, 14 by default). 14 days also covers the EU/UK right to cancel a distance purchase. #}

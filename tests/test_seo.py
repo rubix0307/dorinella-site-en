@@ -28,7 +28,7 @@ def test_the_sitemap_lists_public_pages_with_a_date_and_robots_names_it(client):
     assert response.status_code == 200 and response.headers['content-type'].startswith('application/xml')
     urls = {u.find('s:loc', NS).text: getattr(u.find('s:lastmod', NS), 'text', None) for u in ET.fromstring(response.text).findall('s:url', NS)}   # no git and no lastmod.json: no date
     paths = {re.sub(r'^https?://[^/]+', '', loc) for loc in urls}
-    assert {'/', '/products/', '/guides/', '/links/', '/privacy/', '/terms/'} <= paths
+    assert {'/', '/products/', '/guides/', '/links/'} <= paths
     assert all(f'/products/{slug}/' in paths for slug in PRODUCTS)
     assert all(f'/guides/{slug}/' in paths for slug in GUIDES) and all(f'/tests/{slug}/' in paths for slug in SELF_TESTS)
     assert all(re.fullmatch(r'\d{4}-\d{2}-\d{2}', stamp) for stamp in urls.values() if stamp is not None)

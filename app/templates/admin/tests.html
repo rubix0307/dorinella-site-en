@@ -10,7 +10,7 @@
         <header class="page-head">
             <div>
                 <h1 class="admin-title">{{ _('Tests') }}</h1>
-                <p class="page-head__lead">{{ _('How many times each test was taken and with what result. How each question was answered is inside the test.') }}</p>
+                <p class="page-head__lead">{{ _('Saved results of each test: only people who agreed to store their answers are counted, so this is fewer than all who took it. How each question was answered is inside the test.') }}</p>
             </div>
         </header>
 
@@ -27,7 +27,7 @@
                             <strong>{{ s.attempts }}</strong> {{ _('attempts') }} ·
                             <strong>{{ s.people }}</strong> {{ _('people') }}
                         </p>
-                        {% if s.attempts %}{{ results(s) }}{% else %}<p class="test-card__empty">{{ _('Nobody took it in this period.') }}</p>{% endif %}
+                        {% if s.attempts %}{{ results(s) }}{% else %}<p class="test-card__empty">{{ _('No saved results in this period.') }}</p>{% endif %}
                     </li>
                 {% endfor %}
             </ul>

@@ -3,6 +3,7 @@
 
 {% block title %}Privacy Policy | {{ site.BRAND }}{% endblock %}
 {% block description %}What {{ site.DOMAIN }} collects, why, who sees it, how long we keep it, the cookies we set and how to use your privacy rights.{% endblock %}
+{% block robots %}{% if legal.seller.placeholders %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
 
 {% block content %}
     {#- Decisions (docs/modules/Privacy-and-consent.md): no cookie banner, the page says plainly what is stored. Health-type answers have an explicit, unticked consent step:
