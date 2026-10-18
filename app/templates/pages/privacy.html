@@ -5,8 +5,10 @@
 {% block description %}What {{ site.DOMAIN }} collects, why, who sees it, how long we keep it, the cookies we set and how to use your privacy rights.{% endblock %}
 
 {% block content %}
-    {#- TODO(owner): have a lawyer read this page and the Terms before the sales open. Open points: (1) whether the visitor-ID cookie needs a consent banner for EU/UK visitors,
-        (2) test answers about stool and digestion may count as health data (GDPR Art. 9) and need an explicit-consent step, (3) the retention periods, (4) the hosting provider and country. #}
+    {#- Decisions (docs/modules/Privacy-and-consent.md): no cookie banner and no consent checkbox; the page says plainly what is stored. The test page carries a short notice,
+        the answers hang on a random visitor ID until the person signs in, and deleting them is a request by e-mail.
+        TODO(owner): have a lawyer read this page and the Terms before the sales open. Open points: (1) whether the visitor-ID cookie needs a consent banner for EU/UK visitors,
+        (2) whether stool and digestion answers (and the ticked safety conditions) count as health data (GDPR Art. 9) and need an explicit-consent step, (3) the retention periods, (4) the hosting provider and country. #}
     <section class="section legal" aria-labelledby="legal-title">
         <div class="container container--narrow">
             <p class="eyebrow">Last updated {{ legal.updated }}</p>
@@ -20,7 +22,8 @@
                 <h2>What we collect</h2>
                 <p><strong>Just visiting.</strong> When you open a page we record the page, the day and time, the site you came from (its name only), campaign tags in the link (utm_source and the like), your device type (phone, tablet, desktop) and a daily fingerprint made of your IP address and browser details. The fingerprint is a one-way hash that changes every day, so we cannot read an IP address back from it. We use these numbers to see which pages help people. Bots and our own admin pages are not counted. If you click a link that leaves the site, we also record where it went and the browser identification string.</p>
                 <p><strong>Signing in.</strong> You sign in with a Google account; there are no passwords. Google tells us your e-mail address and the name on the account. We do not see your Google password, contacts, mail or files.</p>
-                <p><strong>Tests and the course.</strong> When you take a self-test (for example the Bristol stool scale test) we store your answers and the result so you can see them again. The course keeps what you answer in it (for example the safety check and your goal) and which pages you finished. These answers are linked to your random visitor ID, and to your account once you sign in. Some of them describe your digestion or health. We use them only to show you your result and to run the course; please do not type anything you would not want stored. You can ask us to delete them at any time.</p>
+                <p id="tests"><strong>Tests.</strong> When you take a self-test (for example the Bristol stool scale test) we store your answers and the result. They are saved with your random visitor ID, not your name, and join your account if you sign in later. They describe your digestion, so they may count as health information. We use them only to show you your result and, without your name, to see how the test is used. Please do not answer anything you would not want stored. You can ask us to delete them at any time.</p>
+                <p><strong>The course.</strong> Once you are signed in, the course stores which pages and techniques you have finished, your goal and how long you watched each technique video. It also stores which safety conditions you ticked on the safety page (for example pregnancy, cancer, Crohn's disease or gallstones) so that the page shows them again when you return. This is health information tied to your account. It is shown to you, and the staff who run the site can see it next to your account in the admin area; nobody else can. We use it only to run the course. You can ask us to delete it at any time, and you may leave the boxes unticked.</p>
                 <p><strong>Buying.</strong> We store your order: the number, the product, the amount, the time, its status, the version of the legal texts you accepted at checkout and the time you accepted them. Payment is made on a page that Stripe hosts. Your card number never reaches our servers, and we never store it. Stripe sends you the receipt by e-mail.</p>
                 <p><strong>Writing to us.</strong> If you e-mail us, we keep the message and our reply so we can help you.</p>
                 <p><strong>Errors.</strong> If something breaks, an error report with the page address and technical details of the request (which can include your IP address) may be sent to our error-monitoring service.</p>
@@ -35,7 +38,7 @@
                 <p>We do not sell your personal information. We do not use it for advertising, and we do not take decisions about you by automated means that have legal effect on you.</p>
 
                 <h2 id="cookies">Cookies and similar technologies</h2>
-                <p>There is no advertising or social-media tracking on the site. The cookies our code sets are listed here, all of them first-party:</p>
+                <p>There is no advertising or social-media tracking on the site. The cookies our code sets are listed here, all of them first-party. The only third-party script is Google's sign-in script, described below the table.</p>
                 <div class="legal__table-wrap">
                     <table class="legal__table">
                         <thead><tr><th scope="col">Cookie</th><th scope="col">What it is for</th><th scope="col">Lasts</th></tr></thead>
@@ -47,6 +50,8 @@
                     </table>
                 </div>
                 <p>Signed-in staff also get small preference cookies in the admin area (language, time zone, chart choice). The course player remembers your animation speed in your browser's own storage; it never leaves your device. On its payment page Stripe sets its own cookies, described in its privacy policy.</p>
+                <p>The visitor ID cookie is set the first time you open a page, without asking, because it is used for anonymous statistics and for keeping your test results together; it holds a random number, not your name. Once you sign in, it is linked to your account, and your earlier visits and answers with the same browser then belong to the account too.</p>
+                <p><strong>Google sign-in script.</strong> Only the sign-in page loads a script from Google (accounts.google.com), for Google's one-tap sign-in suggestion. When it loads, Google receives your IP address and browser details and may read or set its own cookies, under <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's privacy policy</a>. No other page of this site contacts Google. If you press "Continue with Google" you are sent to Google's own page.</p>
                 <p>You can delete or block cookies in your browser at any time. Blocking the sign-in cookies means you cannot stay signed in. Blocking the visitor ID cookie only means we count you as a new visitor each day and cannot keep your anonymous test results together.</p>
 
                 <h2>Who else handles your data</h2>
@@ -63,8 +68,8 @@
                 <h2>How long we keep it</h2>
                 <ul>
                     <li>Order records: for as long as the law requires accounting records to be kept, even if you close your account.</li>
-                    <li>Your account, tests and course answers: until you ask us to delete them or delete your account.</li>
-                    <li>Visit statistics contain no name or e-mail address; we keep them while they are useful for statistics.</li>
+                    <li>Your account, tests, course answers, safety ticks and watch time: until you ask us to delete them or delete your account.</li>
+                    <li>Visit statistics contain no name or e-mail address, but if you sign in they are linked to your account through the visitor ID. We keep them while they are useful for statistics.</li>
                     <li>E-mails to us: as long as needed to help you and to answer follow-up questions.</li>
                 </ul>
 

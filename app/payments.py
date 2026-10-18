@@ -83,9 +83,10 @@ def is_tester(user: Any) -> bool:
 
 
 def _sale_open(product: catalog.Product) -> bool:
-    """On sale to everybody: payments are public and the product is switched on. A customer of the course would get nothing while its access is
+    """On sale to everybody: payments are public, the product is switched on and the seller's name, address and governing law are filled in
+    (the Terms and the Refund Policy would otherwise print brackets). A customer of the course would get nothing while its access is
     «admin», so then nobody is offered to pay."""
-    if not (settings.payments_public and product.on_sale):
+    if not (settings.payments_public and product.on_sale) or legal.SELLER.placeholders:
         return False
     return product.slug != course.PRODUCT or course.access_mode() != 'admin'
 
@@ -109,6 +110,8 @@ def warn_misconfigured() -> None:
     """Settings with which a customer pays and gets nothing are logged loudly (nothing is changed, the site still starts)."""
     if not settings.payments_public:
         return
+    if legal.SELLER.placeholders:
+        log.critical('payments: PAYMENTS_PUBLIC is on but the seller details in app/legal.py are still placeholders (%s): nothing is offered for sale', ', '.join(legal.SELLER.placeholders))
     if not stripe_api.configured():
         log.critical('payments: PAYMENTS_PUBLIC is on but STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET is empty: nobody can pay')
     elif stripe_api.test_mode():
@@ -163,7 +166,10 @@ async def _revoke(session: AsyncSession, order: Order) -> None:
 
 async def by_number(session: AsyncSession, number: str, *, lock: bool = False) -> Order | None:
     query = select(Order).where(Order.number == number[:32])
-    return await session.scalar(query.with_for_update() if lock else query)
+    if lock:
+        # expire_on_commit is off: after waiting for the lock the row must be read again, or a status another request just wrote is not seen
+        query = query.with_for_update().execution_options(populate_existing=True)
+    return await session.scalar(query)
 
 
 async def create_order(session: AsyncSession, user: AdminUser, slug: str) -> Order:
@@ -233,7 +239,12 @@ async def _paid(session: AsyncSession, order: Order, obj: dict) -> tuple[str, st
     late = order.status in (EXPIRED, FAILED)
     order.status, order.paid_at = PAID, now()
     order.stripe_payment_intent = _id(obj.get('payment_intent')) or order.stripe_payment_intent
+    if order.refunded_amount:                                        # the refund event came before this one (Stripe does not keep the order): the money is back
+        order.status = REFUNDED if order.refunded_amount >= order.amount else PARTIAL
+        order.needs_review = True
     await session.flush()
+    if order.status == REFUNDED:
+        return 'applied', None                                       # nothing to open for a payment that was returned
     if not await _grant(session, order) or late:
         order.needs_review = True                                    # the same person paid twice for one product, or the money came after we gave up
     return 'applied', None
@@ -241,10 +252,11 @@ async def _paid(session: AsyncSession, order: Order, obj: dict) -> tuple[str, st
 
 async def _refunded(session: AsyncSession, order: Order, total: int) -> str:
     """Stripe says `total` cents of the order went back (a running total, so a repeat or an out-of-order event is harmless). A full refund closes the access."""
+    total = min(max(total, order.refunded_amount), order.amount)
     if order.status not in HELD:
         order.needs_review = True
+        order.refunded_amount = total                                # kept: `_paid` applies it when the payment event arrives after this one
         return 'ignored'
-    total = min(max(total, order.refunded_amount), order.amount)
     if total == order.refunded_amount:
         return 'ignored'
     order.refunded_amount = total
@@ -281,10 +293,17 @@ async def _apply(session: AsyncSession, kind: str, obj: dict) -> tuple[Order | N
             return order, 'applied', None
     elif kind == 'charge.refunded':
         return order, await _refunded(session, order, int(obj.get('amount_refunded') or 0)), None
-    elif kind == 'charge.dispute.created':
+    elif kind == 'charge.dispute.closed' and obj.get('status') == 'lost':
+        order.needs_review = True                                    # the card holder won: the money is gone, so the access is closed like after a full refund
+        return order, await _refunded(session, order, order.amount), None
+    elif kind in ('charge.dispute.created', 'charge.dispute.closed'):
         order.needs_review = True                                    # the card holder disputes the charge: an admin decides about the access
         return order, 'applied', None
     return order, 'ignored', None
+
+
+MONEY_BACK = ('charge.refunded', 'charge.dispute.closed')
+EARLY = 3600                                                         # seconds: an event this young may have overtaken the payment event
 
 
 def _safe(kind: str, obj: dict) -> dict:
@@ -311,6 +330,9 @@ async def apply_event(session: AsyncSession, event: dict) -> str:
         return 'duplicate'                                           # the savepoint is undone; the rest of the transaction is untouched
     try:
         order, row.result, row.error = await _apply(session, kind, obj)
+        if order is None and kind in MONEY_BACK and time.time() - int(event.get('created') or 0) < EARLY:
+            # an order learns its payment intent from the paid event; a refund that came first finds nothing: Stripe must send it again later
+            raise LookupError(f'{kind}: no order knows this payment yet')
         row.order_id = order.id if order else None
         await session.commit()
     except Exception:
@@ -411,7 +433,7 @@ async def refund_order(session: AsyncSession, order_id: int, note: str, key: str
     except stripe_api.StripeError as exc:
         log.error('payments: the refund of %s failed: %s', number, exc)
         return False, 'stripe_failed'
-    order = await session.scalar(select(Order).where(Order.id == order_id).with_for_update())
+    order = await session.scalar(select(Order).where(Order.id == order_id).with_for_update().execution_options(populate_existing=True))
     if order is None:
         return False, 'not_found'
     order.note = f'{order.note}\n{now():%Y-%m-%d} refund: {note[:800]}'.strip()

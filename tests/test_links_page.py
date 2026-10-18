@@ -101,15 +101,22 @@ def _save(buttons, ads=None, header=None):
     return asyncio.run(run())
 
 
+def _error(*args, **kwargs) -> str:
+    """What a refused save says (a save that went through is a failure of the test)."""
+    result = _save(*args, **kwargs)
+    assert result is not None
+    return result
+
+
 def test_saving_refuses_what_it_cannot_show_with_an_english_message(page):
     error = _save([links.ButtonInput(0, '', '', 'link', False, True)])
     assert isinstance(error, i18n.Message) and 'title is required' in error
-    assert 'pick a link from the analytics list' in _save([links.ButtonInput(99999, 'Ghost', '', 'link', False, True)])
-    assert 'group' in _save([links.ButtonInput(0, 'Empty group', '', 'link', False, True)])
-    assert 'pick an icon' in _save([links.ButtonInput(page['links-guide'], 'Guide', '', 'not-an-icon', False, True)])
-    assert 'At most' in _save([links.ButtonInput(page['links-guide'], f'B{n}', '', 'link', False, True) for n in range(links.MAX_BUTTONS + 1)])
-    assert 'button needs a text' in _save([], {'short_link_id': page['links-guide'], 'title': 'Hi', 'text': '', 'button': ''})
-    assert 'photo' in _save([], header={'name': 'Lola', 'tagline': '', 'photo': b'not an image'})
+    assert 'pick a link from the analytics list' in _error([links.ButtonInput(99999, 'Ghost', '', 'link', False, True)])
+    assert 'group' in _error([links.ButtonInput(0, 'Empty group', '', 'link', False, True)])
+    assert 'pick an icon' in _error([links.ButtonInput(page['links-guide'], 'Guide', '', 'not-an-icon', False, True)])
+    assert 'At most' in _error([links.ButtonInput(page['links-guide'], f'B{n}', '', 'link', False, True) for n in range(links.MAX_BUTTONS + 1)])
+    assert 'button needs a text' in _error([], {'short_link_id': page['links-guide'], 'title': 'Hi', 'text': '', 'button': ''})
+    assert 'photo' in _error([], header={'name': 'Lola', 'tagline': '', 'photo': b'not an image'})
 
 
 def test_a_valid_page_is_saved_and_shown(page):

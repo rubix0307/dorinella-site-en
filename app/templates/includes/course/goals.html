@@ -27,8 +27,8 @@
                         {% for key, label in g.chips %}
                             {% set t = course.TECH_BY_KEY[key] %}
                             <li>{% if course_unlocked is none or 'techniques' in course_unlocked %}
-                                <a class="abm-route__item" href="{{ course.BASE }}techniques/#{{ key }}"><span class="abm-route__n">№{{ t.number }}</span><span class="abm-route__name">{{ label }}</span><span class="abm-route__t">{{ t.time }}</span>{{ icon('chevron-right') }}</a>
-                                {% else %}<span class="abm-route__item"><span class="abm-route__n">№{{ t.number }}</span><span class="abm-route__name">{{ label }}</span><span class="abm-route__t">{{ t.time }}</span></span>{% endif %}</li>
+                                <a class="abm-route__item" href="{{ course.BASE }}techniques/#{{ key }}"><span class="abm-route__n">#{{ t.number }}</span><span class="abm-route__name">{{ label }}</span><span class="abm-route__t">{{ t.time }}</span>{{ icon('chevron-right') }}</a>
+                                {% else %}<span class="abm-route__item"><span class="abm-route__n">#{{ t.number }}</span><span class="abm-route__name">{{ label }}</span><span class="abm-route__t">{{ t.time }}</span></span>{% endif %}</li>
                         {% endfor %}
                     </ol>
                 </section>

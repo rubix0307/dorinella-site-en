@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .models import AdminUser, AdminUserGroup, GroupPermission, PermissionGroup
 
 ROOT, ADMIN, USER = 'root', 'admin', 'user'
-ROLES = (ROOT, ADMIN, USER)
 ROLE_LABELS = {ROOT: 'Root', ADMIN: 'Admin', USER: 'User'}
 
 SYSTEM_GROUP = 'Full access'

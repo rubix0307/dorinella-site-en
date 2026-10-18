@@ -14,7 +14,7 @@
   ],
   "pythonVersion": "3.12",
   "pythonPlatform": "All",
-  "venvPath": ".",
+  "venvPath": "../dorinella",
   "venv": ".venv",
   "typeCheckingMode": "standard",
   "useLibraryCodeForTypes": true,

@@ -2,7 +2,7 @@
 {% block schema %}{{ seo.graph(request, seo.page(request, 'Gut Massage Guide: gentle abdominal self-massage', self.description()|trim), seo.faq(faq)) }}{% endblock %}
 
 {% block title %}Gut Massage Guide: gentle abdominal self-massage | {{ site.BRAND }}{% endblock %}
-{% block description %}Ease bloating and support your digestion with a step-by-step abdominal self-massage guide by {{ site.AUTHOR_NAME }}, plus a free Bristol stool scale test with tips.{% endblock %}
+{% block description %}A step-by-step abdominal self-massage guide for a calm digestion routine by {{ site.AUTHOR_NAME }}, plus a free Bristol stool scale test with tips.{% endblock %}
 {% block og_title %}Gut Massage Guide by {{ site.AUTHOR_NAME }}{% endblock %}
 {% block og_image_alt %}Gut Massage Guide by {{ site.AUTHOR_NAME }}: gentle abdominal self-massage{% endblock %}
 
@@ -20,8 +20,8 @@
                 <p class="eyebrow">Gut health, made gentle</p>
                 <h1 class="hero__title" id="hero-title">A calmer gut starts with <em>gentle hands</em></h1>
                 <p class="hero__lead">
-                    The Gut Massage Guide teaches you simple abdominal self-massage, step by step, so you can ease bloating,
-                    support your digestion and feel more at home in your body.
+                    The Gut Massage Guide teaches you simple abdominal self-massage, step by step, so you can build a calm
+                    routine that some people find eases bloating and supports their digestion.
                 </p>
                 <div class="hero__actions">
                     <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">{{ icon('book-open-text') }}Get the guide</a>
@@ -65,12 +65,12 @@
                 <h2 class="section-title" id="inside-title">Everything you need to start</h2>
             </div>
             <ol class="feature-grid" role="list">
-                <li class="feature" data-reveal>Step-by-step massage techniques <span class="muted">Clear instructions you can follow at your own pace</span></li>
-                <li class="feature" data-reveal>How to prepare <span class="muted">When, where and how to begin comfortably</span></li>
-                <li class="feature" data-reveal>Nutrition tips for a happy gut <span class="muted">Simple habits that support your digestion</span></li>
-                <li class="feature" data-reveal>Routines for different days <span class="muted">Adaptations for bloating, constipation and stress</span></li>
-                <li class="feature" data-reveal>Answers to common questions <span class="muted">From timing to what to expect</span></li>
                 <li class="feature" data-reveal>A clear safety section <span class="muted">Who should skip it, and when to see a doctor first</span></li>
+                <li class="feature" data-reveal>How to prepare <span class="muted">When, where and how to begin comfortably</span></li>
+                <li class="feature" data-reveal>A step-by-step routine <span class="muted">A five-minute massage that follows the direction of the colon</span></li>
+                <li class="feature" data-reveal>How often to practice <span class="muted">And how to tell it is not right for you</span></li>
+                <li class="feature" data-reveal>Notice and adjust <span class="muted">A few questions to ask yourself after each session</span></li>
+                <li class="feature" data-reveal>Everyday habits <span class="muted">Water, fiber, movement and rest alongside the routine</span></li>
             </ol>
             <div class="hero__actions hero__actions--center">
                 <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">Read more about the guide{{ icon('arrow-right') }}</a>
@@ -147,7 +147,7 @@
                     <span class="icon-badge">{{ icon('circle-help') }}</span>
                     <div>
                         <h3 class="free-teaser__title">Bristol stool scale test</h3>
-                        <p>A two-minute check-in with tips matched to your result</p>
+                        <p>A one-minute check-in with tips matched to your result</p>
                     </div>
                     <a class="stretched-link" href="{{ url('self_test', slug='bristol') }}" aria-label="Take the Bristol stool scale test">{{ icon('arrow-right') }}</a>
                 </li>

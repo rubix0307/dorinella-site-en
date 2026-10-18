@@ -22,7 +22,7 @@
                 {% set g = row.group %}
                 <li class="admin-card group-card">
                     <div class="group-card__head">
-                        <h2 class="admin-card__title"><a href="{{ url('admin_group_edit', group_id=g.id) }}">{{ g.name }}</a>{% if g.is_system %} <span class="badge">{{ _('System') }}</span>{% endif %}</h2>
+                        <h2 class="admin-card__title"><a href="{{ url('admin_group_edit', group_id=g.id) }}">{{ g.name|t if g.is_system else g.name }}</a>{% if g.is_system %} <span class="badge">{{ _('System') }}</span>{% endif %}</h2>
                         <span class="group-card__count">{{ _('Admins: %(n)s', n=row.members) }}</span>
                     </div>
                     {% if g.description %}<p class="page-head__lead">{{ g.description }}</p>{% endif %}

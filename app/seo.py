@@ -104,7 +104,7 @@ _generation = 0                                     # grows with every invalidat
 
 
 def invalidate() -> None:
-    """The sitemap is made again at the next request (an article was published, hidden or got a new address)."""
+    """The sitemap is made again at the next request (a product, guide or other catalog page changed)."""
     global _generation
     _generation += 1
     _SITEMAP.clear()

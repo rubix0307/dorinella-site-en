@@ -29,7 +29,7 @@
                             <li class="account__item">
                                 <span class="account__item-text">
                                     <strong>{{ product.title }}</strong>
-                                    <span class="muted">{% if owned[product.slug] %}{% if is_admin %}Admin preview{% else %}Yours to keep{% endif %}{% elif product.on_sale %}Not purchased yet{% else %}Coming soon{% endif %}</span>
+                                    <span class="muted">{% if owned[product.slug] %}{% if is_admin %}Admin preview{% else %}In your account{% endif %}{% elif product.on_sale %}Not purchased yet{% else %}Coming soon{% endif %}</span>
                                 </span>
                                 {% if owned[product.slug] %}
                                     <a class="btn btn--primary btn--sm" href="{{ product.open_path }}">{{ icon('book-open-text') }}Open</a>

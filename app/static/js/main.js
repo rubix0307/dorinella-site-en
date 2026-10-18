@@ -3,6 +3,15 @@
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /* ---------- Stylesheet cached: say so in a cookie, so the next page links it instead of inlining it ---------- */
+    // (an inline onload handler would need a looser Content-Security-Policy; the preload has finished by the load event)
+    const styled = document.querySelector('link[data-styles-cookie]');
+    if (styled) {
+        window.addEventListener('load', () => {
+            document.cookie = `${styled.dataset.stylesCookie}; path=/; max-age=2592000; samesite=lax`;
+        }, {once: true});
+    }
+
     /* ---------- Header state on scroll ---------- */
     const header = document.querySelector('[data-header]');
     if (header) {

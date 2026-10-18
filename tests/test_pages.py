@@ -135,4 +135,27 @@ def test_a_buyer_opens_what_they_bought_from_the_cabinet(accounts, monkeypatch):
         return slug == 'gut-massage-guide'
     monkeypatch.setattr(payments, 'has_entitlement', bought)
     page = fan.get('/account/').text
-    assert 'Yours to keep' in page and page.count('>Open<') == 1 and 'Coming soon' in page
+    assert 'In your account' in page and page.count('>Open<') == 1 and 'Coming soon' in page
+
+
+def test_every_page_carries_a_content_security_policy_with_a_fresh_nonce():
+    client = TestClient(app)
+    import re
+    first, second = client.get('/'), client.get('/')
+    policy = first.headers['content-security-policy']
+    nonce = re.search(r"'nonce-([\w-]+)'", policy).group(1)
+    assert "script-src 'self'" in policy and "object-src 'none'" in policy and "'unsafe-inline'" not in policy.split('style-src')[0]
+    assert f'nonce="{nonce}"' in first.text                                         # the import map is the page's only inline script
+    assert nonce not in second.headers['content-security-policy']
+    assert not re.search(r'<script(?![^>]*(src=|type="application/(json|ld\+json)"|nonce=))', first.text)
+    assert ' onload=' not in first.text
+
+
+def test_a_huge_answer_list_is_refused_before_it_is_checked():
+    reply = TestClient(app).post('/api/v1/tests/any/evaluate', json={'answers': [0] * 5000})
+    assert reply.status_code == 422
+
+
+def test_no_price_is_published_by_the_api_before_the_sales_open(client):
+    assert client.get('/api/v1/products/gut-massage-guide/plans').json() == []
+    assert client.get('/api/v1/products/gut-massage-guide').json()['plans'] == []

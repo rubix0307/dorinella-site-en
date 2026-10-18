@@ -222,14 +222,14 @@ def test_one_tap_refuses_a_foreign_page_and_a_bad_token(accounts, monkeypatch):
     assert _browser().post('/auth/google/one-tap', content=b'not json', headers={'origin': 'http://testserver'}).status_code == 401
 
 
-def test_one_tap_is_offered_only_to_a_signed_out_browser_on_public_pages(accounts):
-    page = _browser().get('/')
-    assert 'accounts.google.com/gsi/client' in page.text and CLIENT_ID in page.text
-    assert 'accounts.google.com/gsi/client' not in _browser().get('/login').text
-    assert 'accounts.google.com/gsi/client' not in _browser().get('/links/').text
+def test_google_script_loads_only_on_the_sign_in_page_for_a_signed_out_browser(accounts):
+    login = _browser().get('/login').text
+    assert 'accounts.google.com/gsi/client' in login and CLIENT_ID in login
+    for path in ('/', '/links/', '/privacy'):
+        assert 'accounts.google.com/gsi/client' not in _browser().get(path).text
     signed_in = _browser()
     signed_in.cookies.set(auth.SESSION_COOKIE, 'x.y.z')
-    assert 'accounts.google.com/gsi/client' not in signed_in.get('/').text
+    assert 'accounts.google.com/gsi/client' not in signed_in.get('/login').text
 
 
 def _flow_cookie_cleared(reply):
@@ -319,8 +319,14 @@ def test_a_secret_key_is_required_on_an_https_site():
     run = subprocess.run([sys.executable, '-c', 'import app.core.config'], env=env, capture_output=True, check=False)
     assert run.returncode != 0
     assert b'SECRET_KEY' in run.stderr
-    assert subprocess.run([sys.executable, '-c', 'import app.core.config'], env={**env, 'SECRET_KEY': 'x'},
+    for weak in ('x', 'change-me', 'k' * 31):
+        assert subprocess.run([sys.executable, '-c', 'import app.core.config'], env={**env, 'SECRET_KEY': weak},
+                              capture_output=True, check=False).returncode != 0
+    assert subprocess.run([sys.executable, '-c', 'import app.core.config'], env={**env, 'SECRET_KEY': 'k' * 32},
                           capture_output=True, check=False).returncode == 0
+    # a real database is production too, whatever SITE_URL says
+    prod = {**os.environ, 'SITE_URL': '', 'DATABASE_URL': 'postgresql+asyncpg://x:x@127.0.0.1:1/t', 'SECRET_KEY': 'change-me'}
+    assert subprocess.run([sys.executable, '-c', 'import app.core.config'], env=prod, capture_output=True, check=False).returncode != 0
 
 
 def test_the_google_name_is_asked_for_and_kept(accounts, monkeypatch):

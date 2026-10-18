@@ -3,16 +3,16 @@
 # TODO(owner): check every answer against the finished guide (length of a session, format, what is covered) before the guide goes on sale.
 GUIDE_FAQ = [
     ('What is the Gut Massage Guide?',
-     'A practical guide to gentle abdominal self-massage. It shows the techniques step by step, how to prepare, when to practice, '
-     'and how to adapt the routine when you are bloated, constipated or stressed.'),
+     'A practical guide to gentle abdominal self-massage. It shows who should skip it, how to prepare, a five-minute routine step by step, '
+     'how often to practice and what to notice afterwards.'),
     ('Who is it for?',
      'For anyone who wants a calm, simple routine to support their digestion and feel more at ease in their body. '
      'You do not need any experience, special tools or training, just your hands and a few quiet minutes.'),
     ('How long does a session take?',
-     'The idea is a short daily practice, around ten minutes. You can also combine the techniques and build a routine that fits your day.'),
+     'The routine takes about five minutes. Once or twice a day is plenty.'),
     ('Will it get rid of my bloating?',
-     'Many people find that gentle abdominal massage helps them feel lighter and less bloated, but results differ from person to person '
-     'and a massage is not a treatment for any condition. The guide also covers food and habits that support digestion.'),
+     'Some people feel lighter and less bloated after gentle abdominal massage, but results differ from person to person '
+     'and a massage is not a treatment for any condition. The guide also covers everyday habits that support digestion.'),
     ('Is abdominal massage safe for everyone?',
      'No. The guide explains who should skip it and when to talk to a doctor first. Read that part before you start, '
      'and see a doctor if you have persistent pain, blood in your stool, unexplained weight loss or any other symptom that worries you.'),

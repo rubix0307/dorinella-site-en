@@ -16,8 +16,8 @@
                 <h2 id="medical">Medical disclaimer</h2>
                 <p><strong>Everything on this site is general education about nutrition, digestion and gentle self-massage. It is not medical advice, a diagnosis or a treatment, and it does not replace a doctor.</strong> {{ site.AUTHOR_NAME }} is a {{ site.AUTHOR_JOB|lower }}, not a physician. Tests, scales and tips on the site are for orientation only.</p>
                 <ul>
-                    <li>See a doctor before you start abdominal massage if you are pregnant, have recently had abdominal surgery, or have a hernia, an inflammatory bowel disease, an infection, a tumor, a blood-clotting problem or any condition of the abdomen.</li>
-                    <li>Stop and get medical help if you have severe or lasting pain, blood in your stool, black stool, fever, vomiting, unexplained weight loss or a sudden change in your bowel habits.</li>
+                    <li>Skip abdominal massage and see a doctor first if any of these applies to you: {{ legal.skip_conditions }}. If you have any other condition of the abdomen, ask your doctor before you start.</li>
+                    <li>Stop and get medical help if you notice any of these: {{ legal.stop_signs }}.</li>
                     <li>Do not stop or change medicines or treatment because of anything you read here.</li>
                     <li>If it is an emergency, call your local emergency number.</li>
                 </ul>
@@ -27,8 +27,8 @@
                 <p>You sign in with a Google account. Give us a real address, keep your account to yourself and tell us if you think someone else has used it. You must be at least 16 to use the site and at least 18 (or the age of majority where you live) to buy. We can switch off an account that breaks these terms.</p>
 
                 <h2>What you buy</h2>
-                <p>Guides and courses are digital products: a PDF or web guide, or an online course you open in your account. You get a personal, non-transferable license to use them for yourself. You may not copy, resell, share your account or access, publish, or record and redistribute them. We keep all rights in the content, the videos, the animations, the text and the design.</p>
-                <p>What each product includes is described on its page. You get access right after the payment is confirmed. Access lasts as long as the product page says; if we ever have to stop offering a product you bought, we will tell you in advance and make it right, including a refund where that is fair.</p>
+                <p>Guides and courses are digital products: a guide you read, or an online course you watch, both opened from your account. You get a personal, non-transferable license to use them for yourself. You may not copy, resell, share your account or access, publish, or record and redistribute them. We keep all rights in the content, the videos, the animations, the text and the design.</p>
+                <p>What each product includes is described on its page. You get access right after the payment is confirmed. The product stays in your account as long as the account exists and we offer the product; if we ever have to stop offering a product you bought, we will tell you in advance and make it right, including a refund where that is fair. {#- TODO(owner): decide how long a bought product stays available and state it here, on the product pages and in the FAQ -#}</p>
 
                 <h2>Prices and payment</h2>
                 <p>Prices are shown in US dollars. {# TODO(owner): say whether sales tax / VAT is included, and set it up in Stripe Tax if it applies #}Payments are made by card on a page hosted by Stripe; we never see your card number. Stripe e-mails you a receipt. Your order is final when Stripe confirms the payment. We may refuse or cancel an order if we suspect fraud or abuse, and then refund anything you paid.</p>

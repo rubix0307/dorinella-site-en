@@ -52,10 +52,19 @@ class Settings:
 
 settings = Settings()
 
-if settings.secret_key == _DEV_SECRET:
-    # on a real (https) site the dev key is public (it is in the repository): sessions and cookies would be forgeable
-    if settings.site_url.startswith('https://'):
-        raise RuntimeError('SECRET_KEY must be set on an https site (see .env.example)')
-    log.warning('SECRET_KEY is not set - using an insecure development key')
+_WEAK_SECRETS = {_DEV_SECRET, 'change-me', 'changeme', 'secret', ''}
+
+
+def check_secret_key(key: str, *, production: bool) -> None:
+    """The key signs the admin session, the sign-in flow and the tracked links: a known or short one lets anybody forge a root session.
+    Production (a real database, or an https site) refuses to start with it; development only warns about the built-in one."""
+    weak = key.strip().lower() in _WEAK_SECRETS
+    if production and (weak or len(key) < 32):
+        raise RuntimeError('SECRET_KEY must be a random value of at least 32 characters (see .env.example)')
+    if key == _DEV_SECRET:
+        log.warning('SECRET_KEY is not set - using an insecure development key')
+
+
+check_secret_key(settings.secret_key, production=bool(settings.database_url) or settings.site_url.startswith('https://'))
 if not settings.visitor_keys:
     log.warning('VISITOR_KEYS is not set - the visitor id cookie is signed with a key derived from SECRET_KEY')

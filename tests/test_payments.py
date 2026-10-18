@@ -74,6 +74,8 @@ def test_the_public_sale_needs_the_switch_the_product_and_an_open_course(account
     sellable(monkeypatch)
     assert people['buyer'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 404            # PAYMENTS_PUBLIC is off
     public()
+    assert people['buyer'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 404            # the seller details are still brackets
+    monkeypatch.setattr(payments.legal, 'SELLER', dataclasses.replace(payments.legal.SELLER, name='Acme LLC', address='1 Main St, Austin, TX, USA', governing_law='Texas, USA'))
     assert people['buyer'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 303
     public(mode='admin')                                                                                # a customer would get nothing: not offered
     assert people['other'].post(f'/checkout/{SLUG}', data={'agree': '1'}).status_code == 404
@@ -250,3 +252,40 @@ def test_the_account_lists_the_purchases(accounts, people, stripe):
     items = asyncio.run(run())
     assert len(items) == 1 and items[0]['title'] == catalog.PRODUCTS[SLUG].title and items[0]['price'] == '$49.00' and items[0]['test']
     assert items[0]['refundable_until'] is not None and items[0]['open_path'] == course.BASE
+
+
+def test_a_refund_that_overtakes_the_payment_is_sent_again_and_still_closes_the_access(accounts, people, stripe):
+    import time
+    assert start(people['boss']).status_code == 303
+    number = order_of(accounts)['number']
+    early = refund_event()
+    early['created'] = int(time.time())
+    assert send(early).status_code >= 500                                                   # no order knows the payment yet: Stripe is asked to retry
+    accounts.exec('DELETE FROM payment_events')                                             # PostgreSQL undoes the stored event with the rollback; SQLite's savepoints commit it
+    assert send(session_event(number)).status_code == 200
+    assert send(early).status_code == 200                                                   # the retry
+    assert order_of(accounts)['status'] == 'refunded'
+    assert accounts.rows('SELECT revoked_at FROM entitlements')[0]['revoked_at']
+
+
+def test_a_refund_noted_on_an_unpaid_order_is_applied_when_the_payment_arrives(accounts, people, stripe):
+    assert start(people['boss']).status_code == 303
+    number = order_of(accounts)['number']
+    accounts.exec("UPDATE orders SET stripe_payment_intent = 'pi_test_1'")
+    assert send(refund_event()).status_code == 200
+    assert order_of(accounts)['status'] == 'created' and order_of(accounts)['refunded_amount'] == PRICE
+    assert send(session_event(number)).status_code == 200
+    row = order_of(accounts)
+    assert row['status'] == 'refunded' and row['needs_review'] == 1
+    assert not accounts.rows('SELECT 1 FROM entitlements WHERE revoked_at IS NULL')
+
+
+def test_a_lost_dispute_closes_the_access_and_a_won_one_only_flags(accounts, people, stripe):
+    paid_order(accounts, people)
+    closed = {'id': 'evt_dc', 'type': 'charge.dispute.closed', 'data': {'object': {'id': 'dp_1', 'payment_intent': 'pi_test_1', 'status': 'won', 'amount': PRICE}}}
+    assert send(closed).status_code == 200
+    assert order_of(accounts)['status'] == 'paid' and order_of(accounts)['needs_review'] == 1
+    lost = {'id': 'evt_dl', 'type': 'charge.dispute.closed', 'data': {'object': {'id': 'dp_1', 'payment_intent': 'pi_test_1', 'status': 'lost', 'amount': PRICE}}}
+    assert send(lost).status_code == 200
+    assert order_of(accounts)['status'] == 'refunded'
+    assert accounts.rows('SELECT revoked_at FROM entitlements')[0]['revoked_at']

@@ -49,7 +49,7 @@ def code_keys():
 
 def test_a_language_is_picked_from_the_cookie_then_the_browser():
     def pick(cookies=None, accept=''):
-        return i18n.pick(SimpleNamespace(cookies=cookies or {}, headers={'accept-language': accept}))    # type: ignore[arg-type]
+        return i18n.pick(SimpleNamespace(cookies=cookies or {}, headers={'accept-language': accept}))
     assert pick() == 'en'
     assert pick(accept='ru-RU,ru;q=0.9') == 'ru' and pick(accept='uk') == 'ru' and pick(accept='be') == 'ru'
     assert pick(accept='en-US,en;q=0.9,ru;q=0.5') == 'en' and pick(accept='de') == 'en'
@@ -158,3 +158,9 @@ def test_the_profile_messages_are_keys_of_the_dictionary():
     assert admin_profile.ROLE_LABELS is permissions.ROLE_LABELS
     for text in ('Time zone saved.', 'This time zone is not in the list.'):
         assert text in RU
+
+
+def test_the_system_group_is_named_in_the_language_of_the_admin(admin_client):
+    admin_client.cookies.set('admin_lang', 'ru')
+    page = admin_client.get('/admin/groups/').text
+    assert 'Полный доступ' in page and '>Full access<' not in page

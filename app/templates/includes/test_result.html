@@ -15,7 +15,9 @@
 
     <h2 class="quiz-result__title">{{ band.title }}</h2>
     <div class="quiz-result__text prose">
-        {% for paragraph in band.text.split('\n\n') %}<p>{{ paragraph }}</p>{% endfor %}
+        {#- the reassuring text of a band must not sit under a red-flag warning #}
+        {% if result.alert %}<p>Your answers include a warning sign, and that matters more than the shape of your stool. Please read the warning above first.</p>
+        {% else %}{% for paragraph in band.text.split('\n\n') %}<p>{{ paragraph }}</p>{% endfor %}{% endif %}
     </div>
 
     {% if band.tips and not result.alert %}

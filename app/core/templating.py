@@ -156,9 +156,11 @@ def font_preloads() -> Markup:
 MODULES = ('vendor/morphicons/dom.js', 'js/morph-icons.js')
 
 
-def import_map() -> Markup:
+def import_map(request: Request) -> Markup:
+    """The one inline script of a page: the Content-Security-Policy lets it run by the nonce the middleware made for this request."""
     imports = {f'/static/{path}': static(path) for path in MODULES}
-    return Markup('<script type="importmap">{}</script>').format(Markup(json.dumps({'imports': imports})))  # noqa: S704 — json of our own static paths
+    nonce = getattr(request.state, 'csp_nonce', '')
+    return Markup('<script type="importmap" nonce="{}">{}</script>').format(nonce, Markup(json.dumps({'imports': imports})))  # noqa: S704 — json of our own static paths
 
 
 templates.env.globals.update(font_preloads=font_preloads, import_map=import_map)

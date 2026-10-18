@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% block schema %}{{ seo.graph(request, seo.product(request, product), seo.crumbs(request, ('Guides and courses', '/products/'), (product.title, request.url.path)), seo.faq(faq)) }}{% endblock %}
 
-{% block title %}Gut Massage Guide: abdominal self-massage for bloating | {{ site.BRAND }}{% endblock %}
-{% block description %}A step-by-step guide to gentle abdominal self-massage: techniques, preparation, gut-friendly nutrition tips and routines for bloating, constipation and stress.{% endblock %}
+{% block title %}Gut Massage Guide: a five-minute abdominal self-massage routine | {{ site.BRAND }}{% endblock %}
+{% block description %}A step-by-step guide to gentle abdominal self-massage: who should skip it, how to prepare, a five-minute routine and everyday habits that support your gut.{% endblock %}
 {% block og_title %}Gut Massage Guide by {{ site.AUTHOR_NAME }}{% endblock %}
-{% block og_description %}Step-by-step abdominal self-massage techniques to ease bloating and look after your gut.{% endblock %}
+{% block og_description %}A step-by-step abdominal self-massage routine, with the safety guidance that comes with it.{% endblock %}
 {% block og_image %}{{ static(product.og_image) }}{% endblock %}
 {% block og_image_alt %}{{ product.og_image_alt }}{% endblock %}
 {% block body_class %}theme-guts{% endblock %}
@@ -53,12 +53,12 @@
                 <h2 class="section-title" id="inside-title">What's inside the guide?</h2>
             </div>
             <ol class="feature-grid" role="list">
-                <li class="feature" data-reveal>Step-by-step massage techniques <span class="muted">Clear instructions you can follow at your own pace</span></li>
-                <li class="feature" data-reveal>How to prepare <span class="muted">When, where and how to begin comfortably</span></li>
-                <li class="feature" data-reveal>Nutrition tips for a happy gut <span class="muted">Simple habits that support your digestion</span></li>
-                <li class="feature" data-reveal>Routines for different days <span class="muted">Adaptations for bloating, constipation and stress</span></li>
-                <li class="feature" data-reveal>Answers to common questions <span class="muted">From timing to what to expect</span></li>
                 <li class="feature" data-reveal>A clear safety section <span class="muted">Who should skip it, and when to see a doctor first</span></li>
+                <li class="feature" data-reveal>How to prepare <span class="muted">When, where and how to begin comfortably</span></li>
+                <li class="feature" data-reveal>A step-by-step routine <span class="muted">A five-minute massage that follows the direction of the colon</span></li>
+                <li class="feature" data-reveal>How often to practice <span class="muted">And how to tell it is not right for you</span></li>
+                <li class="feature" data-reveal>Notice and adjust <span class="muted">A few questions to ask yourself after each session</span></li>
+                <li class="feature" data-reveal>Everyday habits <span class="muted">Water, fiber, movement and rest alongside the routine</span></li>
             </ol>
         </div>
     </section>
@@ -105,8 +105,8 @@
                     <p class="section-lead">Results differ from person to person, and massage is not a treatment for any condition.</p>
                 </div>
                 <ol class="numbered" role="list">
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">01</span>Encourage your digestion to keep moving, for a lighter feeling in your belly</li>
-                    <li data-reveal><span class="numbered__num" aria-hidden="true">02</span>Ease the tension and tightness that come with bloating</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">01</span>Some people find it helps digestion feel more settled, for a lighter feeling in the belly</li>
+                    <li data-reveal><span class="numbered__num" aria-hidden="true">02</span>Some people find it eases the tension and tightness that come with bloating</li>
                     <li data-reveal><span class="numbered__num" aria-hidden="true">03</span>Give you a calm daily pause that helps you relax</li>
                     <li data-reveal><span class="numbered__num" aria-hidden="true">04</span>Help you notice how your body responds to food and stress</li>
                     <li data-reveal><span class="numbered__num" aria-hidden="true">05</span>Build a simple self-care habit that is yours to keep</li>

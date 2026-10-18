@@ -84,7 +84,7 @@
                         <tbody>
                             {% for t in techs %}
                                 <tr{% if not t.viewers %} class="is-empty"{% endif %}>
-                                    <td data-label="{{ _('Technique') }}"><strong>№{{ t.number }} · {{ t.name }}</strong> <small class="course-len">{{ t.length }}</small></td>
+                                    <td data-label="{{ _('Technique') }}"><strong>#{{ t.number }} · {{ t.name }}</strong> <small class="course-len">{{ t.length }}</small></td>
                                     <td class="num" data-label="{{ _('Watched') }}">{{ t.viewers }}</td>
                                     <td class="num" data-label="{{ _('To the end') }}">{{ t.completed }}</td>
                                     <td class="num" data-label="{{ _('Finished') }}">{{ t.rate }}%</td>

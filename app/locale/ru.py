@@ -319,6 +319,7 @@ RU: dict[str, str] = {
     'A group is a set of rights. Admins are given groups, not single rights. An admin can hand out only the groups whose rights they hold themselves.': 'Группа — набор прав. Админам выдают группы, а не отдельные права. Админ может выдать только те группы, права которых есть и у него самого.',
     'New group': 'Новая группа',
     'System': 'Системная',
+    'Full access': 'Полный доступ',
     'Admins: %(n)s': 'Админов: %(n)s',
     'All rights': 'Все права',
     'No rights': 'Без прав',

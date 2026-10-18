@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 
 DB_FILE = Path(tempfile.mkdtemp()) / 'test.sqlite3'
 os.environ['DATABASE_URL'] = f'sqlite+aiosqlite:///{DB_FILE.as_posix()}'
-os.environ['SECRET_KEY'] = 'test-secret'
+os.environ['SECRET_KEY'] = 'test-secret-' + 'x' * 32
 os.environ['VISITOR_KEYS'] = 'test-visitor-key-1,test-visitor-key-old'
 
 

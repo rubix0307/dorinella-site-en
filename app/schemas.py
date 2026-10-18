@@ -1,5 +1,5 @@
 """Public API response models (v1)."""
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .catalog import ProductType
 
@@ -40,7 +40,7 @@ class SelfTestOut(BaseModel):
 
 
 class AttemptIn(BaseModel):
-    answers: list[int]   # chosen option index per question, in question order
+    answers: list[int] = Field(max_length=100)   # chosen option index per question, in question order
 
 
 class BandOut(BaseModel):

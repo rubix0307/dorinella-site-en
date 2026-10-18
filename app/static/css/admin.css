@@ -118,7 +118,6 @@
     font-weight: 700;
     white-space: nowrap;
 }
-.badge--short { background: var(--blush-100); color: #8A2E36; }
 .badge--off { background: var(--danger-soft); color: var(--danger); }
 .count { margin-left: .35rem; color: var(--muted); font-family: var(--font-body); font-size: var(--fs-sm); font-weight: 600; }
 /* ---------- form fields ---------- */
@@ -358,8 +357,7 @@ button.admin-tile {
 .link-row.is-deleted .link-id__slug, .link-row.is-deleted .link-target s { color: var(--muted); text-decoration: line-through; }
 .link-row.is-deleted .link-target { color: var(--muted); }
 .link-row.is-deleted td.cell-stat strong { color: var(--muted); }
-.link-row.is-deleted .badge--short { background: var(--bg); color: var(--muted); }
-.link-id { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .5rem; }
+.link-row.is-deleted .link-id { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .5rem; }
 .link-id__slug { color: var(--ink); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 1rem; font-weight: 700; text-decoration: none; }
 .link-id__title { margin-top: .15rem; color: var(--ink-soft); }
 .link-id__title.is-empty { color: var(--muted); font-style: italic; }
@@ -678,7 +676,7 @@ button.admin-tile {
     .admin-tile__value { padding-right: 3rem; }
 }
 /* ==========================================================================
-   Recipes: list and editor
+   Bio links editor
    ========================================================================== */
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .links-editor { display: grid; gap: 1rem; max-width: 1100px; }
@@ -1172,11 +1170,6 @@ body.is-reordering { cursor: grabbing; user-select: none; }
 .admin-nav a:hover .icon { color: var(--ink-soft); }
 .admin-nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent-text); }
 .admin-nav a[aria-current="page"] .icon { color: var(--accent-text); }
-.admin-side.is-swapped .admin-nav--all { animation: nav-section-in .32s var(--ease-out) both; }
-@keyframes nav-section-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) {
-    .admin-side.is-swapped .admin-nav--all { animation: none; }
-}
 .admin-side__logo { display: inline-flex; align-items: center; gap: .55rem; padding-inline: .75rem; font-size: 1.6rem; }
 .admin-side__foot { display: grid; gap: .5rem; margin-top: auto; }
 /* the account card: 4px inside a --r-m card, so its inner parts are --r-s (14 − 4 = 10, concentric) */
@@ -1382,8 +1375,6 @@ html.js:not(.js-ready) form[data-confirm-danger] button[type="submit"] { pointer
 .tgj__what { margin: 0; overflow-wrap: anywhere; }
 .tgj__details summary { cursor: pointer; color: var(--muted); font-size: var(--fs-sm); }
 .tgj__details ul { margin: .3rem 0 0; padding-left: 1.1rem; font-size: var(--fs-sm); color: var(--ink-soft); overflow-wrap: anywhere; }
-.badge--tg { display: inline-flex; align-items: center; gap: .25rem; }
-.badge--tg .icon { width: 12px; height: 12px; }
 /* ---- payments (app/routers/admin_payments.py) */
 .pay-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .9rem 1.5rem; margin: 0; }
 .pay-facts dt { font-size: var(--fs-xs); color: var(--muted); }

@@ -1,4 +1,6 @@
 """The «Gut Massage» course: closed to everybody but admins (or buyers in the paid mode), invisible to everybody else, complete for admins."""
+import re
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -44,7 +46,10 @@ def _missing(client):
 def test_anonymous_gets_the_plain_404(anon, path):
     r = anon.get(path)
     assert r.status_code == 404
-    assert r.text.replace(path, '/x') == _missing(anon).text.replace('/this-page-does-not-exist-at-all/', '/x')
+    def same(text: str, was: str) -> str:
+        return re.sub(r'nonce="[^"]*"', 'nonce="-"', text.replace(was, '/x'))   # the CSP nonce differs on every response
+
+    assert same(r.text, path) == same(_missing(anon).text, '/this-page-does-not-exist-at-all/')
 
 
 @pytest.mark.parametrize('method', ['post', 'put', 'patch', 'delete', 'options'])
@@ -433,7 +438,7 @@ def test_every_page_renders_in_english(admin):
 def test_the_safety_page_lists_the_contraindications(admin):
     walk(admin, 'safety')
     html = admin.get(f'{BASE}safety/').text
-    for item_id in ('a1', 'a2', 'a3', 'a4', 'a5', 'r1', 'r2', 'r3', 'r4', 'r5'):
+    for item_id in ('a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'r1', 'r2', 'r3', 'r4', 'r5'):
         assert f'data-abs="{item_id}"' in html or f'data-rel="{item_id}"' in html
     assert 'not medical advice' in html and course.SAFETY_VERSION in html
 

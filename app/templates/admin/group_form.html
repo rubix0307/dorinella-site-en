@@ -1,6 +1,6 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}{{ group.name if group else _('New group') }}{% endblock %}
+{% block title %}{{ (group.name|t if group.is_system else group.name) if group else _('New group') }}{% endblock %}
 
 {% block body %}
     {% include 'admin/_bar.html' %}
@@ -9,7 +9,7 @@
         <header class="page-head">
             <div>
                 <p class="back-link"><a href="{{ url('admin_groups') }}">{{ icon('chevron-left') }}{{ _('All groups') }}</a></p>
-                <h1 class="admin-title">{{ group.name if group else _('New group') }}</h1>
+                <h1 class="admin-title">{{ (group.name|t if group.is_system else group.name) if group else _('New group') }}</h1>
                 {% if group %}<p class="page-head__lead">{{ _('Admins in the group: %(n)s. A change of rights applies to them at once.', n=members) }}</p>{% endif %}
             </div>
         </header>

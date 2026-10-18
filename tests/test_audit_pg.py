@@ -58,7 +58,7 @@ def pg_container(migrate: bool = True):
             time.sleep(1)
         else:
             pytest.fail(f'{IMAGE} did not become ready')
-        env = {**os.environ, 'DATABASE_URL': f'postgresql+asyncpg://postgres:x@127.0.0.1:{port}/t', 'SECRET_KEY': 'test', 'PYTHONIOENCODING': 'utf-8', 'PYTHONPATH': str(ROOT)}
+        env = {**os.environ, 'DATABASE_URL': f'postgresql+asyncpg://postgres:x@127.0.0.1:{port}/t', 'SECRET_KEY': 'test-' + 'k' * 32, 'PYTHONIOENCODING': 'utf-8', 'PYTHONPATH': str(ROOT)}
         if migrate:
             _alembic(env, 'upgrade', 'head')
         yield name, env
@@ -260,7 +260,7 @@ def test_the_purge_flag_lifts_the_guard_for_one_transaction_only(pg, users):
 # ---------------------------------------------------------------- the migrations
 
 def test_there_is_one_migration_head():
-    env = {**os.environ, 'DATABASE_URL': 'postgresql+asyncpg://x:x@127.0.0.1:1/t', 'SECRET_KEY': 'test'}
+    env = {**os.environ, 'DATABASE_URL': 'postgresql+asyncpg://x:x@127.0.0.1:1/t', 'SECRET_KEY': 'test-' + 'k' * 32}
     done = _alembic(env, 'heads')                                                    # reads the scripts only, never connects
     assert len(re.findall(r'\(head\)', done.stdout)) == 1, done.stdout
 

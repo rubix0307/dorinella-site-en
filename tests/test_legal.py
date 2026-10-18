@@ -97,3 +97,19 @@ def test_the_buy_box_asks_for_the_texts_and_names_the_refund_days(accounts, peop
         assert text in page.text, text
     assert 'payment-systems.svg' in page.text
     assert payments.sales_open(slug) is False
+
+
+def test_the_privacy_page_discloses_google_the_course_checklist_and_watch_time(client):
+    page = client.get('/privacy/').text
+    for needed in ('accounts.google.com', 'safety conditions', 'watched each technique', 'id="tests"', 'visitor ID cookie is set the first time'):
+        assert needed in page, needed
+
+
+def test_the_lists_of_skipping_and_stopping_are_the_same_everywhere(client):
+    from app import course, learn, safety
+    terms = client.get('/terms/').text
+    for item in safety.SKIP_CONDITIONS[:3] + safety.STOP_SIGNS[:3]:
+        assert item.replace('’', "'").lower() in terms.replace('&#39;', "'").replace('’', "'").lower(), item
+    guide = ' '.join(p for s in learn.GUT_MASSAGE_GUIDE.sections for p in s.paragraphs)
+    assert all(item in guide for item in safety.SKIP_CONDITIONS)
+    assert course.STOP_RULES == safety.STOP_SIGNS

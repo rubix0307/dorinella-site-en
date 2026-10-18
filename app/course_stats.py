@@ -20,13 +20,6 @@ from .models import AdminUser, CourseAnswer, CourseAnswerLog
 
 STALLED_AFTER = timedelta(days=7)
 
-STEPS_TABLE = TableSpec('steps', default='order', tiebreak=('order',), columns=(
-    Column('order', 'Step', attr='order', numeric=True, desc_first=False),
-    Column('passed', 'Passed', attr='passed', numeric=True),
-    Column('percent', 'Of active', attr='percent', numeric=True),
-    Column('lost', 'Dropped off', attr='lost', numeric=True),
-    Column('median', 'Typical time per step', attr='median', numeric=True),
-))
 TECHS_TABLE = TableSpec('techs', default='number', tiebreak=('number',), columns=(
     Column('number', 'Technique', attr='number', numeric=True, desc_first=False),
     Column('viewers', 'Watched', attr='viewers', numeric=True),

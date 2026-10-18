@@ -1,6 +1,8 @@
 """The guide library and the Bristol stool scale test. The text is health education, not medical advice: it never diagnoses."""
 from dataclasses import dataclass
 
+from . import safety
+
 # ---------------------------------------------------------------- test
 
 
@@ -172,7 +174,7 @@ BRISTOL = SelfTest(
               'Do not strain and do not hold it in. A few relaxed minutes on the toilet after breakfast, feet on a small stool, can help.',
               'Move every day. Gentle activity helps the gut move.'),
              'See a doctor if hard stools last more than three weeks, if you strain a lot or have pain when passing them, or if this is a new change. '
-             'Get care promptly for blood in or on the stool, black stool, or severe belly pain with vomiting and no stool or gas passing. ' + _DOCTOR_ANY,
+             'Get care promptly for severe belly pain with vomiting and no stool or gas passing. ' + _DOCTOR_ANY,
              True),
     ),
     note=('This test is for education only. It does not diagnose, treat or screen for any condition and does not replace advice from a doctor. '
@@ -294,8 +296,8 @@ GUT_MASSAGE_GUIDE = Guide(
     # TODO(owner): replace the sections below with the text of the finished guide.
     sections=(
         GuideSection('Before you begin: is it right for you?', (
-            'Skip abdominal massage and talk with a doctor first if you are pregnant, have had recent abdominal surgery, have a hernia, an inflammatory bowel disease flare, '
-            'diverticulitis, an abdominal aneurysm or a known abdominal tumor, or have belly pain, fever or blood in your stool that has not been explained.',
+            f'Skip abdominal massage and talk with a doctor first if any of these applies to you: {safety.sentence(safety.SKIP_CONDITIONS)}. '
+            f'Ask your doctor before you start if you have {safety.sentence(safety.ASK_FIRST)}.',
             'If you are unsure, ask your doctor. Stop right away if anything hurts, and never press hard.',
         )),
         GuideSection('Setting up', (

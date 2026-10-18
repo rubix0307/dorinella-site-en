@@ -86,3 +86,23 @@ def test_a_warning_result_shows_no_tips_and_no_sales_links():
 def test_a_loose_result_says_massage_is_not_for_diarrhea():
     page = client.post('/tests/bristol/', data={'q0': 6, 'q1': 1, 'q2': 0}).text
     assert 'not meant for diarrhea' in page and '/products/' not in _result_html(page)
+
+
+def test_a_warning_sign_hides_the_reassuring_text_of_the_band():
+    page = client.post('/tests/bristol/', data={'q0': '3', 'q1': '1', 'q2': '1'}).text      # type 4, normal frequency, "yes, one or more"
+    html = _result_html(page)
+    assert 'Nothing here needs fixing' not in html and 'warning sign' in html and 'When to see a doctor' in html
+    calm = _result_html(client.post('/tests/bristol/', data={'q0': '3', 'q1': '1', 'q2': '0'}).text)
+    assert 'Nothing here needs fixing' in calm
+
+
+def test_a_doctor_box_never_repeats_itself():
+    for band in BRISTOL.bands:
+        sentences = [s.strip() for s in band.doctor.split('. ') if s.strip()]
+        assert len(sentences) == len(set(sentences)), band.key
+        assert band.doctor.lower().count('black') <= 1, band.key
+
+
+def test_the_test_form_says_what_is_saved():
+    page = client.get('/tests/bristol/').text
+    assert 'random visitor ID' in page and '/privacy/#tests' in page

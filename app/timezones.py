@@ -47,20 +47,3 @@ def label(tz: ZoneInfo, moment: datetime | None = None) -> str:
     sign = '+' if minutes >= 0 else '−'
     hours, rest = divmod(abs(minutes), 60)
     return f"{tz.key} (UTC{sign}{hours}{f':{rest:02d}' if rest else ''})"
-
-
-def to_utc(local: datetime, tz: ZoneInfo) -> datetime:
-    """A wall clock typed in `tz` as a UTC moment."""
-    return local.replace(tzinfo=tz).astimezone(UTC)
-
-
-def localize(local: datetime, tz: ZoneInfo) -> tuple[datetime, str]:
-    """A wall clock typed in `tz` as a UTC moment, and what is special about it: 'ok'; 'ambiguous' (the clocks go back and this time happens twice: the
-    first one is taken); 'gap' (the clocks jump forward and this time never happens: the moment returned is the nearest real one and the caller should refuse)."""
-    first, second = local.replace(tzinfo=tz, fold=0), local.replace(tzinfo=tz, fold=1)
-    first_offset, second_offset = first.utcoffset(), second.utcoffset()
-    if first_offset == second_offset:
-        return first.astimezone(UTC), 'ok'
-    if first_offset is not None and second_offset is not None and first_offset > second_offset:
-        return first.astimezone(UTC), 'ambiguous'
-    return first.astimezone(UTC), 'gap'

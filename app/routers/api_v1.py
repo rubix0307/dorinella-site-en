@@ -40,12 +40,17 @@ async def list_products(request: Request):
 async def get_product(request: Request, slug: str):
     product = _get(slug)
     return ProductDetailOut(**_product_fields(request, product), summary=product.summary,
-                            plans=[_plan(p) for p in product.plans])
+                            plans=_plans(product))
 
 
 @router.get('/products/{slug}/plans', response_model=list[PlanOut], name='api_product_plans')
 async def list_plans(slug: str):
-    return [_plan(p) for p in _get(slug).plans]
+    return _plans(_get(slug))
+
+
+def _plans(product: Product) -> list[PlanOut]:
+    """A price is published only once the product is on sale (the buy box shows none before)."""
+    return [_plan(p) for p in product.plans] if product.on_sale else []
 
 
 def _plan(plan) -> PlanOut:

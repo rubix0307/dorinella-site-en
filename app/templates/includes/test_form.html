@@ -27,6 +27,8 @@
         {% endfor %}
     </div>
 
+    <p class="quiz__privacy">Your answers and result are saved with a random visitor ID, not your name, so you can see them again. If you sign in later they join your account. They are kept until you ask us to delete them, see the <a href="{{ url('privacy') }}#tests">Privacy Policy</a>. This test is education, not a diagnosis.</p>
+
     <div class="quiz__actions">
         <button class="btn btn--primary" type="button" data-quiz-next hidden>Next{{ icon('arrow-right') }}</button>
         <button class="btn btn--primary" type="submit" data-quiz-submit>See my result{{ icon('arrow-right') }}</button>

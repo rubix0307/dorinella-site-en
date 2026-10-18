@@ -7,7 +7,7 @@
         {% for group, perms, ok in groups %}
             <label class="perm-option{{ ' perm-option--locked' if not ok }}">
                 <input type="checkbox" name="group" value="{{ group.id }}"{% if group.id in member_ids %} checked{% endif %}{% if not ok %} disabled{% endif %} aria-describedby="pg-{{ group.id }}">
-                <span class="perm-option__name">{{ group.name }}</span>
+                <span class="perm-option__name">{{ group.name|t if group.is_system else group.name }}</span>
                 <span class="perm-option__why" id="pg-{{ group.id }}">{% if not ok %}{{ icon('triangle-alert') }}{{ _('Only a root can hand out this group.') if group.is_system else _('Gives rights you do not have.') }} {% endif %}{% if group.is_system %}{{ _('All rights.') }}{% elif perms %}{% for code in labels if code in perms %}{{ labels[code]|t }}{{ '; ' if not loop.last }}{% endfor %}{% else %}{{ _('No rights.') }}{% endif %}</span>
             </label>
         {% else %}
@@ -93,7 +93,7 @@
                 {% else %}
                     <p class="page-head__lead">{{ _('Role: %(role)s.', role=_(role_labels[target.role])) }}
                         {% if target.role == 'root' %}{{ _('Has every right.') }}
-                        {% elif target.role == 'admin' %}{{ _('Groups:') }} {% for group, perms, ok in groups if group.id in member_ids %}{{ group.name }}{{ ', ' if not loop.last }}{% else %}{{ _('none') }}{% endfor %}.
+                        {% elif target.role == 'admin' %}{{ _('Groups:') }} {% for group, perms, ok in groups if group.id in member_ids %}{{ group.name|t if group.is_system else group.name }}{{ ', ' if not loop.last }}{% else %}{{ _('none') }}{% endfor %}.
                         {% else %}{{ _('No access to the admin.') }}{% endif %}</p>
                 {% endif %}
             </section>

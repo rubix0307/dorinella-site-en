@@ -13,7 +13,7 @@
     </div>
 
     <ol class="abm-toc abm-toc--nojs" role="list" aria-label="Techniques">
-        {% for t in techniques %}<li><a href="#{{ t.key }}">№{{ t.number }} · {{ t.title }}</a></li>{% endfor %}
+        {% for t in techniques %}<li><a href="#{{ t.key }}">#{{ t.number }} · {{ t.title }}</a></li>{% endfor %}
     </ol>
 
     <div class="abm-hub__grid">
@@ -79,7 +79,7 @@
             <div class="abm-chips" role="radiogroup" aria-label="Choose a technique" data-chips hidden>
                 {% for t in techniques %}
                     <button class="abm-tech-chip" type="button" role="radio" aria-checked="false" data-key="{{ t.key }}" tabindex="-1">
-                        <span class="abm-tech-chip__n">№{{ t.number }}</span><span class="abm-tech-chip__name">{{ t.name }}</span><span class="abm-tech-chip__t">{{ t.time }}</span>
+                        <span class="abm-tech-chip__n">#{{ t.number }}</span><span class="abm-tech-chip__name">{{ t.name }}</span><span class="abm-tech-chip__t">{{ t.time }}</span>
                     </button>
                 {% endfor %}
             </div>
@@ -87,7 +87,7 @@
             <div class="abm-techs">
                 {% for t in techniques %}
                     <section class="abm-tech" id="{{ t.key }}" data-tech="{{ t.key }}" aria-labelledby="{{ t.key }}-h">
-                        <h2 class="abm-tech__h" id="{{ t.key }}-h"><span class="abm-tech__n">№{{ t.number }}</span>{{ t.title }}</h2>
+                        <h2 class="abm-tech__h" id="{{ t.key }}-h"><span class="abm-tech__n">#{{ t.number }}</span>{{ t.title }}</h2>
                         <p class="abm-tech__lead">{{ t.lead }}</p>
                         <ol class="abm-steps" role="list">
                             {% for label, text, start in t.steps %}

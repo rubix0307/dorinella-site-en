@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from . import site
+from . import safety, site
 from .core.config import settings
 
 log = logging.getLogger(__name__)
@@ -168,9 +168,11 @@ PAGES: tuple[Page, ...] = (
                    ('a2', 'Tumors or cancer in the abdomen', 'Massage increases circulation, which is not advised with these conditions. Ask your care team first.'),
                    ('a3', 'Pregnancy (or a chance you could be pregnant)', 'Do not massage the belly during pregnancy unless your doctor or midwife has said it is fine. '
                                                                          'If pregnancy is possible, find out first.'),
-                   ('a4', 'Recent abdominal surgery', 'For example, an appendectomy or a C-section: no massage until you have fully healed '
-                                                      'and your surgeon has cleared you.'),
+                   ('a4', 'Recent abdominal surgery', 'For example, an appendectomy or a C-section, or a recent colonoscopy: no massage until you have fully healed '
+                                                      'and your doctor has cleared you.'),
                    ('a5', 'An acute infection', 'A stomach bug or food poisoning with diarrhea, vomiting or fever.'),
+                   ('a6', 'A hernia', 'Pressing on the belly can make a hernia worse. Skip massage until a doctor has checked it.'),
+                   ('a7', 'Diverticulitis or an abdominal aortic aneurysm', 'Pressure on an inflamed or weakened part of the gut or a major vessel can be dangerous. Ask your doctor first.'),
                ),
                relative_title='Be careful and talk to your doctor',
                relative_lead='If any of these applies to you, talk to your doctor about massage first and listen to your body.',
@@ -180,7 +182,7 @@ PAGES: tuple[Page, ...] = (
                                                        'can be painful and harmful. In remission, only after talking to your doctor.'),
                    ('r3', 'Gallstones', 'Massage might shift stones, which risks a gallbladder attack. Be sure to talk to your doctor.'),
                    ('r4', 'Irritable bowel syndrome (IBS)', 'Talk to your doctor. Usually only soft techniques without firm pressure are suitable.'),
-                   ('r5', 'A hernia or a blood-thinning medication', 'Pressing on the belly may not be safe. Ask your doctor before you try anything.'),
+                   ('r5', 'Blood-thinning medication or a blood-clotting problem', 'Pressing on the belly may cause bruising or bleeding. Ask your doctor before you try anything.'),
                )),
              B('callout', tone='info', title='Go by how you feel',
                rows=('Massage should be gentle and never painful.',
@@ -195,7 +197,7 @@ PAGES: tuple[Page, ...] = (
              B('facts', title='Key spots for massage', cols=3, rows=(
                  ('2 · Cecum', 'The lower right corner of your belly, where the large intestine begins.'),
                  ('4 · Transverse colon', 'Above the navel, where gas can collect.'),
-                 ('6 · Sigmoid colon', 'The lower left corner, the last stretch before stool is formed.'),
+                 ('6 · Sigmoid colon', 'The lower left corner, the last bend before the rectum, where stool waits to pass.'),
              )),
              B('callout', tone='tip', title='Did you know?',
                rows=('The surface area of the gut is often compared to that of a tennis court.',
@@ -466,12 +468,12 @@ FAQ = (
     )),
 )
 
-STOP_RULES = ('sharp or worsening pain', 'nausea or dizziness', 'blood in your stool', 'a sudden change for the worse in how you feel')
+STOP_RULES = safety.STOP_SIGNS
 
 # TODO(owner): replace this placeholder with the real bio of the author; nothing below is a claim about her background.
 AUTHOR = {
     'name': site.AUTHOR_NAME,
     'paras': (f'This course was created by {site.AUTHOR_NAME}, {site.AUTHOR_JOB.lower()}. It shares the gentle gut-care habits she teaches.',
-              'We are glad you are here. Small, steady steps are what count, and this course is meant to be a calm, practical companion along the way. Thank you for your trust.'),
+              'Small, steady steps are what count, and this course is meant to be a calm, practical companion along the way.'),
     'motto': 'Small steps, taken gently, add up.',
 }

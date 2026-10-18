@@ -10,6 +10,7 @@ URL scheme:
 """
 import logging
 import re
+import secrets
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -110,6 +111,7 @@ async def security_headers(request: Request, call_next):
     # and the routes (test attempts) read request.state.visitor.
     visitor = visitors.resolve(request, issue=visitors.wants_cookie(request))
     request.state.visitor = visitor
+    request.state.csp_nonce = secrets.token_urlsafe(16)
     if visitor is not None:
         await visitors.confirm(db.SessionLocal, visitor)
     response = await call_next(request)
@@ -120,7 +122,25 @@ async def security_headers(request: Request, call_next):
     response.headers.setdefault('X-Content-Type-Options', 'nosniff')
     response.headers.setdefault('X-Frame-Options', 'DENY')
     response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.setdefault('Content-Security-Policy', _csp(request.state.csp_nonce))
     return response
+
+
+def _csp(nonce: str) -> str:
+    """Scripts run only from our own files, Google's sign-in script (the /login page) and the one nonced import map. Inline styles stay allowed:
+    the first paint carries the stylesheet in the page, and some bars are sized by a style attribute (a style cannot run code)."""
+    return '; '.join((
+        "default-src 'self'",
+        f"script-src 'self' 'nonce-{nonce}' https://accounts.google.com/gsi/client",
+        "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
+        "img-src 'self' data: https:",
+        "font-src 'self' data:",
+        "connect-src 'self' https://accounts.google.com/gsi/",
+        'frame-src https://accounts.google.com/gsi/',
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'",
+    ))
 
 
 def _is_api(request: Request) -> bool:

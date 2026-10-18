@@ -6,7 +6,7 @@ statement and in its receipt e-mails from its own dashboard settings, not from t
 """
 from dataclasses import dataclass
 
-from . import auth, google_login, site, visitors
+from . import auth, google_login, safety, site, visitors
 from .core.config import settings
 
 
@@ -39,7 +39,7 @@ UPDATED = 'October 18, 2026'
 # Where the seller's data goes, named on the privacy page. Only processors that the code really calls are listed.
 PROCESSORS = (
     ('Stripe, Inc.', 'takes card payments on its own page and sends receipts; we never see or store card numbers', 'https://stripe.com/privacy'),
-    ('Google', 'sign-in with a Google account (we receive your e-mail address and name)', 'https://policies.google.com/privacy'),
+    ('Google', 'sign-in with a Google account (we receive your e-mail address and name); its sign-in script, loaded on the sign-in page only, sees your IP address and browser details', 'https://policies.google.com/privacy'),
 )
 
 
@@ -59,4 +59,5 @@ def cookies() -> list[dict]:
 
 def context() -> dict:
     """What the legal pages need besides their text: the seller, the version date and the number of refund days."""
-    return {'seller': SELLER, 'updated': UPDATED, 'refund_days': settings.refund_days, 'processors': PROCESSORS, 'cookies': cookies()}
+    return {'seller': SELLER, 'updated': UPDATED, 'refund_days': settings.refund_days, 'processors': PROCESSORS, 'cookies': cookies(),
+            'skip_conditions': safety.sentence(safety.SKIP_CONDITIONS), 'stop_signs': safety.sentence(safety.STOP_SIGNS)}

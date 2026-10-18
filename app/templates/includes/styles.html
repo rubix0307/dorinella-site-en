@@ -6,6 +6,5 @@
     <link href="{{ static('css/styles.css') }}" rel="stylesheet">
 {%- else %}
     <style>{{ inline_styles() }}</style>
-    <link rel="preload" href="{{ static('css/styles.css') }}" as="style" fetchpriority="low"
-          onload="document.cookie='{{ STYLES_COOKIE }}={{ version }}; path=/; max-age=2592000; samesite=lax'">
+    <link rel="preload" href="{{ static('css/styles.css') }}" as="style" fetchpriority="low" data-styles-cookie="{{ STYLES_COOKIE }}={{ version }}">
 {%- endif %}
