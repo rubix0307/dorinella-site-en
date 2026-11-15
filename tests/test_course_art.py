@@ -48,7 +48,11 @@ def test_every_photo_has_a_free_licence_in_the_credits():
         entry = credits[f'art/{name}.webp']
         assert 'free for commercial use' in entry['license'] and entry['page_url'], name
     assert not any(e['license'].upper().startswith('NOT CONFIRMED') for e in credits.values())
-    assert not list(IMG.glob('drink-*'))       # no unconfirmed-licence photos ship with the course
+    for drink in course.DRINKS:                # every drink photo has its own free-licence credit
+        if drink.get('img'):
+            entry = credits[f"{drink['img']}-1000.webp"]
+            assert 'free for commercial use' in entry['license'] and entry['page_url'] and drink['alt'].strip(), drink['id']
+            assert (IMG / f"{drink['img']}-640.webp").is_file(), drink['id']
 
 
 def test_the_pages_show_stickers_without_a_text_alternative_and_photos_with_one(admin):  # noqa: F811
