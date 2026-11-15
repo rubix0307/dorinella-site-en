@@ -1,14 +1,16 @@
+{% from 'includes/course/_art.html' import sticker with context %}
 {% set d = b.d %}
+{% set art = d.stickers or () %}
 <section class="abm-block abm-sequence">
     <h2 class="abm-h2">{{ d.title }}</h2>
-    <ol class="abm-seq" role="list">
+    <ol class="abm-seq{% if art %} abm-seq--art{% endif %}" role="list">
         {% for key, title, note in d.rows %}
             {% set t = course.TECH_BY_KEY[key] %}
             <li><span class="abm-seq__n" aria-hidden="true">{{ loop.index }}</span>
                 <div><h3>{{ title }}</h3><p>{{ note }}</p></div>
-                <a class="abm-chip" href="{{ course.BASE }}techniques/#{{ key }}">{{ icon('play') }}#{{ t.number }} · {{ t.name }}</a></li>
+                <a class="abm-chip" href="{{ course.BASE }}techniques/#{{ key }}">{{ icon('play') }}#{{ t.number }} · {{ t.name }}</a>{% if loop.index0 < art|length %}{{ sticker(art[loop.index0], 'abm-seq__sticker') }}{% endif %}</li>
         {% endfor %}
     </ol>
-    <p class="abm-lead">{{ d.note }}</p>
+    <p class="abm-lead abm-lead--art">{{ d.note }}{% if d.sticker %}{{ sticker(d.sticker, 'abm-lead__sticker') }}{% endif %}</p>
     <button class="abm-linkbtn abm-print" type="button" data-print>Print the cheat sheet</button>
 </section>

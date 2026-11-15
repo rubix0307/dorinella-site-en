@@ -1,0 +1,9 @@
+{#- The artwork of the course pages (app/static/img/course/art): a sticker is a decorative drawing (no alt), a photo is a cropped picture with its own alt (course.PHOTOS). -#}
+{% macro sticker(name, cls='') -%}
+    <img class="abm-sticker {{ cls }}" src="{{ static('img/course/art/' ~ name ~ '.svg') }}" alt="" width="96" height="96" loading="lazy" decoding="async">
+{%- endmacro %}
+
+{% macro photo(id, cls='') -%}
+    {% set p = course.PHOTOS[id] -%}
+    <img class="abm-photo {{ cls }}" src="{{ static('img/course/art/' ~ id ~ '.webp') }}" alt="{{ p[2] }}" width="{{ p[0] }}" height="{{ p[1] }}" loading="lazy" decoding="async">
+{%- endmacro %}

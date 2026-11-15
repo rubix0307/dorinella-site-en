@@ -11,6 +11,11 @@
     <div class="abm-drinkgrid">
         {% for dr in course.DRINKS %}
             <article class="abm-drink" aria-labelledby="drink-{{ dr.id }}">
+                {% if dr.img %}
+                    <img class="abm-drink__pic" src="{{ static('img/course/' ~ dr.img ~ '-640.webp') }}"
+                         srcset="{{ static('img/course/' ~ dr.img ~ '-640.webp') }} 640w, {{ static('img/course/' ~ dr.img ~ '-1000.webp') }} 1000w"
+                         sizes="(min-width: 900px) 460px, 90vw" width="1000" height="671" alt="{{ dr.title }}: {{ dr.alt }}" loading="lazy" decoding="async">
+                {% endif %}
                 <header class="abm-drink__head">
                     <h3 class="abm-drink__h" id="drink-{{ dr.id }}">{{ dr.title }}</h3>
                 </header>

@@ -1,3 +1,4 @@
+{% from 'includes/course/_art.html' import sticker, photo with context %}
 {#- «What bothers you?»: pick a goal and see its preparation, the order of techniques (open the player when the techniques page is open) and
     tips. Without JS every goal is listed; with JS only the chosen one (kept in the database). -#}
 <section class="abm-block abm-goals" data-goals>
@@ -12,13 +13,15 @@
     {% for g in course.GOALS %}
         <article class="abm-goal" id="goal-{{ g.id }}" data-goal="{{ g.id }}" aria-labelledby="goal-{{ g.id }}-h">
             <header class="abm-goal__head">
-                <h2 class="abm-h2" id="goal-{{ g.id }}-h">{{ g.title }}</h2>
-                <p>{{ g.lead }}</p>
+                <div><h2 class="abm-h2" id="goal-{{ g.id }}-h">{{ g.title }}</h2>
+                <p>{{ g.lead }}</p></div>
+                {% if g.sticker %}{{ sticker(g.sticker, 'abm-goal__sticker') }}{% endif %}
             </header>
             <div class="abm-goal__flow">
                 <section class="abm-goal__step" aria-labelledby="goal-{{ g.id }}-prep">
                     <h3 id="goal-{{ g.id }}-prep"><span class="abm-goal__n" aria-hidden="true">1</span>Preparation</h3>
                     <ul class="abm-bullets">{% for i in g.prep %}<li>{{ i }}</li>{% endfor %}</ul>
+                    {% if g.photo %}{{ photo(g.photo, 'abm-photo--band') }}{% endif %}
                 </section>
                 <section class="abm-goal__step abm-goal__step--main" aria-labelledby="goal-{{ g.id }}-order">
                     <h3 id="goal-{{ g.id }}-order"><span class="abm-goal__n" aria-hidden="true">2</span>Order of techniques</h3>

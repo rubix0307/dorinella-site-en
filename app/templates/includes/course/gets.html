@@ -1,0 +1,16 @@
+{% from 'includes/course/_art.html' import photo with context %}
+{#- «What you get in the course»: a row = (title, text, picture, icon); the picture is a photo of course.PHOTOS or a drawing of art/<name>.svg. -#}
+{% set d = b.d %}
+<section class="abm-block abm-gets">
+    {% if d.title %}<h2 class="abm-h2">{{ d.title }}</h2>{% endif %}
+    <ul class="abm-getlist" role="list">
+        {% for title, text, art, glyph in d.rows %}
+            <li class="abm-get">
+                <span class="abm-get__icon" aria-hidden="true">{{ icon(glyph) }}</span>
+                <div><h3>{{ title }}</h3><p>{{ text }}</p></div>
+                {% if art in course.PHOTOS %}{{ photo(art, 'abm-get__img') }}
+                {% else %}<img class="abm-get__img" src="{{ static('img/course/art/' ~ art ~ '.svg') }}" alt="" width="320" height="190" loading="lazy" decoding="async">{% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</section>

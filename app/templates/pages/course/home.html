@@ -1,4 +1,5 @@
 {% extends 'pages/course/base.html' %}
+{% from 'includes/course/_art.html' import photo with context %}
 
 {% block title %}Gut Massage: an online course | {{ site.BRAND }}{% endblock %}
 {% block description %}Step-by-step abdominal self-massage techniques, preparation, food and drinks for a happier gut.{% endblock %}
@@ -30,7 +31,7 @@
                     {% else %}
                         <p class="abm-resume__next">Starting with: <strong>{{ first.nav }}</strong></p>
                     {% endif %}
-                    {% if not finished %}<a class="btn btn--primary" href="{{ course.BASE }}{{ first.slug }}/" data-cta-top>{{ icon('play') }}<span>{{ 'Continue' if done else 'Start the course' }}</span></a>{% endif %}
+                    {% if not finished %}<a class="btn btn--primary" href="{{ course.BASE }}{{ first.slug }}/" data-cta-top data-water>{{ icon('play') }}<span>{{ 'Continue' if done else 'Start the course' }}</span></a>{% endif %}
                 </aside>
                 {% endif %}
             </header>
@@ -53,6 +54,14 @@
             {% endif %}
 
             {% if not sales_only %}
+            {{ photo('home-oats', 'abm-photo--banner') }}
+            <section class="abm-flow" aria-labelledby="abm-flow-h">
+                <h2 class="abm-h2" id="abm-flow-h">How the course works</h2>
+                <ol class="abm-flow__line" role="list">
+                    {% for g in course.GROUPS %}<li><span class="abm-flow__n" aria-hidden="true">{{ loop.index }}</span><span class="abm-flow__name">{{ g }}</span></li>{% endfor %}
+                </ol>
+            </section>
+
             <ol class="abm-path" role="list" aria-label="Course steps">
                 {% for g in course.GROUPS %}
                     {% set in_group = course.PUBLIC_PAGES|selectattr('group', 'equalto', loop.index0)|list %}
@@ -84,7 +93,7 @@
         {#- shown by the script when the button at the top is out of sight -#}
         {% if not finished and not sales_only %}
         <div class="abm-sticky" data-cta-sticky hidden>
-            <a class="btn btn--primary abm-sticky__btn" href="{{ course.BASE }}{{ first.slug }}/" tabindex="-1">{{ icon('play') }}<span>{{ 'Continue' if done else 'Start the course' }}: {{ first.nav }}</span></a>
+            <a class="btn btn--primary abm-sticky__btn" href="{{ course.BASE }}{{ first.slug }}/" tabindex="-1" data-water>{{ icon('play') }}<span>{{ 'Continue' if done else 'Start the course' }}: {{ first.nav }}</span></a>
         </div>
         {% endif %}
     </div>

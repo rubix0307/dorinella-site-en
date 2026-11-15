@@ -67,6 +67,25 @@ class Page:
     group: int
     promise: str             # one line: what this page gives
     blocks: tuple[Block, ...]
+    art: str = ''            # photo (PHOTOS) of the page head: a narrow one floats beside the title, a wide one is a banner under it
+    mark: str = ''           # sticker (static/img/course/art/<name>.svg) in the corner of the head
+
+
+# Photos of the pages and goals: static/img/course/art/<id>.webp -> (width, height, alt). Stickers are art/<name>.svg, decorative, shown with alt="".
+# Source, author and licence of every photo: app/static/img/course/CREDITS.json (docs/Image-credits.md).
+PHOTOS = {
+    'start': (600, 900, 'A matcha latte, a bowl with a whisk and a candle on a woven tray'),
+    'safety-tea': (720, 960, 'A glass cup of rosemary tea and a teapot'),
+    'prep-oils': (1400, 933, 'A bottle of oil with a dropper and sprigs of lavender on a wooden plate'),
+    'combine-hands': (1600, 564, 'Hands making circular movements on a belly'),
+    'home-oats': (1500, 495, 'A bowl of oatmeal with blueberries on a wooden board, next to a jar of oats'),
+    'gets-food': (800, 468, 'Yogurt with kiwi, nuts and granola'),
+    'gets-tools': (800, 468, 'A gua sha tool, a rose quartz roller and a linen pouch'),
+    'goal-bloating': (1400, 700, 'A glass of lemon water and half a lemon on a wooden board by a window'),
+    'goal-constipation': (1400, 701, 'A bottle of oil and a slice of orange on a wooden tray'),
+    'goal-relax': (1200, 792, 'A bottle of oil and lavender on a wooden plate'),
+    'goal-anxiety': (1400, 693, 'A bottle of oil among dried chamomile flowers'),
+}
 
 
 GROUPS = ('Start', 'Safety', 'Preparation', 'Techniques', 'Food and answers')
@@ -137,20 +156,28 @@ PAGES: tuple[Page, ...] = (
                    ('Motility', 'The movement of food through the digestive tract.'),
                    ('The immune system', 'A large share of immune cells is connected to the gut.'),
                    ('Serotonin', 'A large share of the “feel-good” chemical serotonin is made in the gut.'),
-               )),
-             B('callout', tone='info', title='Ever noticed?',
+               ), stickers=('waves', 'shield', 'brain')),
+             B('callout', tone='info', title='Ever noticed?', sticker='heart',
                text='After a heavy meal you may feel more than bloating: irritable, tired. Your gut and brain are in constant conversation '
                     'through the nervous system, so digestive trouble (constipation, bloating, irregularity) can show up in your mood, energy and even your skin.'),
              B('facts', title='What belly massage may do', cols=3, rows=(
                  ('Circulation', 'Gentle massage may boost blood flow to the belly, so the tissues get more oxygen and nutrients.'),
                  ('Motility', 'Light pressure and stroking may help the gut contract and food move along.'),
                  ('Less tension', 'The belly is where many of us hold stress. A soft massage helps muscles and nerves relax.'),
+             ), stickers=('drop', 'waves', 'lotus')),
+             B('gets', title='What you get in the course', rows=(
+                 ('Video lessons', 'Step-by-step massage techniques, clear explanations and practice.', 'laptop-video', 'circle-play'),
+                 ('A guide and tips', 'Food, movement, daily habits and little rituals to support your gut.', 'gets-food', 'file-text'),
+                 ('A checklist of tools', 'What you may need: oils, techniques, extra practices and how to use them.', 'gets-tools', 'list-checks'),
              )),
-             B('callout', tone='tip', title='How to use the course',
+             B('callout', tone='info', title='After the course', sticker='heart',
+               text='You will know how to support a regular rhythm in your gut, ease everyday discomfort and look after your digestion, energy and '
+                    'overall wellbeing: gently, naturally and at a pace that suits you.'),
+             B('callout', tone='tip', title='How to use the course', sticker='sprig',
                text='Start with the “Safety” page, then read about preparation and move on to the techniques. '
                     'You may feel a difference after the first session (a bit less bloating or tension, for example), '
                     'but a lasting effect usually takes regular practice over several weeks. Results vary from person to person.'),
-         )),
+         ), art='start'),
 
     Page('safety', 'Safety: can you massage your belly?', 'Safety', 1,
          'Check the contraindications before you start. It takes two minutes.',
@@ -186,11 +213,11 @@ PAGES: tuple[Page, ...] = (
                    ('r4', 'Irritable bowel syndrome (IBS)', 'Talk to your doctor. Usually only soft techniques without firm pressure are suitable.'),
                    ('r5', 'Blood-thinning medication or a blood-clotting problem', 'Pressing on the belly may cause bruising or bleeding. Ask your doctor before you try anything.'),
                )),
-             B('callout', tone='info', title='Go by how you feel',
+             B('callout', tone='info', title='Go by how you feel', sticker='heart',
                rows=('Massage should be gentle and never painful.',
                      'Start with short sessions and notice how you feel.',
                      'When in doubt, always ask your doctor.')),
-         )),
+         ), art='safety-tea'),
 
     Page('body', 'Your body: the gut and your breath', 'Body', 2,
          'What is where, and how to breathe so your belly relaxes.',
@@ -201,7 +228,7 @@ PAGES: tuple[Page, ...] = (
                  ('4 · Transverse colon', 'Above the navel, where gas can collect.'),
                  ('6 · Sigmoid colon', 'The lower left corner, the last bend before the rectum, where stool waits to pass.'),
              )),
-             B('callout', tone='tip', title='Did you know?',
+             B('callout', tone='tip', title='Did you know?', sticker='intestine',
                rows=('The surface area of the gut is often compared to that of a tennis court.',
                      'Trillions of bacteria live in it and are linked to digestion, immunity and even mood.')),
              B('facts', title='Breathing and your gut',
@@ -211,15 +238,16 @@ PAGES: tuple[Page, ...] = (
                    ('Relaxes the belly muscles', 'Deep breathing lowers tension in the muscles of the abdomen.'),
                    ('Eases stress', 'Slow breathing activates the part of the nervous system that handles rest and recovery.'),
                    ('Supports motility', 'Deep breaths in and out gently stir the gut and may ease bloating and discomfort.'),
-               )),
+               ), stickers=('belly', 'lotus', 'waves')),
              B('steps', title='Diaphragmatic breathing', intro='One of the simplest ways to release tension in your belly. You can do it every day.',
                rows=(
                    ('Get comfortable', 'Lie on your back with your knees bent. Place one hand on your chest and the other on your belly.'),
                    ('Inhale', 'Breathe in slowly through your nose so your belly rises, not your chest.'),
                    ('Exhale', 'Breathe out slowly and feel your belly sink.'),
                ),
+               stickers=('lie', 'arrows-up', 'arrows-down'),
                link=('techniques', 'm4', 'The same thing together with massage: technique #4')),
-         )),
+         ), mark='sprig'),
 
     Page('preparation', 'Getting ready to massage', 'Preparation', 2,
          'When, on what and with what to massage.',
@@ -228,26 +256,26 @@ PAGES: tuple[Page, ...] = (
              B('facts', title='The best time', cols=2, rows=(
                  ('In the morning, before eating', 'Helps to “wake up” your digestion.'),
                  ('In the evening, before bed', 'Helps you unwind and supports your gut during rest.'),
-             )),
-             B('callout', tone='warn', title='Not right after a meal',
+             ), stickers=('sun', 'moon')),
+             B('callout', tone='warn', title='Not right after a meal', sticker='sparkle',
                text='Massaging right after eating is not recommended: it can cause discomfort, bloating or slow digestion. '
                     'It is best to wait 1.5–2 hours after a meal, when your stomach is not full.'),
              B('steps', title='Preparing your body', rows=(
                  ('A warm compress (optional)', 'Soak a soft towel in warm water, wring it out and rest it on your belly for 5–10 minutes. '
                                                 'It warms the muscles, boosts circulation and eases tension.'),
                  ('A glass of warm water', 'It is nice to drink one 20–30 minutes before the massage.'),
-             )),
+             ), stickers=('towel', 'glass')),
              B('facts', title='Massage oils (optional)', cols=2, rows=(
                  ('A carrier oil', 'Almond or coconut oil, to moisturize the skin and help your hands glide.'),
                  ('With essential oils', 'Rosemary, peppermint or lavender, for relaxation and a pleasant scent.'),
-             )),
-             B('callout', tone='warn', title='About essential oils', text=OILS_NOTE),
-             B('steps', title='The right position', rows=(
+             ), photo='prep-oils'),
+             B('callout', tone='warn', title='About essential oils', text=OILS_NOTE, sticker='sprig'),
+             B('steps', title='The right position', stickers=('lie', 'pose-legs', 'belly'), rows=(
                  ('Lie down', 'On your back on a flat surface.'),
                  ('Legs', 'Bend your knees and lift them slightly, for example by resting your legs on a pillow.'),
                  ('Hands and belly', 'Keep your hands relaxed and your belly soft.'),
              )),
-         )),
+         ), mark='sprig'),
 
     Page('techniques', '8 massage techniques', 'Techniques', 3,
          'Watch, follow the steps, and pick your technique.',
@@ -261,18 +289,19 @@ PAGES: tuple[Page, ...] = (
                  ('m2', 'Start with circular motions', 'To warm up.'),
                  ('m1', 'Move on to “I Love You”', 'Strokes that follow the path of the colon.'),
                  ('m3', 'Finish with light pressure on the points', 'Gently, with no pain.'),
-             ), note='Each animation shows one cycle of the movement. Repeat it as many times as the technique says, '
+             ), stickers=('rotate', 'intestine', 'point'), sticker='sparkle',
+               note='Each animation shows one cycle of the movement. Repeat it as many times as the technique says, '
                   'or as many times as feels comfortable if no number is given, and stop if you feel pain.'),
              B('facts', title='Listen to your body', cols=3, rows=(
                  ('Day by day', 'The more you practice, the more your body starts to “talk” to you.'),
                  ('Intuitively', 'You will sense which moves you need right now and where there is tension or sluggishness.'),
                  ('A way to know yourself', 'It is more than a technique: it is a way to be more attentive to yourself. Trust what you feel.'),
-             )),
-         )),
+             ), stickers=('calendar', 'heart', 'lotus')),
+         ), art='combine-hands'),
 
     Page('goals', 'Massage for your goal', 'Your goal', 3,
          'Bloating, constipation, relaxation, stress: what to choose.',
-         (B('goals'),)),
+         (B('goals'),), mark='sprig'),
 
     Page('food', 'Food for your gut', 'Food', 4,
          'Fiber, prebiotics and probiotics in one place.',
@@ -320,14 +349,14 @@ ANATOMY = (
 )
 
 GOALS = (
-    {'id': 'bloating', 'title': 'Bloating', 'lead': 'When your belly feels puffy and heavy.',
+    {'id': 'bloating', 'title': 'Bloating', 'lead': 'When your belly feels puffy and heavy.', 'photo': 'goal-bloating', 'sticker': 'wind',
      'prep': ('A warm compress on your belly before the massage helps the muscles relax and may help gas pass.',
               'If you like: 1–2 drops of peppermint or fennel essential oil per tablespoon of carrier oil (almond or coconut).'),
      'order': 'Light circles clockwise, starting at the lower right of the belly → “Spiral” → gentle pressure on the areas where you feel the most discomfort.',
      'chips': (('m2', 'Circles'), ('m6', 'Spiral'), ('m3', 'Pressure points')),
      'tips': ('Afterwards, sip a warm cup of fennel, peppermint or ginger tea.',
               'Avoid a heavy meal before the massage, especially foods that tend to cause gas for you (for example cabbage or beans).')},
-    {'id': 'constipation', 'title': 'Constipation', 'lead': 'When your gut feels sluggish.',
+    {'id': 'constipation', 'title': 'Constipation', 'lead': 'When your gut feels sluggish.', 'photo': 'goal-constipation', 'sticker': 'intestine',
      'prep': ('A glass of warm water with lemon 20–30 minutes before the massage.',
               'If you like: a carrier oil with a few drops of orange or rosemary essential oil.'),
      'order': '“I Love You” → light pressure on the area just below the navel (the small intestine zone) → finish with the “Wave” to encourage food to move in the right direction.',
@@ -335,7 +364,7 @@ GOALS = (
      'tips': ('Afterwards, try a few forward bends or gentle hip circles.',
               'Eat more fiber (vegetables, fruit, chia seeds) and drink enough water. Constipation is often linked to too little fiber, too little water or stress. '
               'If it lasts, talk to your doctor.')},
-    {'id': 'relax', 'title': 'Relaxation', 'lead': 'Tension or ongoing tiredness.',
+    {'id': 'relax', 'title': 'Relaxation', 'lead': 'Tension or ongoing tiredness.', 'photo': 'goal-relax', 'sticker': 'lotus',
      'prep': ('Put on calm music or nature sounds.',
               'If you like: a carrier oil with lavender or chamomile.'),
      'order': 'Light circles over the whole belly, clockwise → the “Square” for an even, relaxing pass → finish with your hands resting on your belly '
@@ -343,7 +372,7 @@ GOALS = (
      'chips': (('m2', 'Circles'), ('m8', 'Square'), ('m4', 'Breathing')),
      'tips': ('Afterwards, enjoy a cup of chamomile or lemon balm tea.',
               'Try the massage in the evening, before bed.')},
-    {'id': 'anxiety', 'title': 'Stress and tension', 'lead': 'When stress “clenches” your belly.',
+    {'id': 'anxiety', 'title': 'Stress and tension', 'lead': 'When stress “clenches” your belly.', 'photo': 'goal-anxiety', 'sticker': 'heart',
      'prep': ('A warm compress; if you like, a few drops of neroli or ylang-ylang essential oil.',
               'Before you start, take 1–2 minutes of diaphragmatic breathing to settle your nervous system.'),
      'order': 'Slow circles over the whole belly, clockwise → light pressure just above the navel to ease tension → finish with the “Wave,” from top to bottom.',

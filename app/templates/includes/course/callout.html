@@ -1,10 +1,12 @@
+{% from 'includes/course/_art.html' import sticker with context %}
 {% set d = b.d %}
 {% set icons = {'info': 'lightbulb', 'tip': 'sparkles', 'warn': 'triangle-alert', 'stop': 'triangle-alert'} %}
-<aside class="abm-callout abm-callout--{{ d.tone or 'info' }}" {% if d.tone in ('warn', 'stop') %}role="note"{% endif %}>
+<aside class="abm-callout abm-callout--{{ d.tone or 'info' }}{% if d.sticker %} abm-callout--art{% endif %}" {% if d.tone in ('warn', 'stop') %}role="note"{% endif %}>
     <span class="abm-callout__icon" aria-hidden="true">{{ icon(icons[d.tone or 'info']) }}</span>
     <div>
         {% if d.title %}<h3>{{ d.title }}</h3>{% endif %}
         {% if d.text %}<p>{{ d.text }}</p>{% endif %}
         {% if d.rows %}<ul>{% for i in d.rows %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
     </div>
+    {% if d.sticker %}{{ sticker(d.sticker, 'abm-callout__sticker') }}{% endif %}
 </aside>

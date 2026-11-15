@@ -42,15 +42,15 @@
         const paintAck = () => {
             if (need && ack.checked) need.hidden = true;
         };
+        // the ticks are health information: they are stored only after the person agreed (the box above them)
+        const consent = safety.querySelector('[data-consent]');
+        const tickedIds = () => [...abs, ...rel].filter((x) => x.checked).map((x) => x.dataset.abs || x.dataset.rel);
         const sync = () => {
             const was = stop.classList.contains('is-active');
             stop.classList.toggle('is-active', abs.some((c) => c.checked));
             if (!was && stop.classList.contains('is-active') && ready) stop.scrollIntoView({ block: 'center', behavior: 'smooth' });
             caution.hidden = !rel.some((c) => c.checked);
         };
-        // the ticks are health information: they are stored only after the person agreed (the box above them)
-        const consent = safety.querySelector('[data-consent]');
-        const tickedIds = () => [...abs, ...rel].filter((x) => x.checked).map((x) => x.dataset.abs || x.dataset.rel);
         const ticked = new Set(saved('checks', []));
         [...abs, ...rel].forEach((c) => {
             c.checked = ticked.has(c.dataset.abs || c.dataset.rel);
@@ -144,6 +144,42 @@
                      x0, y0, x1: parseFloat(d.style.getPropertyValue('--sx')), bend: y0 < 45 ? -12 : 12, p: 0, goal: 0, from: 0 };
         });
         const calm = matchMedia('(prefers-reduced-motion: reduce)');
+        const touch = matchMedia('(hover: none)');            // a finger: numbers stay where they are, nothing runs away from under it
+        // The text of the chosen part sits in one card under the photo (CSS shows it where the list is not beside the photo). All entries share one
+        // grid cell, so the card is as tall as the longest text and nothing below it moves when the choice changes.
+        const card = document.createElement('div');
+        card.className = 'abm-an-card';
+        card.setAttribute('aria-live', 'polite');
+        const entry = (n, head, text) => {
+            const el = document.createElement('div');
+            el.className = 'abm-an-card__item';
+            el.dataset.for = n;
+            if (head) { const h = document.createElement('h3'); h.textContent = head; el.append(h); }
+            const p = document.createElement('p');
+            p.textContent = text;
+            el.append(p);
+            return el;
+        };
+        const hint = entry('', '', 'Tap a number or a dot on the photo to see which part of the gut it is.');
+        hint.classList.add('is-on');                  // shown from the start: an empty card looks broken
+        card.append(hint);
+        $$('[data-item]', anatomy).forEach((li) => card.append(entry(li.dataset.item, li.querySelector('h3').textContent, li.querySelector('p').textContent)));
+        // Where the list is not beside the photo, the parts are picked by a row of numbers right under the photo: photo, number, text are all on one screen.
+        const row = document.createElement('div');
+        row.className = 'abm-an-pick';
+        $$('[data-item]', anatomy).forEach((li) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.dataset.pick = li.dataset.item;
+            b.textContent = li.dataset.item;
+            b.setAttribute('aria-label', `${li.dataset.item}. ${li.querySelector('h3').textContent}`);
+            b.setAttribute('aria-pressed', 'false');
+            b.addEventListener('click', () => pick(li.dataset.item));
+            row.append(b);
+        });
+        const figure = anatomy.querySelector('.abm-anatomy__figure');
+        figure.querySelector('.abm-anatomy__box').after(row);
+        figure.querySelector('figcaption').before(card);
         let spread = false, raf = 0, last = 0;
         const DURATION = 420;
         const place = (t) => {
@@ -171,7 +207,7 @@
         const retarget = (stagger) => {
             const now = performance.now();
             dots.forEach((t, i) => {
-                t.goal = spread || t.n === shown ? 1 : 0;
+                t.goal = spread || (t.n === shown && !touch.matches) ? 1 : 0;
                 t.from = stagger ? now + i * 45 : 0;
                 if (calm.matches) { t.p = t.goal; place(t); }
             });
@@ -183,13 +219,15 @@
             $$('[data-hot]', anatomy).forEach((b) => { b.classList.toggle('is-on', b.dataset.hot === n); b.setAttribute('aria-pressed', b.dataset.hot === n ? 'true' : 'false'); });
             $$('[data-item]', anatomy).forEach((li) => { li.classList.toggle('is-on', li.dataset.item === n); li.setAttribute('aria-pressed', li.dataset.item === n ? 'true' : 'false'); });
             $$('[data-lit]', anatomy).forEach((c) => c.classList.toggle('is-on', c.dataset.lit === n));
+            $$('[data-pick]', row).forEach((b) => { b.classList.toggle('is-on', b.dataset.pick === n); b.setAttribute('aria-pressed', b.dataset.pick === n ? 'true' : 'false'); });
+            $$('.abm-an-card__item', card).forEach((c) => c.classList.toggle('is-on', c.dataset.for === (n || '')));
             retarget(false);
         };
         const pick = (n) => {
             if (locked === n) { locked = null; show(null); return; }      // the same one again: back to the initial state
             locked = n; show(n);
             const li = anatomy.querySelector(`[data-item="${n}"]`);
-            if (li) { const r = li.getBoundingClientRect(); if (r.bottom > innerHeight || r.top < 0) li.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+            if (li && getComputedStyle(card).display === 'none') { const r = li.getBoundingClientRect(); if (r.bottom > innerHeight || r.top < 0) li.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
         };
         const peek = (n) => { clearTimeout(timer); show(n); };
         const rest = () => { clearTimeout(timer); clearTimeout(switchTimer); timer = setTimeout(() => show(locked), 160); };
@@ -250,7 +288,7 @@
             radios.forEach((r) => { r.checked = r.value === id; });
         };
         const fromHash = (location.hash.match(/^#goal-(\w+)$/) || [])[1];
-        const start = [fromHash, saved('goal')].find((id) => id && panels.some((p) => p.dataset.goal === id)) || '';
+        const start = [fromHash, saved('goal')].find((id) => id && panels.some((p) => p.dataset.goal === id)) || (panels[0] ? panels[0].dataset.goal : '');
         show(start);
         radios.forEach((r) => r.addEventListener('change', () => {
             show(r.value); save('goal', r.value);
@@ -342,6 +380,25 @@
         });
         drinks.querySelector('[data-timer-stop]').addEventListener('click', stop);
     }
+
+    // ---------- «Next»: the button fills with water, then the page changes ----------
+    const WATER_MS = 500;
+    let flooding = false;
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('[data-water]');
+        if (!el || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || el.target === '_blank') return;
+        if (calm.matches) return;
+        e.preventDefault();
+        if (flooding) return;
+        flooding = true;
+        el.classList.add('is-water');
+        setTimeout(() => {
+            if (el.tagName === 'A') location.href = el.href;
+            else if (el.form) el.form.requestSubmit ? el.form.requestSubmit() : el.form.submit();
+        }, WATER_MS);
+    });
+    // coming back with the «back» button the page may be restored from memory: the water drains
+    addEventListener('pageshow', () => { flooding = false; $$('[data-water].is-water').forEach((b) => b.classList.remove('is-water')); });
 
     // ---------- print the cheat-sheet ----------
     $$('[data-print]').forEach((b) => b.addEventListener('click', () => window.print()));

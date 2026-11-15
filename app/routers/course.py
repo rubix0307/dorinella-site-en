@@ -136,7 +136,7 @@ async def complete(request: Request, page: str, session: AsyncSession | None = D
     user = getattr(request.state, 'course_admin', None)
     if user is None or session is None:      # nobody to keep progress for: just move on
         following = course.neighbours(current)[1]
-        return RedirectResponse(f'{course.BASE}{following.slug if following else ""}', status_code=303)
+        return RedirectResponse(f'{course.BASE}{following.slug}/' if following else course.BASE, status_code=303)
     if not same_origin(request):
         raise HTTPException(status_code=404)
     state = await progress.load(session, user.id)

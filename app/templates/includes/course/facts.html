@@ -1,10 +1,13 @@
+{% from 'includes/course/_art.html' import sticker, photo with context %}
 {% set d = b.d %}
+{% set art = d.stickers or () %}
 <section class="abm-block">
     {% if d.title %}<h2 class="abm-h2">{{ d.title }}</h2>{% endif %}
     {% if d.intro %}<p class="abm-lead">{{ d.intro }}</p>{% endif %}
+    {% if d.photo %}{{ photo(d.photo, 'abm-photo--band abm-photo--wide') }}{% endif %}
     <ul class="abm-cards abm-cards--{{ d.cols or 3 }}" role="list">
         {% for title, text in d.rows %}
-            <li class="abm-card"><h3>{{ title }}</h3><p>{{ text }}</p></li>
+            <li class="abm-card{% if art %} abm-card--art{% endif %}"><h3>{{ title }}</h3><p>{{ text }}</p>{% if loop.index0 < art|length %}{{ sticker(art[loop.index0], 'abm-card__sticker') }}{% endif %}</li>
         {% endfor %}
     </ul>
 </section>
