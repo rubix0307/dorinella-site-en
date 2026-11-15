@@ -1,10 +1,11 @@
+{% from 'includes/bristol_types.html' import bristol_type %}
 {# Result of the Bristol test. Rendered by the server; main.js fetches the same page and swaps this block in. #}
 {% set band = result.band %}
 <div class="quiz-result bristol-result" data-result tabindex="-1">
     <p class="quiz-result__score">Your result</p>
     <ol class="bristol-scale" role="img" aria-label="Type {{ result.score }} on a scale from 1 (hard) to 7 (watery)">
         {% for n in range(1, 8) %}
-            <li class="bristol-scale__step bristol-scale__step--{{ 'hard' if n < 3 else ('ok' if n < 6 else 'loose') }}{% if n == result.score %} is-current{% endif %}" aria-hidden="true">{{ n }}</li>
+            <li class="bristol-scale__step bristol-scale__step--{{ 'hard' if n < 3 else ('ok' if n < 6 else 'loose') }}{% if n == result.score %} is-current{% endif %}" aria-hidden="true">{{ bristol_type(n) }}</li>
         {% endfor %}
     </ol>
     <p class="bristol-scale__legend" aria-hidden="true"><span>Hard</span><span>Typical</span><span>Loose</span></p>

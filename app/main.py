@@ -150,7 +150,7 @@ def apply_security_headers(response: Response, request: Request) -> None:
 
 
 def _csp(nonce: str, request: Request) -> str:
-    """Scripts run only from our own files, Google's sign-in script (the /login page) and the one nonced import map. Inline styles stay allowed:
+    """Scripts run only from our own files, Google's sign-in script (One Tap, on most pages) and the one nonced import map. Inline styles stay allowed:
     the first paint carries the stylesheet in the page, and some bars are sized by a style attribute (a style cannot run code)."""
     return '; '.join((
         "default-src 'self'",

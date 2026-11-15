@@ -1,4 +1,4 @@
-// Google One Tap on the sign-in page only. The credential goes to our server (which has Google check it); after a good
+// Google One Tap on every page except the excluded ones (google_login.NO_ONE_TAP). The credential goes to our server (which has Google check it); after a good
 // answer the page reloads and the sign-in page forwards the person to their page.
 (() => {
     const me = document.currentScript;

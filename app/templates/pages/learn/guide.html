@@ -8,12 +8,38 @@
 {% block og_image_alt %}{{ guide.title }}{% endblock %}
 {% block og_image %}{{ static(product.og_image if product else 'img/og-default.jpg') }}{% endblock %}
 
+{% from 'includes/bristol_types.html' import bristol_type %}
 {% macro section_block(section) %}
     <section class="guide__section" data-reveal="quick">
         <h2 class="guide__h2">{{ section.title }}</h2>
+        {% if section.images %}
+            <div class="guide__photos guide__photos--{{ section.images|length }}">
+                {% for name in section.images %}<img src="{{ static('img/' ~ name ~ '.webp') }}" alt="" loading="lazy" decoding="async">{% endfor %}
+            </div>
+        {% endif %}
         <div class="prose">
             {% for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
         </div>
+        {% if section.extra == 'types' %}
+            <ol class="gx-types" role="list" aria-label="The seven Bristol stool types">
+                {% for n in range(1, 8) %}<li class="gx-types__item gx-types__item--{{ 'hard' if n < 3 else ('ok' if n < 5 else ('soft' if n == 5 else 'loose')) }}">{{ bristol_type(n) }}<span>Type {{ n }}</span></li>{% endfor %}
+            </ol>
+            <p class="gx-types__legend" aria-hidden="true"><span>Hard</span><span>Easiest to pass</span><span>Loose</span></p>
+            <p class="gx-types__cta"><a href="{{ url('self_test', slug='bristol') }}">{{ icon('circle-help') }}Find your type with the one-minute test</a></p>
+        {% elif section.extra == 'foods' %}
+            <ul class="gx-foods" role="list" aria-label="Fiber-rich foods to try">
+                {% for icon_name, food in (('wheat', 'Oats'), ('apple', 'Pears'), ('salad', 'Kiwi'), ('apple', 'Prunes'), ('bean', 'Beans'), ('bean', 'Lentils'), ('carrot', 'Vegetables'), ('leaf', 'Chia'), ('nut', 'Ground flaxseed')) %}
+                    <li>{{ icon(icon_name) }}{{ food }}</li>
+                {% endfor %}
+            </ul>
+        {% elif section.extra == 'redflags' %}
+            <ul class="gx-flags" role="list" aria-label="Signs to see a doctor about">
+                {% for icon_name, flag in (('droplet', 'Blood in or on the stool'), ('triangle-alert', 'Black or tar-like stool'), ('scale', 'Unexplained weight loss'), ('heart-pulse', 'Severe or lasting belly pain'), ('moon', 'Diarrhea that wakes you at night'), ('clock', 'A clear change that lasts more than a few weeks')) %}
+                    <li>{{ icon(icon_name) }}<span>{{ flag }}</span></li>
+                {% endfor %}
+            </ul>
+            <p class="gx-urgent">{{ icon('triangle-alert') }}<span><strong>Get urgent care</strong> for severe pain with vomiting and no stool or gas passing, heavy bleeding, or fainting.</span></p>
+        {% endif %}
     </section>
 {% endmacro %}
 

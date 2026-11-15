@@ -129,7 +129,9 @@ async def finish(request: Request, code: str, state: str) -> tuple[str, str]:
 # ---------------------------------------------------------------- One Tap
 
 TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo'
-ONE_TAP_PATH = '/login'      # the only page that loads Google's script: no other page sends anything to Google
+# Google's One Tap suggestion is offered on every page for a signed-out browser, except these: the money and admin pages, the sign-in
+# endpoints and the legal pages (they must stay free of third-party scripts and of pop-ups over the text a person is reading).
+NO_ONE_TAP = ('/admin', '/checkout', '/auth', '/api', '/privacy', '/terms', '/refund')
 
 
 def _get_json(url: str) -> dict:
@@ -150,12 +152,13 @@ async def verify_credential(credential: str) -> tuple[str, str]:
 
 
 def one_tap(request: Request):
-    """The tags that show Google's One Tap — only on the sign-in page, so that no other page contacts Google (the privacy page says so), and
-    nothing for a signed-in browser or when Google is not set up. After a sign-in the page reloads and /login forwards the person to their page."""
+    """The tags that show Google's One Tap — on every page except NO_ONE_TAP (the privacy page says so), and nothing for a signed-in browser
+    or when Google is not set up. After a sign-in the page reloads (/login forwards the person to their page, any other page just shows
+    the signed-in state)."""
     from markupsafe import Markup, escape
 
     from .auth import SESSION_COOKIE
-    if not configured() or request.cookies.get(SESSION_COOKIE) or request.url.path != ONE_TAP_PATH:
+    if not configured() or request.cookies.get(SESSION_COOKIE) or request.url.path.startswith(NO_ONE_TAP):
         return ''
     return Markup('<script src="https://accounts.google.com/gsi/client" async></script>\n'
                   '<script src="/static/js/google-one-tap.js" defer data-client-id="{}" data-url="/auth/google/one-tap"></script>'

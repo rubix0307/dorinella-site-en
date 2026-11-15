@@ -6,160 +6,127 @@
 {% block og_title %}Gut Massage Guide by {{ site.AUTHOR_NAME }}{% endblock %}
 {% block og_image_alt %}Gut Massage Guide by {{ site.AUTHOR_NAME }}: gentle abdominal self-massage{% endblock %}
 
-{% block preload %}
-    <link rel="preload" as="image" fetchpriority="high" href="{{ static('img/guts-hero-500.webp') }}"
-          imagesrcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
-          imagesizes="(min-width: 961px) 520px, 340px">
-{% endblock %}
-
+{% from 'includes/bristol_types.html' import bristol_type %}
 {% block content %}
-    {# ---------- Hero ---------- #}
+    {# Structure follows the "Gut Feeling" mockup: hero, strip, hello, free guide, poop types, massage, about, FAQ, closing call. #}
+
+    {# ---------- 1. Hero: text on the left, a collage of six topics on the right ---------- #}
     <section class="hero" aria-labelledby="hero-title">
         <div class="container hero__inner">
             <div class="hero__text">
-                <p class="eyebrow">Gut health, made gentle</p>
-                <h1 class="hero__title" id="hero-title">A calmer gut starts with <em>gentle hands</em></h1>
-                <p class="hero__lead">
-                    The Gut Massage Guide teaches you simple abdominal self-massage, step by step, so you can build a calm
-                    routine that some people find eases bloating and supports their digestion.
-                </p>
+                <p class="eyebrow">A little less taboo. A little more comfort.</p>
+                <h1 class="hero__title" id="hero-title">Good days start with a happy <em>gut feeling.</em></h1>
+                <p class="hero__lead">Let's make pooping less of a struggle. Get to know your gut and find a kinder everyday routine.</p>
                 <div class="hero__actions">
-                    <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">{{ icon('book-open-text') }}{{ 'Get the guide' if guide.on_sale else 'About the guide' }}</a>
-                    <a class="btn btn--ghost" href="#inside">See what's inside</a>
+                    <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">{{ 'Get the guide' if guide.on_sale else 'About the guide' }}</a>
+                    <a class="btn btn--ghost" href="#learn">Start with something free</a>
                 </div>
-                <ul class="hero__facts" role="list">
-                    <li>{{ icon('list-checks') }}Step-by-step techniques</li>
-                    <li>{{ icon('timer') }}A few minutes a day</li>
-                    <li>{{ icon('hand-heart') }}No equipment needed</li>
-                    <li>{{ icon('stethoscope') }}Educational, not medical advice</li>
-                </ul>
+                <p class="hero__note">Real conversations. Simple routines. Zero shame.</p>
             </div>
 
-            <figure class="hero__media hero__media--illustration">
-                <img src="{{ static('img/guts-hero-500.webp') }}"
-                     srcset="{{ static('img/guts-hero-500.webp') }} 500w, {{ static('img/guts-hero-900.webp') }} 900w"
-                     sizes="(min-width: 961px) 520px, 340px"
-                     width="500" height="526" alt="Illustration of the gut wrapped in blossoming branches"
-                     fetchpriority="high" decoding="async">
-            </figure>
+            <ul class="collage" role="list" aria-label="What we talk about">
+                <li class="topic topic--sage"><span class="topic__icon">{{ icon('hand-heart') }}</span><h2 class="topic__title">Belly massage</h2><p class="topic__line">Gentle, guided, at your pace</p></li>
+                <li class="topic topic--sky"><span class="topic__icon">{{ icon('droplet') }}</span><h2 class="topic__title">Hydration</h2><p class="topic__line">Little sips through the day</p></li>
+                <li class="topic topic--clay"><span class="topic__icon">{{ icon('brain') }}</span><h2 class="topic__title">Gut-brain connection</h2><p class="topic__line">A calmer mind, a calmer belly</p></li>
+                <li class="topic topic--sand"><span class="topic__icon">{{ icon('salad') }}</span><h2 class="topic__title">Gut-friendly food</h2><p class="topic__line">Fiber, added slowly</p></li>
+                <li class="topic topic--leaf"><span class="topic__icon">{{ icon('footprints') }}</span><h2 class="topic__title">Daily movement</h2><p class="topic__line">A short walk counts</p></li>
+                <li class="topic topic--poop"><span class="topic__icon">{{ bristol_type(4) }}</span><h2 class="topic__title">Know your poop</h2><p class="topic__line">No awkward photos needed</p></li>
+            </ul>
         </div>
     </section>
 
-    {# ---------- Why ---------- #}
-    <section class="section" aria-labelledby="why-title">
-        <div class="container container--narrow">
-            <div class="highlight-card" data-reveal>
-                <h2 class="highlight-card__title" id="why-title">Does your gut feel out of rhythm?</h2>
-                <p>Bloating after meals, a heavy belly, digestion that never quite settles. It is common, and it is rarely just about food: how you eat, move, breathe and handle stress all show up in your belly.</p>
-                <p>Gentle abdominal massage is a simple way to slow down, tune in to your body and give your digestion some support. This guide shows you how to do it with care.</p>
+    {# ---------- 2. Strip ---------- #}
+    <div class="strip">
+        <ul class="container strip__list" role="list">
+            <li>Gut health, without the overwhelm</li>
+            <li>Body kindness always</li>
+            <li>Small steps, every day</li>
+        </ul>
+    </div>
+
+    {# ---------- 3. A hello from Lola ---------- #}
+    {# TODO(owner): a photo (and a short intro video) of the author goes into .split__media; no facts about her are invented here. #}
+    <section class="section" aria-labelledby="hello-title">
+        <div class="container split">
+            <div class="split__media split__media--portrait" data-reveal>
+                <img src="{{ static('img/lola-hello-640.webp') }}" srcset="{{ static('img/lola-hello-640.webp') }} 640w, {{ static('img/lola-hello-1000.webp') }} 1000w"
+                     sizes="(min-width: 861px) 540px, 92vw" width="640" height="960" alt="{{ site.AUTHOR_NAME }}" loading="lazy" decoding="async">
+                <p class="split__caption"><strong>A hello from {{ site.AUTHOR_NAME.split()[0] }}</strong><span>My story</span></p>
+            </div>
+            <div class="split__text" data-reveal>
+                <p class="eyebrow">You're in the right place</p>
+                <h2 class="section-title" id="hello-title">Bloated? Backed up? <em>Let's start here.</em></h2>
+                <p class="section-lead">I'm {{ site.AUTHOR_NAME }}, a {{ site.AUTHOR_JOB|lower }}. I want to make this conversation easier to have.</p>
+                <p class="section-lead">A little understanding. Practical resources. And a much kinder relationship with your belly.</p>
             </div>
         </div>
     </section>
 
-    {# ---------- Inside ---------- #}
-    {# TODO(owner): check this list against the finished guide. #}
-    <section class="section" id="inside" aria-labelledby="inside-title">
+    {# ---------- 4. Free guide + test ---------- #}
+    <section class="section section--tight" id="learn" aria-labelledby="learn-title">
         <div class="container">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">What's inside</p>
-                <h2 class="section-title" id="inside-title">Everything you need to start</h2>
+            <div class="freebox theme-guts" data-reveal>
+                <div class="freebox__cover" aria-hidden="true">
+                    <span class="freebox__badge">{{ icon('leaf') }}</span>
+                    <span class="freebox__title">Gut Basics</span>
+                    <span class="freebox__sub">A gentle starter guide</span>
+                </div>
+                <div class="freebox__text">
+                    <p class="eyebrow">Your free guide</p>
+                    <h2 class="section-title" id="learn-title">Start gently. <em>On the house.</em></h2>
+                    <p class="section-lead">Fluids, fiber, rhythm and movement, plus how to read your stool and when to see a doctor.</p>
+                    <div class="hero__actions">
+                        <a class="btn btn--primary" href="{{ url('guide', slug='gut-basics') }}">Read the free guide{{ icon('arrow-right') }}</a>
+                        <a class="btn btn--ghost" href="{{ url('guide_list') }}">All guides</a>
+                    </div>
+                    <p class="freebox__note">Free · No sign-up needed</p>
+                </div>
             </div>
-            <ol class="feature-grid" role="list">
-                <li class="feature" data-reveal>A clear safety section <span class="muted">Who should skip it, and when to see a doctor first</span></li>
-                <li class="feature" data-reveal>How to prepare <span class="muted">When, where and how to begin comfortably</span></li>
-                <li class="feature" data-reveal>A step-by-step routine <span class="muted">A five-minute massage that follows the direction of the colon</span></li>
-                <li class="feature" data-reveal>How often to practice <span class="muted">And how to tell it is not right for you</span></li>
-                <li class="feature" data-reveal>Notice and adjust <span class="muted">A few questions to ask yourself after each session</span></li>
-                <li class="feature" data-reveal>Everyday habits <span class="muted">Water, fiber, movement and rest alongside the routine</span></li>
+        </div>
+    </section>
+
+    {# ---------- 5. The seven types ---------- #}
+    <section class="section" id="types" aria-labelledby="types-title">
+        <div class="container">
+            <div class="section-head" data-reveal>
+                <p class="eyebrow">The conversation starter</p>
+                <h2 class="section-title" id="types-title">So... what's your <em>poop type?</em></h2>
+                <p class="section-lead">Choose the shape that looks most like your usual stool. No awkward photos needed.</p>
+            </div>
+            <ol class="types" role="list" data-reveal>
+                {% for n, name in ((1, 'Hard lumps'), (2, 'Lumpy'), (3, 'Cracked'), (4, 'Smooth'), (5, 'Soft blobs'), (6, 'Mushy'), (7, 'Watery')) %}
+                    <li class="type-tile theme-guts">
+                        {{ bristol_type(n) }}
+                        <span class="type-tile__num">Type {{ n }}</span>
+                        <a class="type-tile__name" href="{{ url('self_test', slug='bristol') }}">{{ name }}</a>
+                    </li>
+                {% endfor %}
             </ol>
-            <div class="hero__actions hero__actions--center">
-                <a class="btn btn--primary" href="{{ url('product_detail', slug=guide.slug) }}">Read more about the guide{{ icon('arrow-right') }}</a>
-            </div>
+            <p class="types-legend" aria-hidden="true"><span>Hard</span><span>Typical</span><span>Loose</span></p>
+            <p class="types-note">Based on the Bristol Stool Form Scale. Educational only, this is not a diagnosis. <a href="{{ url('self_test', slug='bristol') }}">Take the one-minute test</a></p>
         </div>
     </section>
 
-    {# ---------- Who ---------- #}
-    <section class="section section--tinted" aria-labelledby="who-title">
+    {# ---------- 6. The guided belly massage (dark block) ---------- #}
+    {# TODO(owner): check this list against the finished guide. #}
+    <section class="section section--tight" id="inside" aria-labelledby="inside-title">
         <div class="container">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Is it for you?</p>
-                <h2 class="section-title" id="who-title">Who the guide is for</h2>
+            <div class="darkbox" data-reveal>
+                <div class="darkbox__media" aria-hidden="true">
+                    <img src="{{ static('img/ritual-640.webp') }}" srcset="{{ static('img/ritual-640.webp') }} 640w, {{ static('img/ritual-900.webp') }} 900w" sizes="(min-width: 861px) 440px, 92vw" alt="" width="640" height="853" loading="lazy" decoding="async">
+                </div>
+                <div class="darkbox__text">
+                    <p class="eyebrow eyebrow--light">A guided practice, at your pace</p>
+                    <h2 class="section-title" id="inside-title">A little care. <em>A guided belly massage.</em></h2>
+                    <p class="darkbox__lead">Gentle abdominal self-massage, explained step by step, for a calm routine alongside your everyday habits.</p>
+                    <ol class="darkbox__list" role="list">
+                        <li><span>01</span>A clear safety section: who should skip it and when to see a doctor</li>
+                        <li><span>02</span>A step-by-step routine of a few minutes</li>
+                        <li><span>03</span>Notes to adjust it to how you feel</li>
+                    </ol>
+                    <a class="btn btn--light" href="{{ url('product_detail', slug=guide.slug) }}">{{ 'Explore the belly massage' if guide.on_sale else 'About the guide' }}{{ icon('arrow-right') }}</a>
+                </div>
             </div>
-            <ul class="icon-cards icon-cards--5" role="list">
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('wind') }}</span>
-                    <p>People who often feel bloated, heavy or irregular</p>
-                </li>
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('sunrise') }}</span>
-                    <p>Anyone who wants a gentle morning routine for their digestion</p>
-                </li>
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('flower-2') }}</span>
-                    <p>Busy, stressed people looking for a natural way to unwind</p>
-                </li>
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('leaf') }}</span>
-                    <p>Anyone who is curious about gut health and wants a practical place to start</p>
-                </li>
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('heart-handshake') }}</span>
-                    <p>Beginners: no experience or special skills needed</p>
-                </li>
-            </ul>
-        </div>
-    </section>
-
-    {# ---------- How it works ---------- #}
-    <section class="section" aria-labelledby="how-title">
-        <div class="container">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">How it works</p>
-                <h2 class="section-title" id="how-title">Simple, gentle, yours</h2>
-            </div>
-            <ul class="icon-cards icon-cards--3" role="list">
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('timer') }}</span>
-                    <p><strong>A few minutes a day.</strong> Short, calm sessions that fit into a morning or an evening.</p>
-                </li>
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('list-checks') }}</span>
-                    <p><strong>Build your own ritual.</strong> Mix the techniques and go at the pace that feels right for you.</p>
-                </li>
-                <li class="icon-card" data-reveal>
-                    <span class="icon-badge">{{ icon('shield-check') }}</span>
-                    <p><strong>Safety first.</strong> You will know who should skip massage and when to check with a doctor.</p>
-                </li>
-            </ul>
-        </div>
-    </section>
-
-    {# ---------- Free ---------- #}
-    <section class="section section--tinted" id="learn" aria-labelledby="learn-title">
-        <div class="container">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Free to try</p>
-                <h2 class="section-title" id="learn-title">Not ready to buy? Start here</h2>
-                <p class="section-lead">Learn what your gut is telling you, at no cost and in your own time.</p>
-            </div>
-            <ul class="free-teaser free-teaser--pair" role="list">
-                <li class="free-teaser__item theme-guts" data-reveal>
-                    <span class="icon-badge">{{ icon('circle-help') }}</span>
-                    <div>
-                        <h3 class="free-teaser__title">Bristol stool scale test</h3>
-                        <p>A one-minute check-in with tips matched to your result</p>
-                    </div>
-                    <a class="stretched-link" href="{{ url('self_test', slug='bristol') }}" aria-label="Take the Bristol stool scale test">{{ icon('arrow-right') }}</a>
-                </li>
-                <li class="free-teaser__item theme-guts" data-reveal>
-                    <span class="icon-badge">{{ icon('book-open-text') }}</span>
-                    <div>
-                        <h3 class="free-teaser__title">Guides library</h3>
-                        <p>Short, practical guides on gut health</p>
-                    </div>
-                    <a class="stretched-link" href="{{ url('guide_list') }}" aria-label="Browse the guides library">{{ icon('arrow-right') }}</a>
-                </li>
-            </ul>
         </div>
     </section>
 
@@ -175,21 +142,21 @@
         </div>
     </section>
 
-    {# ---------- About ---------- #}
+    {# ---------- 7. Less shame, more understanding ---------- #}
     {# TODO(owner): a short bio, credentials and a photo go here (no facts are invented on this page). #}
-    <section class="section section--tinted" id="about" aria-labelledby="about-title">
+    <section class="section" id="about" aria-labelledby="about-title">
         <div class="container container--narrow">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="eyebrow">Hello</p>
-                <h2 class="section-title" id="about-title">Hi, I'm {{ site.AUTHOR_NAME }}</h2>
-            </div>
-            <div class="prose" data-reveal>
-                <p>I'm a {{ site.AUTHOR_JOB|lower }}. I created these guides to make looking after your gut feel simple, gentle and doable, with clear steps you can follow at home and no pressure to do it perfectly.</p>
-                <p>I share more on Instagram at <a href="{{ out(site.INSTAGRAM, 'about:instagram') }}" target="_blank" rel="noopener">{{ site.INSTAGRAM_HANDLE }}</a>.</p>
+            <div class="split__text" data-reveal>
+                <p class="eyebrow">A little more about me</p>
+                <h2 class="section-title" id="about-title">Less shame. <em>More understanding.</em></h2>
+                <p class="section-lead">I care about the connection between our everyday habits, how we feel and how we treat our bodies.</p>
+                <p class="section-lead">You don't need a perfect routine to begin. You deserve care on the uncomfortable days, too.</p>
+                <p><a href="{{ out(site.INSTAGRAM, 'about:instagram') }}" target="_blank" rel="noopener">More on Instagram: {{ site.INSTAGRAM_HANDLE }}</a></p>
             </div>
         </div>
     </section>
 
+    {# ---------- 8. FAQ ---------- #}
     {% include 'includes/faq.html' %}
 
     {# ---------- Good to know ---------- #}
@@ -199,16 +166,17 @@
         </div>
     </section>
 
-    {# ---------- Contacts ---------- #}
+    {# ---------- 9. Closing call ---------- #}
     <section class="section contacts" id="contacts" aria-labelledby="contacts-title">
         <div class="container">
-            <div class="cta-card" data-reveal>
-                <p class="eyebrow eyebrow--light">Let's talk</p>
-                <h2 class="section-title" id="contacts-title">Questions? Say hello</h2>
-                <p class="section-lead">I'm happy to help you choose where to start.</p>
+            <div class="cta-card cta-card--warm" data-reveal>
+                <p class="eyebrow eyebrow--light">A softer place to start</p>
+                <h2 class="section-title" id="contacts-title">You deserve <em>support, too.</em></h2>
+                <p class="section-lead">You don't have to figure everything out at once. Start with one small act of care.</p>
                 <div class="cta-card__actions">
-                    {% if site.CONTACT_EMAIL %}<a class="btn btn--light" href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}Email me</a>{% endif %}
-                    <a class="btn {{ 'btn--outline-light' if site.CONTACT_EMAIL else 'btn--light' }}" href="{{ out(site.INSTAGRAM, 'contacts:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}Instagram</a>
+                    <a class="btn btn--light" href="{{ url('guide', slug='gut-basics') }}">Start with the free guide</a>
+                    {% if site.CONTACT_EMAIL %}<a class="btn btn--outline-light" href="mailto:{{ site.CONTACT_EMAIL }}">{{ icon('mail') }}Email me</a>{% endif %}
+                    <a class="btn btn--outline-light" href="{{ out(site.INSTAGRAM, 'contacts:instagram') }}" target="_blank" rel="noopener">{{ icon('instagram') }}Instagram</a>
                     <a class="btn btn--outline-light" href="{{ out(site.TIKTOK, 'contacts:tiktok') }}" target="_blank" rel="noopener">{{ icon('message-circle') }}TikTok</a>
                 </div>
             </div>

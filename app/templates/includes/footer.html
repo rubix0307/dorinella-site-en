@@ -19,9 +19,11 @@
     <div class="container">
         <div class="site-footer__bottom">
             <small>© {{ now().year }} {{ site.BRAND }}. All rights reserved.</small>
-            <a class="site-footer__admin" href="{{ url('privacy') }}">Privacy</a>
-            <a class="site-footer__admin" href="{{ url('terms') }}">Terms</a>
-            <a class="site-footer__admin" href="{{ url('refund') }}">Refunds</a>
+            <nav class="site-footer__legal" aria-label="Legal">
+                <a class="site-footer__admin" href="{{ url('privacy') }}">Privacy</a>
+                <a class="site-footer__admin" href="{{ url('terms') }}">Terms</a>
+                <a class="site-footer__admin" href="{{ url('refund') }}">Refunds</a>
+            </nav>
         </div>
     </div>
 </footer>

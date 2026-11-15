@@ -77,10 +77,10 @@ PRODUCTS: dict[str, Product] = {p.slug: p for p in (
         og_image='img/og-gut-guide.jpg',
         og_image_alt='Gut Massage Guide by Lola Krissss, with an illustration of the gut among blossoms',
         card=CardImage(
-            sources=(('img/guts-hero-500.webp', 500), ('img/guts-hero-900.webp', 900)),
-            width=500, height=526, alt='',      # decorative: the title beside it says what the card is
-            sizes='(min-width: 961px) 390px, 290px',
-            media_class='product-card__media--sage',
+            sources=(('img/guide-640.webp', 640), ('img/guide-900.webp', 900)),
+            width=900, height=600, alt='',      # decorative: the title beside it says what the card is
+            sizes='(min-width: 961px) 480px, 92vw',
+            media_class='product-card__media--photo',
         ),
         faq=tuple(content.GUIDE_FAQ),
         plans=(Plan(id='guide', label='Guide', title='Gut Massage Guide', price=19, features=('The full guide, to read in your account', 'Access from your account')),),
@@ -99,10 +99,10 @@ PRODUCTS: dict[str, Product] = {p.slug: p for p in (
         og_image='img/og-course.jpg',
         og_image_alt='Abdominal Massage Course by Lola Krissss, with an illustration of the gut among blossoms',
         card=CardImage(
-            sources=(('img/guts-hero-500.webp', 500), ('img/guts-hero-900.webp', 900)),
-            width=500, height=526, alt='',      # decorative: the title beside it says what the card is
-            sizes='(min-width: 961px) 390px, 290px',
-            media_class='product-card__media--blush',
+            sources=(('img/course-640.webp', 640), ('img/course-1000.webp', 1000)),
+            width=1000, height=563, alt='',      # decorative: the title beside it says what the card is
+            sizes='(min-width: 961px) 480px, 92vw',
+            media_class='product-card__media--photo product-card__media--right',
         ),
         faq=tuple(content.COURSE_FAQ),
         plans=(Plan(id='course', label='Course', title='Abdominal Massage Course', price=49, features=('The whole course', 'Access from your account')),),

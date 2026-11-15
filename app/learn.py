@@ -199,6 +199,8 @@ SELF_TESTS: dict[str, SelfTest] = {BRISTOL.slug: BRISTOL}
 class GuideSection:
     title: str
     paragraphs: tuple[str, ...]
+    images: tuple[str, ...] = ()     # static names under img/ (without .webp): photos shown with the section, free to use commercially (docs/Image-credits)
+    extra: str = ''                  # a visual block the template draws for this section: 'types', 'foods' or 'redflags'
 
 
 @dataclass(frozen=True)
@@ -240,12 +242,12 @@ GUT_BASICS = Guide(
             'There is no single normal. Doctors usually consider anything from three bowel movements a day to three a week healthy, as long as it is steady for you and comfortable.',
             'What matters more than the number is the pattern and how you feel. The Bristol Stool Scale describes stool in seven shapes: types 3 and 4 are the easiest to pass, '
             'types 1 and 2 point toward constipation, and types 6 and 7 toward loose stools. You can check where you are with the Bristol stool test on this site.',
-        )),
+        ), extra='types'),
         GuideSection('Water and fiber, in that order', (
             'Fiber adds bulk and holds water in the stool, but it needs fluid to work. If you raise fiber without drinking more, constipation can get worse.',
             'Add it slowly, over two to three weeks: oats, pears, kiwi, prunes, beans, lentils, vegetables, chia or ground flaxseed. A good start is one new fiber-rich food at a time. '
             'Drink water regularly through the day rather than all at once.',
-        )),
+        ), images=('gb-water', 'gb-fiber'), extra='foods'),
         GuideSection('Give your gut a rhythm', (
             'The gut is most active in the morning and after meals. Eating at regular times and keeping a few unhurried minutes after breakfast for the toilet works with that rhythm.',
             'Do not ignore the urge or strain against it. A small footstool that lifts your knees above your hips straightens the angle of the rectum and makes emptying easier for many people.',
@@ -253,12 +255,11 @@ GUT_BASICS = Guide(
         GuideSection('Movement and stress', (
             'Walking, stretching and anything that gets you moving help the gut move too. Even 20 minutes a day makes a difference for many people.',
             'The gut and the nervous system talk constantly, so stress can speed things up or slow them down. A few slow breaths before a meal or on the toilet is a small, free tool.',
-        )),
+        ), images=('gb-walk',)),
         GuideSection('When to talk to a doctor', (
             'Home habits are for ordinary, mild trouble. Please see a doctor if you notice blood in or on the stool, black or tar-like stool, unexplained weight loss, '
             'severe or lasting belly pain, diarrhea that wakes you at night, or a clear change from your usual pattern that lasts more than a few weeks.',
-            'Get urgent care for severe pain with vomiting and no stool or gas passing, heavy bleeding, or fainting.',
-        )),
+        ), extra='redflags'),
     ),
     steps_title='A gentle 7-day reset',
     steps=(

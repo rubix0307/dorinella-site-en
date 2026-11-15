@@ -1,3 +1,4 @@
+{% from 'includes/bristol_types.html' import bristol_type %}
 {# One question per card (main.js turns the form into a stepper); posts to self_test_submit, the result is swapped in. #}
 <form class="quiz" method="post" action="{{ url('self_test_submit', slug=test.slug) }}" data-quiz novalidate>
     <div class="quiz__top">
@@ -17,8 +18,9 @@
                 <legend class="quiz__legend"><span class="quiz__num">{{ loop.index }}/{{ test.questions|length }}</span>{% if q.label %}<span class="quiz__label">{{ q.label }}</span>{% endif %}{{ q.text }}</legend>
                 <div class="quiz__options">
                     {% for label, _points in q.options %}
-                        <label class="quiz__option">
+                        <label class="quiz__option{% if test.slug == 'bristol' and qi == 0 %} quiz__option--shape{% endif %}">
                             <input type="radio" name="q{{ qi }}" value="{{ loop.index0 }}" required>
+                            {% if test.slug == 'bristol' and qi == 0 %}{{ bristol_type(loop.index) }}{% endif %}
                             <span>{{ label }}</span>
                         </label>
                     {% endfor %}

@@ -222,14 +222,15 @@ def test_one_tap_refuses_a_foreign_page_and_a_bad_token(accounts, monkeypatch):
     assert _browser().post('/auth/google/one-tap', content=b'not json', headers={'origin': 'http://testserver'}).status_code == 401
 
 
-def test_google_script_loads_only_on_the_sign_in_page_for_a_signed_out_browser(accounts):
-    login = _browser().get('/login').text
-    assert 'accounts.google.com/gsi/client' in login and CLIENT_ID in login
-    for path in ('/', '/links/', '/privacy'):
-        assert 'accounts.google.com/gsi/client' not in _browser().get(path).text
+def test_google_script_loads_on_public_pages_for_a_signed_out_browser_but_not_on_the_excluded_ones(accounts):
+    for path in ('/login', '/', '/links/', '/guides/gut-basics/', '/tests/bristol/'):
+        page = _browser().get(path).text
+        assert 'accounts.google.com/gsi/client' in page and CLIENT_ID in page, path
+    for path in ('/privacy', '/terms', '/refund'):
+        assert 'accounts.google.com/gsi/client' not in _browser().get(path).text, path
     signed_in = _browser()
     signed_in.cookies.set(auth.SESSION_COOKIE, 'x.y.z')
-    assert 'accounts.google.com/gsi/client' not in signed_in.get('/login').text
+    assert 'accounts.google.com/gsi/client' not in signed_in.get('/login').text and 'accounts.google.com/gsi/client' not in signed_in.get('/').text
 
 
 def _flow_cookie_cleared(reply):
